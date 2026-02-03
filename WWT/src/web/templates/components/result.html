@@ -1,0 +1,84 @@
+<div class="card">
+    <div class="flex justify-between items-center mb-4">
+        <h2>Results</h2>
+        <span class="badge badge-success">{{ result.row_count }} rows</span>
+    </div>
+
+    <div class="mb-4">
+        <strong>Question:</strong> {{ question }}
+    </div>
+
+    {% if plan.sql %}
+    <div class="mb-4">
+        <strong>Generated SQL:</strong>
+        <pre class="sql-block">{{ plan.sql }}</pre>
+    </div>
+    {% endif %}
+
+    {% if plan.tables %}
+    <div class="mb-4 text-sm">
+        <strong>Tables used:</strong>
+        {% for table in plan.tables %}
+        <span class="badge badge-success">{{ table }}</span>
+        {% endfor %}
+    </div>
+    {% endif %}
+
+    {% if dashboard_url %}
+    <div class="alert alert-info mb-4">
+        <strong>Dashboard created!</strong>
+        <a href="{{ dashboard_url }}" target="_blank" class="link">Open in Grafana</a>
+    </div>
+    {% endif %}
+
+    {% if result.success and result.data %}
+    <div class="mb-4">
+        <strong>Data Preview:</strong>
+        <div style="overflow-x: auto;">
+            <table class="data-table">
+                <thead>
+                    <tr>
+                        {% for col in result.columns %}
+                        <th>{{ col }}</th>
+                        {% endfor %}
+                    </tr>
+                </thead>
+                <tbody>
+                    {% for row in result.data[:20] %}
+                    <tr>
+                        {% for col in result.columns %}
+                        <td>{{ row[col] }}</td>
+                        {% endfor %}
+                    </tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+        </div>
+        {% if result.row_count > 20 %}
+        <p class="text-sm text-muted mt-2">Showing 20 of {{ result.row_count }} rows</p>
+        {% endif %}
+    </div>
+    {% elif result.error %}
+    <div class="alert alert-error">
+        <strong>Query Error:</strong> {{ result.error }}
+    </div>
+    {% endif %}
+
+    {% if plan.viz %}
+    <div class="text-sm text-muted">
+        <strong>Visualization:</strong> {{ plan.viz.type }} chart
+        {% if plan.viz.title %} - "{{ plan.viz.title }}"{% endif %}
+    </div>
+    {% endif %}
+
+    {% if plan.followUp %}
+    <div class="mt-4">
+        <strong>Follow-up questions:</strong>
+        <ul class="text-sm" style="list-style: disc; padding-left: 1.5rem;">
+            {% for q in plan.followUp %}
+            <li>{{ q }}</li>
+            {% endfor %}
+        </ul>
+    </div>
+    {% endif %}
+</div>

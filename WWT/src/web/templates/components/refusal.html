@@ -1,0 +1,25 @@
+<div class="card">
+    <div class="flex justify-between items-center mb-4">
+        <h2>Cannot Answer</h2>
+        <span class="badge badge-warning">Infeasible</span>
+    </div>
+
+    <div class="mb-4">
+        <strong>Question:</strong> {{ question }}
+    </div>
+
+    <div class="alert alert-warning">
+        <strong>Reason:</strong> {{ reason }}
+    </div>
+
+    {% if suggestions %}
+    <div class="mt-4">
+        <strong>Try instead:</strong>
+        <ul class="text-sm" style="list-style: disc; padding-left: 1.5rem;">
+            {% for s in suggestions %}
+            <li>{{ s }}</li>
+            {% endfor %}
+        </ul>
+    </div>
+    {% endif %}
+</div>

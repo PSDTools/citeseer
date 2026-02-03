@@ -1,0 +1,40 @@
+<div class="card">
+    <h2>Available Tables</h2>
+
+    {% for name, profile in profiles.items() %}
+    <div class="mb-4" style="border-bottom: 1px solid var(--border); padding-bottom: 1rem;">
+        <div class="flex justify-between items-center mb-2">
+            <strong>{{ name }}</strong>
+            <span class="badge badge-success">{{ profile.row_count }} rows</span>
+        </div>
+
+        <table class="data-table">
+            <thead>
+                <tr>
+                    <th>Column</th>
+                    <th>Type</th>
+                    <th>Role</th>
+                    <th>Sample Values</th>
+                </tr>
+            </thead>
+            <tbody>
+                {% for col in profile.columns %}
+                <tr>
+                    <td><code>{{ col.name }}</code></td>
+                    <td class="text-muted">{{ col.dtype }}</td>
+                    <td>
+                        {% if col.is_timestamp %}<span class="badge badge-warning">timestamp</span>{% endif %}
+                        {% if col.is_metric %}<span class="badge badge-success">metric</span>{% endif %}
+                        {% if col.is_entity_id %}<span class="badge" style="background: #dbeafe; color: #1e40af;">entity_id</span>{% endif %}
+                        {% if col.is_categorical %}<span class="badge" style="background: #f3e8ff; color: #7c3aed;">categorical</span>{% endif %}
+                    </td>
+                    <td class="text-sm text-muted">
+                        {{ col.sample_values[:3] | join(", ") }}
+                    </td>
+                </tr>
+                {% endfor %}
+            </tbody>
+        </table>
+    </div>
+    {% endfor %}
+</div>
