@@ -45,8 +45,6 @@
 	{:else}
 		{@const spec = panelToVegaLite(panel, result)}
 		{#if spec}
-			<!-- Debug: log data -->
-			{console.log('Chart data:', { panel, columns: result.columns, data: result.data.slice(0, 2), spec })}
 			<VegaChart {spec} />
 		{:else}
 			<div class="p-4 text-center">
@@ -56,7 +54,16 @@
 		{/if}
 	{/if}
 
-	{#if panel.description}
+	{#if panel.summary}
+		<div class="mt-3 border-t border-white/5 pt-3">
+			<div class="flex items-start gap-2">
+				<svg class="h-4 w-4 text-[#64ff96] flex-shrink-0 mt-0.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+					<path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
+				</svg>
+				<p class="text-sm text-white/80 leading-relaxed">{panel.summary}</p>
+			</div>
+		</div>
+	{:else if panel.description}
 		<p class="mt-3 text-sm text-white/60 border-t border-white/5 pt-3">
 			{panel.description}
 		</p>

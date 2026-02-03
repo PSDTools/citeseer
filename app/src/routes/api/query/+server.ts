@@ -234,6 +234,34 @@ export const POST: RequestHandler = async ({ request, locals }) => {
 			executionMs
 		});
 
+		// Generate executive summaries if we have successful results
+		if (!hasError && !hasNoData && plan.viz && plan.viz.length > 0) {
+			const panelData = plan.viz.map((panel, i) => {
+				const result = results.get(i) || results.get(-1);
+				return {
+					title: panel.title,
+					type: panel.type,
+					data: result?.data || [],
+					columns: result?.columns || []
+				};
+			});
+
+			const summaries = await compiler.generateExecutiveSummary({
+				question,
+				panels: panelData
+			});
+
+			// Add summaries to plan
+			plan.executiveSummary = summaries.dashboardSummary;
+			if (summaries.panelSummaries.length > 0) {
+				plan.viz.forEach((panel, i) => {
+					if (summaries.panelSummaries[i]) {
+						panel.summary = summaries.panelSummaries[i];
+					}
+				});
+			}
+		}
+
 		return json({
 			plan,
 			results: Object.fromEntries(results),

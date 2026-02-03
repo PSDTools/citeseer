@@ -316,4 +316,84 @@ Be helpful and specific. Reference actual column names and values from the schem
 			suggestions: ['Try rephrasing your question', 'Ask about available categories or values first']
 		};
 	}
+
+	/**
+	 * Generate executive summaries for dashboard panels based on actual query results.
+	 * This analyzes the real data to produce actionable insights.
+	 */
+	async generateExecutiveSummary(context: {
+		question: string;
+		panels: Array<{
+			title: string;
+			type: string;
+			data: Record<string, unknown>[];
+			columns: string[];
+		}>;
+	}): Promise<{ dashboardSummary: string; panelSummaries: string[] }> {
+		// Format panel data for the prompt
+		const panelDataSummaries = context.panels.map((panel, i) => {
+			const sampleRows = panel.data.slice(0, 10);
+			const dataPreview = sampleRows.length > 0
+				? JSON.stringify(sampleRows, null, 2)
+				: 'No data';
+			return `### Panel ${i + 1}: ${panel.title} (${panel.type})
+Columns: ${panel.columns.join(', ')}
+Row count: ${panel.data.length}
+Data sample:
+\`\`\`json
+${dataPreview}
+\`\`\``;
+		}).join('\n\n');
+
+		const prompt = `You are a senior data analyst writing executive summaries for business stakeholders.
+
+## User's Question
+"${context.question}"
+
+## Query Results
+${panelDataSummaries}
+
+## Your Task
+Analyze the actual data and write:
+1. An overall executive summary (2-3 sentences) that directly answers the user's question with specific numbers and key insights
+2. A brief summary for each panel (1 sentence each) highlighting the most important finding
+
+**Guidelines:**
+- Use specific numbers from the data (e.g., "Revenue increased 23% from $1.2M to $1.48M")
+- Highlight trends, outliers, or notable patterns
+- Be direct and actionable - what should the reader take away?
+- If data shows concerning trends, mention them
+- Keep language business-focused, not technical
+
+Respond in this exact JSON format:
+{
+  "dashboardSummary": "Overall executive summary answering the question with key numbers and insights",
+  "panelSummaries": ["Summary for panel 1", "Summary for panel 2", ...]
+}`;
+
+		try {
+			const response = await this.client.models.generateContent({
+				model: this.model,
+				contents: [{ role: 'user', parts: [{ text: prompt }] }],
+				config: { temperature: 0.4, maxOutputTokens: 2048 }
+			});
+
+			const text = response.text || '';
+			const jsonMatch = text.match(/\{[\s\S]*\}/);
+			if (jsonMatch) {
+				const parsed = JSON.parse(jsonMatch[0]);
+				return {
+					dashboardSummary: parsed.dashboardSummary || '',
+					panelSummaries: Array.isArray(parsed.panelSummaries) ? parsed.panelSummaries : []
+				};
+			}
+		} catch (error) {
+			console.error('Failed to generate executive summary:', error);
+		}
+
+		return {
+			dashboardSummary: '',
+			panelSummaries: []
+		};
+	}
 }

@@ -16,6 +16,7 @@ export interface PanelSpec {
 	columns?: string[];
 	value?: string;
 	unit?: string;
+	summary?: string;
 }
 
 export interface AnalyticalPlan {
@@ -28,6 +29,7 @@ export interface AnalyticalPlan {
 	viz?: PanelSpec[];
 	suggestedInvestigations?: string[];
 	validationError?: string;
+	executiveSummary?: string;
 }
 
 export interface DashboardSpec {
