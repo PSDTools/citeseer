@@ -2,7 +2,19 @@
  * TOON format type definitions.
  */
 
-export type PanelType = 'bar' | 'line' | 'stat' | 'table' | 'pie' | 'scatter' | 'gauge' | 'heatmap' | 'histogram';
+export type PanelType = 'bar' | 'line' | 'stat' | 'table' | 'pie' | 'scatter' | 'gauge' | 'heatmap' | 'histogram' | 'insight';
+
+export type ForecastStrategy = 'auto' | 'linear' | 'drift' | 'moving_average' | 'exp_smoothing' | 'seasonal_naive';
+
+export interface ForecastSpec {
+	strategy?: ForecastStrategy;
+	horizon?: number;
+	window?: number;
+	alpha?: number;
+	seasonLength?: number;
+	confidence?: 'high' | 'medium' | 'low';
+	intervalPct?: number;
+}
 
 export interface PanelSpec {
 	_type?: 'panel';
@@ -17,6 +29,10 @@ export interface PanelSpec {
 	value?: string;
 	unit?: string;
 	summary?: string;
+	narrative?: string;
+	confidence?: 'high' | 'medium' | 'low';
+	recommendations?: string[];
+	forecast?: ForecastSpec;
 }
 
 export interface AnalyticalPlan {
@@ -75,4 +91,39 @@ export interface DatasetProfile {
 	name: string;
 	rowCount: number;
 	columns: ColumnProfile[];
+}
+
+export type FilterValue = string | number | boolean;
+
+export interface SelectedMark {
+	panelIndex?: number;
+	panelTitle?: string;
+	field: string;
+	value: FilterValue;
+	metricField?: string;
+	metricValue?: FilterValue;
+	datum?: Record<string, unknown>;
+}
+
+export interface BranchContext {
+	parentDashboardId?: string;
+	parentQuestion?: string;
+	parentSql?: string;
+	filters?: Record<string, FilterValue>;
+	selectedMark?: SelectedMark;
+	assumptions?: string[];
+}
+
+export interface ChartSelectDetail {
+	panelIndex?: number;
+	panelTitle?: string;
+	field?: string;
+	value?: FilterValue;
+	metricField?: string;
+	metricValue?: FilterValue;
+	datum?: Record<string, unknown>;
+	xField?: string;
+	yField?: string;
+	clientX: number;
+	clientY: number;
 }

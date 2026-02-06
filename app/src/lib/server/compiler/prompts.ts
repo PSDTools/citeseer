@@ -2,6 +2,8 @@
  * System prompts for the Question Compiler.
  */
 
+import type { BranchContext, FilterValue } from '$lib/types/toon';
+
 export const TOON_FORMAT_SPEC = `
 ## TOON Format Specification
 
@@ -15,10 +17,92 @@ TOON (Text Object Oriented Notation) is a compact, LLM-optimized format:
 - Nested: @outer{inner:@nested{...}}
 `;
 
-export function getSystemPrompt(schemaContext: string): string {
+function escapeSqlString(value: string): string {
+	return value.replace(/'/g, "''");
+}
+
+function formatFilterCondition(field: string, value: FilterValue): string {
+	const safeField = escapeSqlString(field);
+	if (typeof value === 'number') {
+		return `(data->>'${safeField}')::numeric = ${value}`;
+	}
+	if (typeof value === 'boolean') {
+		return `(data->>'${safeField}')::boolean = ${value ? 'true' : 'false'}`;
+	}
+	return `data->>'${safeField}' = '${escapeSqlString(String(value))}'`;
+}
+
+function buildBranchContextPrompt(branchContext?: BranchContext): string {
+	if (!branchContext) return '';
+
+	const lines: string[] = [];
+	lines.push('## Branch Context (Follow-up Analysis)');
+	lines.push('The user clicked on a data point and wants to drill down.');
+	lines.push('');
+
+	if (branchContext.parentQuestion) {
+		lines.push(`Parent question: "${branchContext.parentQuestion}"`);
+	}
+
+	if (branchContext.parentSql) {
+		lines.push('');
+		lines.push('Parent SQL (shows column name mappings):');
+		lines.push('```sql');
+		lines.push(branchContext.parentSql);
+		lines.push('```');
+	}
+
+	if (branchContext.selectedMark) {
+		const mark = branchContext.selectedMark;
+		lines.push('');
+		lines.push(`Selected data point: ${mark.panelTitle ? `"${mark.panelTitle}"` : 'panel'}`);
+		lines.push(`- Dimension: ${mark.field} = "${mark.value}"`);
+		if (mark.metricField && mark.metricValue != null) {
+			lines.push(`- Metric: ${mark.metricField} = ${mark.metricValue}`);
+		}
+	}
+
+	const filters = branchContext.filters || {};
+	const filterEntries = Object.entries(filters);
+	if (filterEntries.length > 0) {
+		lines.push('');
+		lines.push('CRITICAL - Required filter constraint:');
+		lines.push('The user selected a specific value. Your SQL MUST filter to ONLY this value.');
+		lines.push('');
+		for (const [field, value] of filterEntries) {
+			lines.push(`Filter: "${field}" = "${value}"`);
+			lines.push('');
+			lines.push('IMPORTANT: The field name above is from the RESULT columns (SQL alias).');
+			lines.push('Look at the parent SQL to find the actual JSONB column name, e.g.:');
+			lines.push(`- If parent SQL has: data->>'Order Region' as ${field}`);
+			lines.push(`- Then filter with: WHERE data->>'Order Region' = '${value}'`);
+		}
+	}
+
+	if (branchContext.assumptions && branchContext.assumptions.length > 0) {
+		lines.push('');
+		lines.push('Assumptions to keep:');
+		for (const assumption of branchContext.assumptions) {
+			lines.push(`- ${assumption}`);
+		}
+	}
+
+	lines.push('');
+	lines.push('Drill-down rules:');
+	lines.push('1. Your SQL MUST include a WHERE clause filtering to the selected value.');
+	lines.push('2. Use the ACTUAL JSONB column name from parent SQL, not the alias.');
+	lines.push('3. Answer the new question in the context of that filtered data.');
+	lines.push('');
+
+	return lines.join('\n');
+}
+
+export function getSystemPrompt(schemaContext: string, branchContext?: BranchContext): string {
 	return `You are a Question Compiler for a data analytics platform.
 
 Your role is to translate natural language questions into analytical plans with SQL queries.
+
+${buildBranchContextPrompt(branchContext)}
 
 ## CRITICAL: PostgreSQL JSONB Query Format
 
@@ -79,10 +163,13 @@ SELECT data->>'Order YearMonth' as year_month  -- CORRECT: uses data->>
 - Truncate to month: \`date_trunc('month', (data->>'date_col')::date)\`
 - Extract year: \`EXTRACT(YEAR FROM (data->>'date_col')::date)\`
 
-**IMPORTANT: Column selection for time series:**
-- If a "YearMonth" column exists (format YYYY-MM like "2024-01"), USE IT directly - don't combine separate year/month columns
-- Prefer columns already in ISO format (YYYY-MM-DD or YYYY-MM) over separate year/month/day columns
-- For time series visualizations, ensure the x-axis values will sort correctly (YYYY-MM format sorts properly)
+**CRITICAL: Column selection for time series:**
+- **If a "YearMonth" or "Order YearMonth" column exists with format YYYY-MM (like "2024-01"), USE IT DIRECTLY as a string!**
+- **DO NOT cast YYYY-MM strings to timestamp or date - they are already in the correct format!**
+- **WRONG:** \`to_char((data->>'Order YearMonth')::timestamp, 'YYYY-MM')\` - This FAILS because "2024-01" cannot be cast to timestamp!
+- **CORRECT:** \`data->>'Order YearMonth' as year_month\` - Use the column directly, it's already YYYY-MM!
+- Only use date functions like to_char() on full date columns (YYYY-MM-DD format)
+- For time series visualizations, ensure the x-axis values will sort correctly (YYYY-MM format sorts properly alphabetically)
 
 ## Output Format
 
@@ -104,10 +191,89 @@ Respond with a single @plan object in TOON format:
       y:<y-axis column name>
       value:<for stat: the column name>
       columns:[<for table: column names>]
+      forecast:@forecast{...}
     }
   ]
-  suggestedInvestigations:[<follow-up questions>]
+  suggestedInvestigations:[<3-5 high-signal follow-up questions>]
 }
+
+Note: \`forecast\` is optional and should only be used for forecasting/projection questions.
+
+### Insight Panel Format
+
+For predictive or prescriptive analysis, use the insight panel type:
+
+\`\`\`
+@panel{
+  type:insight
+  title:"<insight title>"
+  sql:"<SQL that gathers the underlying data>"
+  description:"<brief description>"
+  narrative:"<2-3 paragraph analysis with projections and interpretation>"
+  confidence:<high|medium|low>
+  recommendations:["<action item 1>","<action item 2>","<action item 3>"]
+}
+\`\`\`
+
+The SQL still executes to feed the executive summary, but the narrative IS the main visualization for insight panels.
+
+### Forecast Panel Format
+
+For forecasting or projection questions, use a line panel with a forecast block. **Do NOT forecast in SQL.**
+The SQL should return only the historical time series; the server will generate the forecast series.
+
+\`\`\`
+@panel{
+  type:line
+  title:"<title>"
+  sql:"<historical time series SQL>"
+  x:<time column>
+  y:<metric column>
+  description:"<what this shows>"
+  forecast:@forecast{
+    strategy:auto
+    horizon:<number of future periods>
+  }
+}
+\`\`\`
+
+## Suggested Investigations (Quality Bar)
+
+- Provide **3-5** concise questions.
+- Each question must be **specific and answerable** from the available columns/metrics.
+- **No generic or meta** prompts like "try rephrasing", "check data", "dig deeper".
+- Prefer **forward-looking** or **driver-focused** follow-ups:
+  - If time series data is present, include **at least two** forecasting or leading-indicator questions with a time horizon (next 4-8 weeks / next quarter / next 12 months).
+  - If not time series, include **what-if**, **sensitivity**, or **segment driver** questions.
+- Keep them **actionable** and tied to the main result (e.g., segments, thresholds, capacity, pricing, risk).
+
+## Predictive & Prescriptive Analysis
+
+When the user asks about trends, forecasts, predictions, projections, risks, or "what should we do", shift into forecasting mode:
+
+**Forecasting output rule:**
+- Include a **line panel** with a \`forecast:@forecast{strategy:auto horizon:<N>}\` block.
+- The SQL should return **historical data only** (the server generates forecasts).
+
+**SQL patterns for predictive analysis:**
+- **Trend/growth rates**: Use LAG() window functions to compute period-over-period changes
+- **Moving averages**: Use AVG() OVER (ORDER BY ... ROWS BETWEEN N PRECEDING AND CURRENT ROW)
+- **On-time/reliability rates**: COUNT with CASE WHEN conditions vs total
+- **Supply/demand gap**: Compare aggregated supply metrics against demand metrics
+- **Burn rate/depletion**: Current value / rate of change to project exhaustion
+- **Seasonality detection**: Group by month/quarter across years, compare patterns
+- **Multi-step CTE forecasting**: WITH historical AS (...), rates AS (...) SELECT projections
+
+**Multi-panel forecasting guidance:**
+For complex forecasting questions, generate multiple complementary panels:
+1. A **chart panel** (line/bar) showing the historical trend
+2. A **stat or table panel** showing the current state / key metrics
+3. An **insight panel** with the projection narrative and recommendations
+
+**Confidence levels:**
+- **high**: 100+ data points, clear trend, low variance
+- **medium**: 30-100 data points, or moderate variance
+- **low**: <30 data points, high variance, or extrapolating far beyond data range
 
 ## Visualization Types
 
@@ -117,6 +283,7 @@ Respond with a single @plan object in TOON format:
 - **scatter**: Two numeric variables. Use \`x\` and \`y\` fields. Both must be numeric columns.
 - **table**: Data table. Use \`columns\` field.
 - **pie**: Proportions. Use \`x\` (category) and \`y\` (value) fields.
+- **insight**: Predictive narrative card. SQL gathers data, \`narrative\` interprets it with projections. Use \`confidence\` and \`recommendations\` fields.
 
 ## Available Data
 
@@ -224,6 +391,40 @@ Q: "Show sales by product category"
 
 Note: Column names with spaces like "Product Category" or "Gross Sales" must be quoted inside data->>. Result aliases should be snake_case.
 
+**Example 6: Predictive insight (multi-panel)**
+Q: "What are the delivery performance trends and what should we do?"
+\`\`\`
+@plan{
+  q:"What are the delivery performance trends and what should we do?"
+  feasible:true
+  tables:[deliveries]
+  viz:[
+    @panel{
+      type:line
+      title:"Monthly On-Time Delivery Rate"
+      sql:"SELECT data->>'Order YearMonth' as month, ROUND(100.0 * COUNT(CASE WHEN (data->>'Days Late')::numeric <= 0 THEN 1 END) / COUNT(*), 1) as on_time_pct FROM dataset_rows WHERE dataset_id = 'DATASET_ID' GROUP BY 1 ORDER BY 1"
+      x:month
+      y:on_time_pct
+      description:"On-time delivery percentage by month."
+      forecast:@forecast{
+        strategy:auto
+        horizon:3
+      }
+    },
+    @panel{
+      type:insight
+      title:"Delivery Performance Forecast"
+      sql:"SELECT data->>'Order YearMonth' as month, COUNT(*) as total, COUNT(CASE WHEN (data->>'Days Late')::numeric <= 0 THEN 1 END) as on_time FROM dataset_rows WHERE dataset_id = 'DATASET_ID' GROUP BY 1 ORDER BY 1"
+      description:"Predictive analysis of delivery trends."
+      narrative:"Based on the trend data, on-time delivery rates show a declining pattern over recent months. If this trend continues at the current rate, the on-time rate could drop below acceptable thresholds within the next quarter. Key contributing factors appear to be volume increases without proportional capacity scaling."
+      confidence:medium
+      recommendations:["Review staffing levels for peak delivery periods","Investigate root causes of the top late-delivery routes","Consider adding buffer time to delivery estimates for high-volume periods"]
+    }
+  ]
+  suggestedInvestigations:["Forecast on-time delivery rate for the next 3 months","Which delivery routes are driving the decline in on-time performance?","At what order volume does the late-delivery rate spike (capacity threshold)?"]
+}
+\`\`\`
+
 Now answer the user's question using the schema provided above.
 `;
 }
@@ -263,6 +464,7 @@ ${schemaContext}
 4. Add a table showing sample recent records
 5. Each panel needs working SQL with proper JSONB access
 6. Column names with spaces MUST be quoted: data->>'Column Name'
+7. If the data has time-series patterns, consider including an insight panel with predictions about trends or projections
 
 Generate the dashboard now.
 `;

@@ -48,21 +48,63 @@ function findMatchingColumn(expected: string, columns: string[]): string | undef
 	return undefined;
 }
 
+function findSeriesField(
+	columns: string[],
+	data: Record<string, unknown>[],
+	allowGeneric: boolean
+): string | undefined {
+	const candidates = allowGeneric
+		? ['__series', 'forecast_series', 'series', 'scenario', 'type']
+		: ['__series', 'forecast_series'];
+	for (const candidate of candidates) {
+		if (!columns.includes(candidate)) continue;
+		const unique = new Set(data.map((row) => row[candidate]));
+		if (unique.size > 1) {
+			return candidate;
+		}
+	}
+	return undefined;
+}
+
+export function resolvePanelFields(
+	panel: PanelSpec,
+	result: QueryResult
+): { xField?: string; yField?: string; columns: string[] } {
+	if (!result.success || result.data.length === 0) {
+		return { columns: result.columns || [] };
+	}
+
+	const columns = result.columns || [];
+	const xField = findMatchingColumn(panel.x || '', columns) || columns[0];
+	const yField = findMatchingColumn(panel.y || '', columns) || columns[1];
+
+	return { xField, yField, columns };
+}
+
+export function resolveStatField(panel: PanelSpec, result: QueryResult): string | undefined {
+	if (!result.success || result.data.length === 0) return undefined;
+	const columns = result.columns || [];
+	const valueField = panel.value ? findMatchingColumn(panel.value, columns) : columns[0];
+	return valueField || columns[0];
+}
+
 export function panelToVegaLite(panel: PanelSpec, result: QueryResult): VisualizationSpec | null {
 	if (!result.success || result.data.length === 0) {
 		return null;
 	}
 
 	// Resolve actual column names
-	const xField = findMatchingColumn(panel.x || '', result.columns) || result.columns[0];
-	const yField = findMatchingColumn(panel.y || '', result.columns) || result.columns[1];
+	const { xField, yField, columns } = resolvePanelFields(panel, result);
+	if (!xField || !yField) {
+		return null;
+	}
 	
 	console.log('panelToVegaLite mapping:', {
 		'panel.x': panel.x,
 		'panel.y': panel.y,
 		'resolved xField': xField,
 		'resolved yField': yField,
-		'available columns': [...result.columns],
+		'available columns': [...columns],
 		'first row keys': Object.keys(result.data[0] || {}),
 		'first row values': Object.entries(result.data[0] || {}).map(([k, v]) => `${k}=${v} (${typeof v})`),
 		'x value': result.data[0]?.[xField],
@@ -99,31 +141,66 @@ export function panelToVegaLite(panel: PanelSpec, result: QueryResult): Visualiz
 
 	switch (panel.type) {
 		case 'bar':
-			return {
-				...baseSpec,
-				mark: {
-					type: 'bar',
-					color: COLORS.primary,
-					cornerRadiusEnd: 4
-				},
-				encoding: {
-					x: {
-						field: xField,
-						type: 'nominal',
-						axis: { labelAngle: -45 }
+			{
+				const seriesField = findSeriesField(columns, result.data, Boolean(panel.forecast));
+				const hasSeries = Boolean(seriesField);
+				const seriesValues = hasSeries
+					? Array.from(new Set(result.data.map((row) => String(row[seriesField as string]))))
+					: [];
+				const hasForecastSeries = hasSeries && seriesValues.includes('Actual') && seriesValues.includes('Forecast');
+
+				return {
+					...baseSpec,
+					mark: {
+						type: 'bar',
+						color: COLORS.primary,
+						cornerRadiusEnd: 4
 					},
-					y: {
-						field: yField,
-						type: 'quantitative'
-					},
-					tooltip: result.columns.map((col) => ({ field: col }))
-				}
-			} as VisualizationSpec;
+					encoding: {
+						x: {
+							field: xField,
+							type: 'nominal',
+							axis: { labelAngle: -45 }
+						},
+						y: {
+							field: yField,
+							type: 'quantitative'
+						},
+						...(hasSeries
+							? {
+									color: {
+										field: seriesField as string,
+										type: 'nominal',
+										...(hasForecastSeries
+											? {
+													scale: {
+														domain: ['Actual', 'Forecast'],
+														range: [COLORS.primary, '#fbbf24']
+													}
+												}
+											: {})
+									},
+									xOffset: { field: seriesField as string }
+								}
+							: {}),
+						tooltip: result.columns.map((col) => ({ field: col }))
+					}
+				} as VisualizationSpec;
+			}
 
 		case 'line': {
 			// Detect date format for x values
 			const firstValue = result.data[0]?.[xField];
 			const strValue = String(firstValue || '');
+			const seriesField = findSeriesField(columns, result.data, Boolean(panel.forecast));
+			const hasSeries = Boolean(seriesField);
+			const seriesValues = hasSeries
+				? Array.from(new Set(result.data.map((row) => String(row[seriesField as string]))))
+				: [];
+			const hasForecastSeries = hasSeries && seriesValues.includes('Actual') && seriesValues.includes('Forecast');
+			const lowerField = columns.includes('forecast_lower') ? 'forecast_lower' : undefined;
+			const upperField = columns.includes('forecast_upper') ? 'forecast_upper' : undefined;
+			const hasIntervals = Boolean(lowerField && upperField && hasForecastSeries);
 			
 			// Check for YYYY-MM format (e.g., "2015-02")
 			const isYearMonth = /^\d{4}-\d{2}$/.test(strValue);
@@ -149,22 +226,132 @@ export function panelToVegaLite(panel: PanelSpec, result: QueryResult): Visualiz
 				xEncoding.sort = null; // preserve data order
 			}
 			
-			return {
-				...baseSpec,
+			const lineMark: Record<string, unknown> = {
+				type: 'line',
+				strokeWidth: 2,
+				point: { size: 60 }
+			};
+
+			if (!hasSeries) {
+				lineMark.color = COLORS.primary;
+				(lineMark.point as Record<string, unknown>).color = COLORS.primary;
+			}
+
+			const seriesEncoding = hasSeries
+				? {
+						field: seriesField as string,
+						type: 'nominal',
+						...(hasForecastSeries
+							? {
+									scale: {
+										domain: ['Actual', 'Forecast'],
+										range: [COLORS.primary, '#fbbf24']
+									}
+								}
+							: {})
+					}
+				: undefined;
+
+			const dashEncoding = hasForecastSeries
+				? {
+						field: seriesField as string,
+						type: 'nominal',
+						scale: {
+							domain: ['Actual', 'Forecast'],
+							range: [
+								[1, 0],
+								[6, 4]
+							]
+						}
+					}
+				: undefined;
+
+			const baseLineEncoding = {
+				x: xEncoding,
+				y: {
+					field: yField,
+					type: 'quantitative'
+				},
+				tooltip: result.columns.map((col) => ({ field: col }))
+			};
+
+			if (!hasForecastSeries) {
+				const lineLayer = {
+					mark: lineMark,
+					encoding: {
+						...baseLineEncoding,
+						...(seriesEncoding ? { color: seriesEncoding } : {}),
+						...(dashEncoding ? { strokeDash: dashEncoding } : {})
+					}
+				};
+
+				return {
+					...baseSpec,
+					...lineLayer
+				} as VisualizationSpec;
+			}
+
+			const actualLine = {
 				mark: {
 					type: 'line',
 					color: COLORS.primary,
-					strokeWidth: 2,
-					point: { color: COLORS.primary, size: 60 }
+					strokeWidth: 2.5,
+					point: { size: 60, color: COLORS.primary }
 				},
-				encoding: {
-					x: xEncoding,
-					y: {
-						field: yField,
-						type: 'quantitative'
+				transform: [
+					{
+						filter: `datum["${seriesField}"] == 'Actual'`
+					}
+				],
+				encoding: baseLineEncoding
+			};
+
+			const forecastLine = {
+				mark: {
+					type: 'line',
+					color: '#fbbf24',
+					strokeWidth: 2,
+					strokeDash: [6, 4],
+					point: { size: 50, filled: false, stroke: '#fbbf24' }
+				},
+				transform: [
+					{
+						filter: `datum["${seriesField}"] == 'Forecast'`
+					}
+				],
+				encoding: baseLineEncoding
+			};
+
+			const layers = [];
+			if (hasIntervals) {
+				layers.push({
+					mark: {
+						type: 'area',
+						color: '#fbbf24',
+						opacity: 0.18
 					},
-					tooltip: result.columns.map((col) => ({ field: col }))
-				}
+					transform: [
+						{
+							filter: `datum["${seriesField}"] == 'Forecast'`
+						}
+					],
+					encoding: {
+						x: xEncoding,
+						y: {
+							field: lowerField as string,
+							type: 'quantitative'
+						},
+						y2: {
+							field: upperField as string
+						}
+					}
+				});
+			}
+			layers.push(actualLine, forecastLine);
+
+			return {
+				...baseSpec,
+				layer: layers
 			} as VisualizationSpec;
 		}
 

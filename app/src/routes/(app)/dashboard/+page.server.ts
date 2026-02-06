@@ -58,10 +58,21 @@ export const load: PageServerLoad = async ({ parent }) => {
 		.from(settings)
 		.where(eq(settings.orgId, org.id));
 
+	// Get all datasets for the create context dialog
+	const allDatasets = await db
+		.select({
+			id: datasets.id,
+			name: datasets.name,
+			rowCount: datasets.rowCount
+		})
+		.from(datasets)
+		.where(eq(datasets.orgId, org.id));
+
 	return {
 		totalDatasets: datasetStats.count,
 		totalContexts: orgContexts.length,
 		contexts: contextsWithStats,
+		allDatasets,
 		hasApiKey: !!orgSettings?.geminiApiKey
 	};
 };

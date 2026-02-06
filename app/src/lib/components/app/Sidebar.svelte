@@ -126,6 +126,7 @@
 												type="button"
 												onclick={() => toggleContext(context.id)}
 												class="p-1 text-white/30 hover:text-white/60"
+												aria-label={expandedContexts.has(context.id) ? `Collapse ${context.name}` : `Expand ${context.name}`}
 											>
 												<svg
 													class="h-3 w-3 transition-transform {expandedContexts.has(context.id) ? 'rotate-90' : ''}"
@@ -169,7 +170,7 @@
 							{/each}
 						{/if}
 						<a
-							href="/contexts"
+							href="/dashboard"
 							class="flex items-center gap-2 rounded-lg px-3 py-2 text-sm text-white/40 hover:bg-white/5 hover:text-white/60 transition-colors"
 						>
 							<svg class="h-4 w-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">

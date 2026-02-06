@@ -1,15 +1,18 @@
 <script lang="ts">
+	import type { ChartSelectDetail } from '$lib/types/toon';
+
 	interface Props {
 		columns: string[];
 		rows: Record<string, unknown>[];
 		title?: string;
 		maxRows?: number;
+		onselect?: (detail: ChartSelectDetail) => void;
 	}
 
-	let { columns, rows, title, maxRows = 10 }: Props = $props();
-	
+	let { columns, rows, title, maxRows = 10, onselect }: Props = $props();
+
 	let showAll = $state(false);
-	
+
 	const displayRows = $derived(showAll ? rows : rows.slice(0, maxRows));
 	const hasMore = $derived(rows.length > maxRows);
 </script>
@@ -32,7 +35,22 @@
 					<tr class="hover:bg-white/[0.02]">
 						{#each columns as column}
 							<td class="px-3 py-2 text-white/90">
-								{row[column] ?? '-'}
+								<span
+									role="button"
+									tabindex="0"
+									oncontextmenu={(event) => {
+										event.preventDefault();
+										onselect?.({
+											field: column,
+											value: row[column] as ChartSelectDetail['value'],
+											datum: row,
+											clientX: event.clientX,
+											clientY: event.clientY
+										});
+									}}
+								>
+									{row[column] ?? '-'}
+								</span>
 							</td>
 						{/each}
 					</tr>

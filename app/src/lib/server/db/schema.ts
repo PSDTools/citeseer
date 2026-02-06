@@ -103,11 +103,19 @@ export const dashboards = pgTable('dashboards', {
 		.notNull()
 		.references(() => organizations.id, { onDelete: 'cascade' }),
 	contextId: uuid('context_id').references(() => contexts.id, { onDelete: 'cascade' }),
+	parentDashboardId: uuid('parent_dashboard_id').references(() => dashboards.id, {
+		onDelete: 'set null'
+	}),
+	rootDashboardId: uuid('root_dashboard_id').references(() => dashboards.id, {
+		onDelete: 'set null'
+	}),
 	name: varchar('name', { length: 255 }).notNull(),
 	question: text('question').notNull(),
 	description: text('description'),
 	plan: jsonb('plan').$type<AnalyticalPlan>(),
 	panels: jsonb('panels').$type<PanelSpec[]>().notNull(),
+	results: jsonb('results').$type<Record<number, QueryResult>>(),
+	nodeContext: jsonb('node_context').$type<DashboardNodeContext>(),
 	createdAt: timestamp('created_at', { withTimezone: true }).notNull().defaultNow(),
 	updatedAt: timestamp('updated_at', { withTimezone: true }).notNull().defaultNow(),
 	createdBy: uuid('created_by').references(() => users.id, { onDelete: 'set null' })
@@ -215,7 +223,7 @@ export const queriesRelations = relations(queries, ({ one }) => ({
 	})
 }));
 
-export const dashboardsRelations = relations(dashboards, ({ one }) => ({
+export const dashboardsRelations = relations(dashboards, ({ one, many }) => ({
 	organization: one(organizations, {
 		fields: [dashboards.orgId],
 		references: [organizations.id]
@@ -227,7 +235,13 @@ export const dashboardsRelations = relations(dashboards, ({ one }) => ({
 	creator: one(users, {
 		fields: [dashboards.createdBy],
 		references: [users.id]
-	})
+	}),
+	parent: one(dashboards, {
+		fields: [dashboards.parentDashboardId],
+		references: [dashboards.id],
+		relationName: 'dashboard_parent'
+	}),
+	children: many(dashboards, { relationName: 'dashboard_parent' })
 }));
 
 export const settingsRelations = relations(settings, ({ one }) => ({
@@ -276,8 +290,20 @@ export interface ColumnSchema {
 	maxValue?: unknown;
 }
 
+export type ForecastStrategy = 'auto' | 'linear' | 'drift' | 'moving_average' | 'exp_smoothing' | 'seasonal_naive';
+
+export interface ForecastSpec {
+	strategy?: ForecastStrategy;
+	horizon?: number;
+	window?: number;
+	alpha?: number;
+	seasonLength?: number;
+	confidence?: 'high' | 'medium' | 'low';
+	intervalPct?: number;
+}
+
 export interface PanelSpec {
-	type: 'bar' | 'line' | 'stat' | 'table' | 'pie' | 'gauge' | 'heatmap' | 'histogram';
+	type: 'bar' | 'line' | 'stat' | 'table' | 'pie' | 'gauge' | 'heatmap' | 'histogram' | 'insight';
 	title: string;
 	description?: string;
 	sql?: string;
@@ -287,6 +313,11 @@ export interface PanelSpec {
 	columns?: string[];
 	value?: string;
 	unit?: string;
+	summary?: string;
+	narrative?: string;
+	confidence?: 'high' | 'medium' | 'low';
+	recommendations?: string[];
+	forecast?: ForecastSpec;
 }
 
 export interface AnalyticalPlan {
@@ -299,4 +330,34 @@ export interface AnalyticalPlan {
 	viz?: PanelSpec[];
 	suggestedInvestigations?: string[];
 	validationError?: string;
+}
+
+export type FilterValue = string | number | boolean;
+
+export interface QueryResult {
+	success: boolean;
+	data: Record<string, unknown>[];
+	columns: string[];
+	rowCount: number;
+	executionMs?: number;
+	error?: string;
+}
+
+export interface SelectedMark {
+	panelIndex?: number;
+	panelTitle?: string;
+	field: string;
+	value: FilterValue;
+	metricField?: string;
+	metricValue?: FilterValue;
+	datum?: Record<string, unknown>;
+}
+
+export interface DashboardNodeContext {
+	parentDashboardId?: string;
+	parentQuestion?: string;
+	parentSql?: string;
+	filters?: Record<string, FilterValue>;
+	selectedMark?: SelectedMark;
+	assumptions?: string[];
 }

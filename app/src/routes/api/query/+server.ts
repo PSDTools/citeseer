@@ -5,7 +5,8 @@ import type { AnalyticalPlan as SchemaAnalyticalPlan } from '$lib/server/db/sche
 import { eq, sql, inArray } from 'drizzle-orm';
 import { getUserOrganizations } from '$lib/server/auth';
 import { GeminiCompiler } from '$lib/server/compiler/gemini';
-import type { DatasetProfile, ColumnProfile, AnalyticalPlan, QueryResult } from '$lib/types/toon';
+import { applyForecastToResult } from '$lib/server/forecast';
+import type { DatasetProfile, ColumnProfile, AnalyticalPlan, QueryResult, BranchContext } from '$lib/types/toon';
 
 export const POST: RequestHandler = async ({ request, locals }) => {
 	if (!locals.user) {
@@ -19,7 +20,12 @@ export const POST: RequestHandler = async ({ request, locals }) => {
 	const org = orgs[0];
 
 	const body = await request.json();
-	const { question, datasetIds, contextId } = body as { question: string; datasetIds?: string[]; contextId?: string };
+	const { question, datasetIds, contextId, branchContext } = body as {
+		question: string;
+		datasetIds?: string[];
+		contextId?: string;
+		branchContext?: BranchContext;
+	};
 
 	if (!question?.trim()) {
 		error(400, 'Question is required');
@@ -84,8 +90,11 @@ export const POST: RequestHandler = async ({ request, locals }) => {
 	});
 
 	const startTime = Date.now();
-	const plan = await compiler.compileQuestion(question, profiles);
+	const plan = await compiler.compileQuestion(question, profiles, branchContext);
 	const compilationMs = Date.now() - startTime;
+
+	// Note: Filter injection is now handled by the compiler via branch context prompts
+	// The compiler sees the parentSql and filter values, and generates SQL with proper WHERE clauses
 
 	// If not feasible, return the plan without executing
 	if (!plan.feasible) {
@@ -191,6 +200,30 @@ export const POST: RequestHandler = async ({ request, locals }) => {
 			}
 		}
 
+		// Apply AI-assisted forecasting augmentation for eligible panels
+		if (plan.viz) {
+			for (let i = 0; i < plan.viz.length; i++) {
+				const panel = plan.viz[i];
+				const result = results.get(i);
+				if (!result || !panel.forecast) continue;
+
+				const forecasted = await applyForecastToResult({
+					panel,
+					result,
+					question,
+					selectStrategy: compiler.selectForecastStrategy.bind(compiler)
+				});
+
+				results.set(i, forecasted.result);
+				if (forecasted.decision) {
+					panel.forecast = {
+						...(panel.forecast || {}),
+						...forecasted.decision
+					};
+				}
+			}
+		}
+
 		const executionMs = Date.now() - startTime;
 
 		// Check if any queries failed or returned no data - get explanation
@@ -242,7 +275,9 @@ export const POST: RequestHandler = async ({ request, locals }) => {
 					title: panel.title,
 					type: panel.type,
 					data: result?.data || [],
-					columns: result?.columns || []
+					columns: result?.columns || [],
+					narrative: panel.narrative,
+					recommendations: panel.recommendations
 				};
 			});
 
@@ -259,6 +294,16 @@ export const POST: RequestHandler = async ({ request, locals }) => {
 						panel.summary = summaries.panelSummaries[i];
 					}
 				});
+			}
+
+			// Enrich insight panel narratives with actual data
+			if (summaries.insightNarratives) {
+				for (const [indexStr, enrichedNarrative] of Object.entries(summaries.insightNarratives)) {
+					const idx = parseInt(indexStr, 10);
+					if (!isNaN(idx) && plan.viz[idx] && plan.viz[idx].type === 'insight' && enrichedNarrative) {
+						plan.viz[idx].narrative = enrichedNarrative;
+					}
+				}
 			}
 		}
 

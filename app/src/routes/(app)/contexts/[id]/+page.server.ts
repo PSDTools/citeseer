@@ -30,12 +30,16 @@ export const load: PageServerLoad = async ({ params, parent }) => {
 		.innerJoin(datasets, eq(contextDatasets.datasetId, datasets.id))
 		.where(eq(contextDatasets.contextId, params.id));
 
-	// Get dashboards for this context
+	// Get dashboards for this context (with full data for graph reconstruction)
 	const contextDashboards = await db
 		.select({
 			id: dashboards.id,
 			name: dashboards.name,
 			question: dashboards.question,
+			plan: dashboards.plan,
+			results: dashboards.results,
+			parentDashboardId: dashboards.parentDashboardId,
+			nodeContext: dashboards.nodeContext,
 			createdAt: dashboards.createdAt
 		})
 		.from(dashboards)

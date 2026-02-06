@@ -2,8 +2,8 @@ import { json, error } from '@sveltejs/kit';
 import type { RequestHandler } from './$types';
 import { db, dashboards } from '$lib/server/db';
 import { getUserOrganizations } from '$lib/server/auth';
-import { eq, desc } from 'drizzle-orm';
-import type { AnalyticalPlan, PanelSpec } from '$lib/server/db/schema';
+import { eq, desc, and } from 'drizzle-orm';
+import type { AnalyticalPlan, PanelSpec, DashboardNodeContext, QueryResult } from '$lib/server/db/schema';
 
 // GET - List all dashboards for the org
 export const GET: RequestHandler = async ({ locals }) => {
@@ -47,17 +47,35 @@ export const POST: RequestHandler = async ({ locals, request }) => {
 	const orgId = orgs[0].id;
 
 	const body = await request.json();
-	const { name, question, description, plan, panels, contextId } = body as {
+	const { name, question, description, plan, panels, results, contextId, parentDashboardId, nodeContext } = body as {
 		name: string;
 		question: string;
 		description?: string;
 		plan?: AnalyticalPlan;
 		panels: PanelSpec[];
+		results?: Record<number, QueryResult>;
 		contextId?: string;
+		parentDashboardId?: string;
+		nodeContext?: DashboardNodeContext;
 	};
 
 	if (!name || !question || !panels) {
 		error(400, 'Name, question, and panels are required');
+	}
+
+	let rootDashboardId: string | undefined;
+
+	if (parentDashboardId) {
+		const [parent] = await db
+			.select({ id: dashboards.id, rootDashboardId: dashboards.rootDashboardId })
+			.from(dashboards)
+			.where(and(eq(dashboards.id, parentDashboardId), eq(dashboards.orgId, orgId)));
+
+		if (!parent) {
+			error(404, 'Parent dashboard not found');
+		}
+
+		rootDashboardId = parent.rootDashboardId ?? parent.id;
 	}
 
 	const [dashboard] = await db
@@ -65,11 +83,15 @@ export const POST: RequestHandler = async ({ locals, request }) => {
 		.values({
 			orgId,
 			contextId,
+			parentDashboardId,
+			rootDashboardId,
 			name,
 			question,
 			description,
 			plan,
 			panels,
+			results,
+			nodeContext,
 			createdBy: locals.user.id
 		})
 		.returning();

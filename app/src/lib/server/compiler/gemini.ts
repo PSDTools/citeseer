@@ -5,7 +5,8 @@
 import { GoogleGenAI } from '@google/genai';
 import { parseToon, extractToon, ToonParseError } from './toon-parser';
 import { getSystemPrompt, getOverviewPrompt } from './prompts';
-import type { AnalyticalPlan, DashboardSpec, DatasetProfile } from '$lib/types/toon';
+import type { AnalyticalPlan, BranchContext, DashboardSpec, DatasetProfile } from '$lib/types/toon';
+import type { ForecastSelectionContext, ForecastStrategyDecision } from '$lib/server/forecast';
 
 const MAX_RETRIES = 3;
 
@@ -76,10 +77,11 @@ export class GeminiCompiler {
 	 */
 	async compileQuestion(
 		question: string,
-		datasets: DatasetProfile[]
+		datasets: DatasetProfile[],
+		branchContext?: BranchContext
 	): Promise<AnalyticalPlan> {
 		const schemaContext = GeminiCompiler.generateSchemaContext(datasets);
-		const systemPrompt = getSystemPrompt(schemaContext);
+		const systemPrompt = getSystemPrompt(schemaContext, branchContext);
 
 		let lastError: Error | null = null;
 
@@ -132,6 +134,88 @@ export class GeminiCompiler {
 	}
 
 	/**
+	 * Select a forecasting strategy based on time series characteristics.
+	 */
+	async selectForecastStrategy(context: ForecastSelectionContext): Promise<ForecastStrategyDecision | null> {
+		const prompt = `You are a time series forecasting strategist.
+
+Choose the best forecasting approach for the given series and question.
+You must pick ONE strategy from:
+linear, drift, moving_average, exp_smoothing, seasonal_naive
+
+Return ONLY a JSON object with:
+{
+  "strategy": "linear|drift|moving_average|exp_smoothing|seasonal_naive",
+  "horizon": <integer>,
+  "window": <integer optional>,
+  "alpha": <number 0-1 optional>,
+  "seasonLength": <integer optional>,
+  "confidence": "high|medium|low"
+}
+
+Question: ${context.question}
+Panel: ${context.panelTitle}
+Cadence: ${context.cadence}
+Default horizon: ${context.defaultHorizon}
+
+Stats:
+- points: ${context.stats.points}
+- mean: ${context.stats.mean}
+- stdDev: ${context.stats.stdDev}
+- cv: ${context.stats.cv}
+- slope: ${context.stats.slope}
+- r2: ${context.stats.r2}
+- lastValue: ${context.stats.lastValue}
+- min: ${context.stats.min}
+- max: ${context.stats.max}
+- seasonLength: ${context.stats.seasonLength ?? 'none'}
+- seasonStrength: ${context.stats.seasonStrength ?? 'none'}
+
+Recent points (tail):
+${context.sampleTail.map((p) => `- ${p.x}: ${p.y}`).join('\n')}
+
+Guidelines:
+- Prefer seasonal_naive only if seasonLength is present and seasonStrength >= 0.4.
+- Prefer linear or drift if there is a strong trend (r2 >= 0.5).
+- Prefer exp_smoothing for noisy series with weak trend.
+- Use moving_average for short or stable series.
+- Horizon should align with the question; otherwise use Default horizon.
+`;
+
+		try {
+			const response = await this.client.models.generateContent({
+				model: this.model,
+				contents: [{ role: 'user', parts: [{ text: prompt }] }],
+				config: { temperature: 0.2, maxOutputTokens: 512 }
+			});
+
+			const text = response.text || '';
+			const jsonMatch = text.match(/\{[\s\S]*\}/);
+			if (!jsonMatch) return null;
+
+			const parsed = JSON.parse(jsonMatch[0]) as ForecastStrategyDecision;
+			const allowed = new Set(['linear', 'drift', 'moving_average', 'exp_smoothing', 'seasonal_naive']);
+			if (!parsed?.strategy || !allowed.has(parsed.strategy)) return null;
+
+			const horizon = Number(parsed.horizon);
+			if (!Number.isFinite(horizon) || horizon <= 0) return null;
+
+			return {
+				strategy: parsed.strategy,
+				horizon,
+				window: parsed.window ? Number(parsed.window) : undefined,
+				alpha: parsed.alpha ? Number(parsed.alpha) : undefined,
+				seasonLength: parsed.seasonLength ? Number(parsed.seasonLength) : undefined,
+				confidence: parsed.confidence
+			};
+		} catch (error) {
+			console.error('Failed to select forecast strategy:', error);
+		}
+
+		return null;
+	}
+
+	/**
 	 * Fix a SQL query that resulted in an error.
 	 */
 	async fixSQL(context: {
@@ -166,12 +250,21 @@ All data is in \`dataset_rows\` table:
 - For numeric: \`(data->>'column')::numeric\`
 - Use \`WHERE dataset_id = 'DATASET_ID'\`
 
-**COMMON FIX: Text values with currency/percentage symbols**
+**COMMON FIX 1: Text values with currency/percentage symbols**
 If you see "invalid input syntax for type numeric" errors, the text contains $, commas, or % signs.
 Clean the text BEFORE casting using REGEXP_REPLACE:
 \`\`\`sql
 -- Clean currency like "$1,234.56" or percentages like "25%"
 REGEXP_REPLACE(data->>'Column Name', '[^0-9.-]', '', 'g')::numeric
+\`\`\`
+
+**COMMON FIX 2: YearMonth columns (YYYY-MM format)**
+If you see "invalid input syntax for type timestamp" with columns like "Order YearMonth" or "YearMonth":
+- These columns already contain YYYY-MM format strings like "2024-01"
+- DO NOT cast them to timestamp or date - just use them directly!
+\`\`\`sql
+-- WRONG: to_char((data->>'Order YearMonth')::timestamp, 'YYYY-MM')
+-- CORRECT: data->>'Order YearMonth' as year_month
 \`\`\`
 
 ## Available Columns
@@ -328,22 +421,41 @@ Be helpful and specific. Reference actual column names and values from the schem
 			type: string;
 			data: Record<string, unknown>[];
 			columns: string[];
+			narrative?: string;
+			recommendations?: string[];
 		}>;
-	}): Promise<{ dashboardSummary: string; panelSummaries: string[] }> {
+	}): Promise<{ dashboardSummary: string; panelSummaries: string[]; insightNarratives?: Record<string, string> }> {
 		// Format panel data for the prompt
+		const hasInsightPanels = context.panels.some(p => p.type === 'insight');
+
 		const panelDataSummaries = context.panels.map((panel, i) => {
 			const sampleRows = panel.data.slice(0, 10);
 			const dataPreview = sampleRows.length > 0
 				? JSON.stringify(sampleRows, null, 2)
 				: 'No data';
-			return `### Panel ${i + 1}: ${panel.title} (${panel.type})
+			let section = `### Panel ${i + 1}: ${panel.title} (${panel.type})
 Columns: ${panel.columns.join(', ')}
 Row count: ${panel.data.length}
 Data sample:
 \`\`\`json
 ${dataPreview}
 \`\`\``;
+			if (panel.type === 'insight' && panel.narrative) {
+				section += `\nDraft narrative: ${panel.narrative}`;
+				if (panel.recommendations?.length) {
+					section += `\nDraft recommendations: ${panel.recommendations.join('; ')}`;
+				}
+			}
+			return section;
 		}).join('\n\n');
+
+		const insightInstructions = hasInsightPanels
+			? `\n3. For each insight panel (type "insight"), write an enriched narrative that incorporates the ACTUAL numbers from the query results. Replace vague language with specific data points. Include the enriched narratives in the "insightNarratives" field keyed by panel index (e.g., "0", "1").`
+			: '';
+
+		const insightFormat = hasInsightPanels
+			? `,\n  "insightNarratives": {"<panel_index>": "Enriched narrative with real numbers..."}`
+			: '';
 
 		const prompt = `You are a senior data analyst writing executive summaries for business stakeholders.
 
@@ -355,20 +467,24 @@ ${panelDataSummaries}
 
 ## Your Task
 Analyze the actual data and write:
-1. An overall executive summary (2-3 sentences) that directly answers the user's question with specific numbers and key insights
-2. A brief summary for each panel (1 sentence each) highlighting the most important finding
+1. An overall executive summary (2-3 sentences) that directly answers the user's question with specific numbers and key insights. After stating what happened, project forward: what does this trend suggest? What risks exist?
+2. A brief summary for each panel (1 sentence each) highlighting the most important finding${insightInstructions}
 
 **Guidelines:**
 - Use specific numbers from the data (e.g., "Revenue increased 23% from $1.2M to $1.48M")
 - Highlight trends, outliers, or notable patterns
 - Be direct and actionable - what should the reader take away?
 - If data shows concerning trends, mention them
+- After stating what happened, project forward: what is the likely trajectory?
+- Identify risks or opportunities the data suggests
+- End the dashboard summary with one clear action item or recommendation
 - Keep language business-focused, not technical
+- For confidence qualifiers: use "strongly suggests" for 100+ data points with clear trends, "indicates" for 30-100 points, "preliminary data suggests" for fewer points
 
 Respond in this exact JSON format:
 {
-  "dashboardSummary": "Overall executive summary answering the question with key numbers and insights",
-  "panelSummaries": ["Summary for panel 1", "Summary for panel 2", ...]
+  "dashboardSummary": "Overall executive summary with key numbers, forward projection, and one action item",
+  "panelSummaries": ["Summary for panel 1", "Summary for panel 2", ...]${insightFormat}
 }`;
 
 		try {
@@ -384,7 +500,8 @@ Respond in this exact JSON format:
 				const parsed = JSON.parse(jsonMatch[0]);
 				return {
 					dashboardSummary: parsed.dashboardSummary || '',
-					panelSummaries: Array.isArray(parsed.panelSummaries) ? parsed.panelSummaries : []
+					panelSummaries: Array.isArray(parsed.panelSummaries) ? parsed.panelSummaries : [],
+					insightNarratives: parsed.insightNarratives || undefined
 				};
 			}
 		} catch (error) {

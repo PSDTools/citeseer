@@ -1,8 +1,10 @@
 <script lang="ts">
 	import { invalidateAll, goto } from '$app/navigation';
+	import { page } from '$app/stores';
 	import ChartPanel from '$lib/components/viz/ChartPanel.svelte';
+	import ExplorationGraph, { type GraphNode } from '$lib/components/viz/ExplorationGraph.svelte';
 	import type { PageData } from './$types';
-	import type { AnalyticalPlan, QueryResult } from '$lib/types/toon';
+	import type { AnalyticalPlan, QueryResult, BranchContext, ChartSelectDetail } from '$lib/types/toon';
 
 	let { data }: { data: PageData } = $props();
 
@@ -12,13 +14,22 @@
 	let error = $state<string | null>(null);
 	let currentPlan = $state<AnalyticalPlan | null>(null);
 	let results = $state<Record<number, QueryResult> | null>(null);
+	let lastQuestion = $state('');
+	let currentNodeContext = $state<BranchContext | null>(null);
+	let currentDashboardId = $state<string | null>(null);
 
-	// Save dashboard state
-	let showSaveDialog = $state(false);
-	let saveName = $state('');
-	let saveDescription = $state('');
-	let isSaving = $state(false);
-	let saveError = $state<string | null>(null);
+	// Graph-based branching state
+	let graphNodes = $state<GraphNode[]>([]);
+	let activeNodeId = $state<string | null>(null);
+	let showBranchMenu = $state(false);
+	let branchMenuX = $state(0);
+	let branchMenuY = $state(0);
+	let branchMenuDetail = $state<ChartSelectDetail | null>(null);
+	let branchPrompt = $state('');
+
+	// Node actions state
+	let isRegenerating = $state(false);
+	let deletingNodeId = $state<string | null>(null);
 
 	// Add datasets state
 	let showAddDatasets = $state(false);
@@ -35,8 +46,89 @@
 	let showDeleteConfirm = $state(false);
 	let isDeleting = $state(false);
 
-	async function handleSubmit() {
-		if (!question.trim() || isLoading) return;
+	// Initialize graph from saved dashboards on mount
+	function initializeGraphFromDashboards() {
+		if (data.dashboards.length === 0) return;
+
+		// Build a map of dashboard ID to dashboard for easy lookup
+		const dashboardMap = new Map(data.dashboards.map(d => [d.id, d]));
+
+		// Convert saved dashboards to graph nodes
+		const nodes: GraphNode[] = data.dashboards
+			.filter(d => d.plan && d.results) // Only include dashboards with data
+			.map(d => ({
+				id: d.id,
+				question: d.question,
+				parentId: d.parentDashboardId || null,
+				dashboardId: d.id,
+				filters: d.nodeContext?.filters,
+				timestamp: new Date(d.createdAt).getTime(),
+				plan: d.plan!,
+				results: d.results!
+			}));
+
+		if (nodes.length > 0) {
+			graphNodes = nodes;
+			// Set the most recent dashboard as active
+			const mostRecent = nodes[0]; // Already sorted by createdAt desc
+			activeNodeId = mostRecent.id;
+			currentPlan = mostRecent.plan ?? null;
+			results = mostRecent.results ?? null;
+			lastQuestion = mostRecent.question;
+			currentDashboardId = mostRecent.dashboardId || null;
+			currentNodeContext = data.dashboards[0].nodeContext || null;
+		}
+	}
+
+	// Run initialization when component mounts
+	$effect(() => {
+		// Only run once on initial mount when graphNodes is empty
+		if (graphNodes.length === 0 && data.dashboards.length > 0) {
+			initializeGraphFromDashboards();
+		}
+	});
+
+	// Auto-fill question from ?q= URL param
+	let hasProcessedUrlQuery = $state(false);
+	$effect(() => {
+		const q = $page.url.searchParams.get('q');
+		if (q && !hasProcessedUrlQuery) {
+			hasProcessedUrlQuery = true;
+			question = q;
+		}
+	});
+
+	// Auto-run branch context passed from saved dashboards
+	let hasProcessedBranchPayload = $state(false);
+	$effect(() => {
+		if (hasProcessedBranchPayload) return;
+		if (typeof sessionStorage === 'undefined') return;
+		const raw = sessionStorage.getItem('siteseer.branchContext');
+		if (!raw) return;
+		try {
+			const payload = JSON.parse(raw) as {
+				contextId?: string;
+				question?: string;
+				branchContext?: BranchContext;
+			};
+			if (!payload.contextId || payload.contextId !== data.context.id) return;
+			if (!payload.question || !payload.branchContext) return;
+
+			hasProcessedBranchPayload = true;
+			sessionStorage.removeItem('siteseer.branchContext');
+			question = payload.question;
+			void handleSubmit({ question: payload.question, branchContext: payload.branchContext });
+		} catch {
+			sessionStorage.removeItem('siteseer.branchContext');
+		}
+	});
+
+	async function handleSubmit(payload?: { question: string; branchContext?: BranchContext }) {
+		const submittedQuestion = payload?.question?.trim() ?? question.trim();
+		if (!submittedQuestion || isLoading) return;
+
+		const branchContext = payload?.branchContext;
+		const isFollowup = !!branchContext;
 
 		isLoading = true;
 		error = null;
@@ -48,8 +140,9 @@
 				method: 'POST',
 				headers: { 'Content-Type': 'application/json' },
 				body: JSON.stringify({
-					question,
-					contextId: data.context.id
+					question: submittedQuestion,
+					contextId: data.context.id,
+					branchContext
 				})
 			});
 
@@ -61,6 +154,49 @@
 
 			currentPlan = result.plan;
 			results = result.results;
+			lastQuestion = submittedQuestion;
+			currentNodeContext = branchContext || null;
+
+			// Auto-save as dashboard
+			const saveResponse = await fetch('/api/dashboards', {
+				method: 'POST',
+				headers: { 'Content-Type': 'application/json' },
+				body: JSON.stringify({
+					name: submittedQuestion.slice(0, 100),
+					question: submittedQuestion,
+					plan: result.plan,
+					panels: result.plan.viz || [],
+					results: result.results,
+					contextId: data.context.id,
+					parentDashboardId: isFollowup ? currentDashboardId : undefined,
+					nodeContext: branchContext || undefined
+				})
+			});
+
+			const saveResult = await saveResponse.json();
+			const dashboardId = saveResult?.dashboard?.id;
+
+			// Create new graph node with stored plan and results
+			const newNode: GraphNode = {
+				id: dashboardId || crypto.randomUUID(),
+				question: submittedQuestion,
+				parentId: isFollowup ? activeNodeId : null,
+				dashboardId: dashboardId,
+				filters: branchContext?.filters,
+				timestamp: Date.now(),
+				plan: result.plan,
+				results: result.results
+			};
+
+			if (isFollowup) {
+				graphNodes = [...graphNodes, newNode];
+			} else {
+				// New root question - start fresh graph
+				graphNodes = [newNode];
+			}
+			activeNodeId = newNode.id;
+			currentDashboardId = dashboardId || null;
+			question = ''; // Clear input after successful query
 		} catch (e) {
 			error = e instanceof Error ? e.message : 'Failed to execute query';
 		} finally {
@@ -75,44 +211,158 @@
 		}
 	}
 
-	function openSaveDialog() {
-		saveName = question.slice(0, 100);
-		saveDescription = '';
-		saveError = null;
-		showSaveDialog = true;
+	function openBranchMenu(detail: ChartSelectDetail) {
+		if (isLoading) return;
+		if (!detail.field || detail.value == null) return;
+
+		branchMenuDetail = detail;
+		branchMenuX = detail.clientX;
+		branchMenuY = detail.clientY;
+		branchPrompt = '';
+		showBranchMenu = true;
 	}
 
-	async function handleSave() {
-		if (!saveName.trim() || !currentPlan) return;
+	function closeBranchMenu() {
+		showBranchMenu = false;
+		branchMenuDetail = null;
+		branchPrompt = '';
+	}
 
-		isSaving = true;
-		saveError = null;
+	function submitBranchPrompt() {
+		if (!branchMenuDetail) return;
+		const prompt = branchPrompt.trim();
+		if (!prompt) return;
+
+		const detail = branchMenuDetail;
+		const parentDashboardId = currentDashboardId || undefined;
+		const filters = { [detail.field!]: detail.value! };
+
+		const branchContext: BranchContext = {
+			parentDashboardId,
+			parentQuestion: lastQuestion,
+			parentSql: currentPlan?.sql,
+			filters,
+			selectedMark: {
+				panelIndex: detail.panelIndex,
+				panelTitle: detail.panelTitle,
+				field: detail.field!,
+				value: detail.value!,
+				metricField: detail.metricField,
+				metricValue: detail.metricValue,
+				datum: detail.datum
+			}
+		};
+
+		closeBranchMenu();
+		void handleSubmit({ question: prompt, branchContext });
+	}
+
+	async function deleteNode(nodeId: string) {
+		const node = graphNodes.find(n => n.id === nodeId);
+		if (!node) return;
+
+		deletingNodeId = nodeId;
 
 		try {
-			const response = await fetch('/api/dashboards', {
+			// Delete from database if it has a dashboard ID
+			if (node.dashboardId) {
+				await fetch(`/api/dashboards/${node.dashboardId}`, { method: 'DELETE' });
+			}
+
+			// Remove from graph (and any children)
+			const nodesToRemove = new Set<string>([nodeId]);
+			// Find all descendants
+			let changed = true;
+			while (changed) {
+				changed = false;
+				for (const n of graphNodes) {
+					if (n.parentId && nodesToRemove.has(n.parentId) && !nodesToRemove.has(n.id)) {
+						nodesToRemove.add(n.id);
+						changed = true;
+					}
+				}
+			}
+
+			graphNodes = graphNodes.filter(n => !nodesToRemove.has(n.id));
+
+			// If we deleted the active node, switch to another or clear
+			if (nodesToRemove.has(activeNodeId || '')) {
+				if (graphNodes.length > 0) {
+					const newActive = graphNodes[0];
+					activeNodeId = newActive.id;
+					currentPlan = newActive.plan || null;
+					results = newActive.results || null;
+					lastQuestion = newActive.question;
+					currentDashboardId = newActive.dashboardId || null;
+				} else {
+					activeNodeId = null;
+					currentPlan = null;
+					results = null;
+					lastQuestion = '';
+					currentDashboardId = null;
+				}
+			}
+
+			invalidateAll();
+		} finally {
+			deletingNodeId = null;
+		}
+	}
+
+	async function regenerateNode(nodeId: string) {
+		const node = graphNodes.find(n => n.id === nodeId);
+		if (!node || isRegenerating) return;
+
+		isRegenerating = true;
+		error = null;
+
+		try {
+			// Re-run the query
+			const response = await fetch('/api/query', {
 				method: 'POST',
 				headers: { 'Content-Type': 'application/json' },
 				body: JSON.stringify({
-					name: saveName.trim(),
-					question,
-					description: saveDescription.trim() || undefined,
-					plan: currentPlan,
-					panels: currentPlan.viz || [],
-					contextId: data.context.id
+					question: node.question,
+					contextId: data.context.id,
+					branchContext: node.filters ? { filters: node.filters } : undefined
 				})
 			});
 
+			const result = await response.json();
+
 			if (!response.ok) {
-				const result = await response.json();
-				throw new Error(result.message || 'Failed to save');
+				throw new Error(result.message || 'Query failed');
 			}
 
-			showSaveDialog = false;
-			invalidateAll();
+			// Update the dashboard in the database
+			if (node.dashboardId) {
+				await fetch(`/api/dashboards/${node.dashboardId}`, {
+					method: 'PATCH',
+					headers: { 'Content-Type': 'application/json' },
+					body: JSON.stringify({
+						plan: result.plan,
+						panels: result.plan.viz || [],
+						results: result.results
+					})
+				});
+			}
+
+			// Update the node in the graph
+			graphNodes = graphNodes.map(n =>
+				n.id === nodeId
+					? { ...n, plan: result.plan, results: result.results }
+					: n
+			);
+
+			// If this is the active node, update the display
+			if (activeNodeId === nodeId) {
+				currentPlan = result.plan;
+				results = result.results;
+			}
 		} catch (e) {
-			saveError = e instanceof Error ? e.message : 'Failed to save dashboard';
+			error = e instanceof Error ? e.message : 'Failed to regenerate';
 		} finally {
-			isSaving = false;
+			isRegenerating = false;
 		}
 	}
 
@@ -205,6 +455,15 @@
 	<title>{data.context.name} - SiteSeer</title>
 </svelte:head>
 
+<svelte:window
+	on:click={() => {
+		if (showBranchMenu) closeBranchMenu();
+	}}
+	on:keydown={(e) => {
+		if (e.key === 'Escape' && showBranchMenu) closeBranchMenu();
+	}}
+/>
+
 <div class="p-8">
 	<!-- Header -->
 	<div class="mb-8">
@@ -255,6 +514,24 @@
 				</button>
 			</div>
 		</div>
+
+		{#if currentNodeContext?.filters || currentNodeContext?.selectedMark}
+			<div class="mt-4 flex flex-wrap items-center gap-2 text-xs text-white/50">
+				<span class="text-white/40">Context:</span>
+				{#if currentNodeContext?.filters}
+					{#each Object.entries(currentNodeContext.filters) as [field, value]}
+						<span class="rounded-full border border-white/10 bg-white/5 px-2 py-0.5 text-white/70">
+							{field} = {String(value)}
+						</span>
+					{/each}
+				{/if}
+				{#if currentNodeContext?.selectedMark}
+					<span class="rounded-full border border-white/10 bg-white/5 px-2 py-0.5 text-white/70">
+						Selected {currentNodeContext.selectedMark.field} = {String(currentNodeContext.selectedMark.value)}
+					</span>
+				{/if}
+			</div>
+		{/if}
 	</div>
 
 	<!-- Datasets in Context -->
@@ -350,7 +627,7 @@
 					/>
 					<button
 						type="button"
-						onclick={handleSubmit}
+						onclick={() => handleSubmit()}
 						disabled={!question.trim() || isLoading}
 						class="absolute right-2 top-1/2 -translate-y-1/2 rounded-lg bg-gradient-to-r from-[#64ff96] to-[#3dd977] p-2.5 text-[#050810] transition-all hover:shadow-lg hover:shadow-[#64ff96]/20 disabled:opacity-50 disabled:cursor-not-allowed"
 					>
@@ -424,24 +701,105 @@
 					</div>
 				{/if}
 
-				<div class="flex justify-end mb-4">
-					<button
-						type="button"
-						onclick={openSaveDialog}
-						class="flex items-center gap-2 rounded-lg border border-white/10 bg-white/5 px-4 py-2 text-sm text-white/70 hover:bg-white/10 hover:text-white transition-colors"
-					>
-						<svg class="h-4 w-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-							<path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 5a2 2 0 012-2h10a2 2 0 012 2v16l-7-3.5L5 21V5z" />
-						</svg>
-						Save
-					</button>
-				</div>
+				<!-- Suggested Investigations -->
+				{#if currentPlan.suggestedInvestigations && currentPlan.suggestedInvestigations.length > 0}
+					<div class="mb-6 flex flex-wrap gap-2">
+						{#each currentPlan.suggestedInvestigations as investigation, i (i)}
+							<button
+								type="button"
+								onclick={() => {
+									question = investigation;
+									handleSubmit();
+								}}
+								disabled={isLoading}
+								class="rounded-full border border-white/10 bg-white/5 px-3 py-1.5 text-xs text-white/70 hover:bg-white/10 hover:text-white hover:border-white/20 transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
+							>
+								{investigation}
+							</button>
+						{/each}
+					</div>
+				{/if}
+
+				{#if graphNodes.length > 0}
+					<div class="mb-4">
+						<div class="text-xs text-white/40 mb-2">Exploration Graph ({graphNodes.length} node{graphNodes.length !== 1 ? 's' : ''}) — click a node to view its results</div>
+						<ExplorationGraph
+							nodes={graphNodes}
+							{activeNodeId}
+							onNodeClick={(node) => {
+								// Switch to the clicked node's results
+								if (node.plan && node.results) {
+									currentPlan = node.plan;
+									results = node.results;
+									lastQuestion = node.question;
+									activeNodeId = node.id;
+									currentDashboardId = node.dashboardId || null;
+								}
+							}}
+							height={Math.min(200 + graphNodes.length * 20, 400)}
+						/>
+					</div>
+				{/if}
+
+				{#if activeNodeId}
+					<div class="flex items-center justify-between mb-4">
+						<div class="text-sm text-white/60">
+							<span class="text-white/40">Current:</span> {lastQuestion}
+						</div>
+						<div class="flex items-center gap-2">
+							<button
+								type="button"
+								onclick={() => activeNodeId && regenerateNode(activeNodeId)}
+								disabled={isRegenerating || isLoading}
+								class="flex items-center gap-1.5 rounded-lg border border-white/10 bg-white/5 px-3 py-1.5 text-xs text-white/70 hover:bg-white/10 hover:text-white transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
+								title="Regenerate this query"
+							>
+								{#if isRegenerating}
+									<svg class="h-3.5 w-3.5 animate-spin" fill="none" viewBox="0 0 24 24">
+										<circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4" />
+										<path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z" />
+									</svg>
+								{:else}
+									<svg class="h-3.5 w-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+										<path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15" />
+									</svg>
+								{/if}
+								Regenerate
+							</button>
+							<button
+								type="button"
+								onclick={() => activeNodeId && deleteNode(activeNodeId)}
+								disabled={deletingNodeId !== null || isLoading}
+								class="flex items-center gap-1.5 rounded-lg border border-red-500/20 bg-red-500/5 px-3 py-1.5 text-xs text-red-400 hover:bg-red-500/10 hover:border-red-500/30 transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
+								title="Delete this exploration"
+							>
+								{#if deletingNodeId === activeNodeId}
+									<svg class="h-3.5 w-3.5 animate-spin" fill="none" viewBox="0 0 24 24">
+										<circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4" />
+										<path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z" />
+									</svg>
+								{:else}
+									<svg class="h-3.5 w-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+										<path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16" />
+									</svg>
+								{/if}
+								Delete
+							</button>
+						</div>
+					</div>
+				{/if}
 
 				<div class="grid gap-6 md:grid-cols-2">
 					{#each currentPlan.viz as panel, i}
 						{@const panelResult = results[i] || results[-1]}
 						{#if panelResult}
-							<ChartPanel {panel} result={panelResult} />
+							<ChartPanel
+								{panel}
+								result={panelResult}
+								panelIndex={i}
+								interactive={true}
+								on:select={(event) => openBranchMenu(event.detail)}
+							/>
 						{/if}
 					{/each}
 				</div>
@@ -449,29 +807,87 @@
 		</div>
 	{/if}
 
-	<!-- Saved Dashboards -->
-	{#if data.dashboards.length > 0}
-		<div class="mt-8 pt-8 border-t border-white/10">
-			<h2 class="text-lg font-medium text-white mb-4">Saved in this context</h2>
-			<div class="grid gap-3 sm:grid-cols-2 lg:grid-cols-3">
-				{#each data.dashboards as dashboard}
-					<a
-						href="/saved/{dashboard.id}"
-						class="rounded-xl border border-white/10 bg-white/[0.02] p-4 hover:border-[#64ff96]/30 hover:bg-white/[0.04] transition-all"
-					>
-						<p class="font-medium text-white truncate">{dashboard.name}</p>
-						<p class="mt-1 text-sm text-white/50 truncate">{dashboard.question}</p>
-					</a>
-				{/each}
-			</div>
-		</div>
-	{/if}
 </div>
+
+<!-- Branch Menu -->
+{#if showBranchMenu && branchMenuDetail}
+	<!-- svelte-ignore a11y_no_static_element_interactions -->
+	<div
+		class="fixed z-50 w-[360px] rounded-lg border border-white/10 bg-[#0a0d14] p-4 shadow-xl"
+		style="left: {branchMenuX}px; top: {branchMenuY}px;"
+		onclick={(e) => e.stopPropagation()}
+		onkeydown={(e) => e.stopPropagation()}
+	>
+		<div class="mb-3 space-y-2">
+			<div class="text-xs font-medium text-white/70">Selected Context</div>
+			
+			{#if lastQuestion}
+				<div class="text-xs text-white/50">
+					<span class="text-white/40">Question:</span>
+					<span class="text-white/80 italic"> "{lastQuestion}"</span>
+				</div>
+			{/if}
+			
+			{#if branchMenuDetail.panelTitle}
+				<div class="text-xs text-white/50">
+					<span class="text-white/40">Panel:</span>
+					<span class="text-white/80"> {branchMenuDetail.panelTitle}</span>
+				</div>
+			{/if}
+			
+			{#if branchMenuDetail.datum && Object.keys(branchMenuDetail.datum).length > 0}
+				<div class="rounded border border-white/10 bg-white/5 p-2 max-h-32 overflow-y-auto">
+					<div class="text-[10px] text-white/40 uppercase tracking-wide mb-1">Data Point</div>
+					<div class="space-y-0.5">
+						{#each Object.entries(branchMenuDetail.datum) as [key, val]}
+							<div class="text-xs flex justify-between gap-2">
+								<span class="text-white/50 truncate">{key}</span>
+								<span class="text-[#64ff96] font-mono text-right">{val != null ? String(val) : '—'}</span>
+							</div>
+						{/each}
+					</div>
+				</div>
+			{:else}
+				<div class="text-xs text-white/50">{branchMenuDetail.field}: <span class="text-[#64ff96]">{String(branchMenuDetail.value)}</span></div>
+				{#if branchMenuDetail.metricField && branchMenuDetail.metricValue != null}
+					<div class="text-xs text-white/50">{branchMenuDetail.metricField}: <span class="text-white/80">{String(branchMenuDetail.metricValue)}</span></div>
+				{/if}
+			{/if}
+		</div>
+		<label class="block text-xs text-white/60 mb-1" for="branch-prompt">Ask a question about this data</label>
+		<textarea
+			id="branch-prompt"
+			bind:value={branchPrompt}
+			rows="3"
+			class="w-full rounded-lg border border-white/10 bg-white/5 px-3 py-2 text-sm text-white placeholder-white/40 focus:border-[#64ff96] focus:outline-none focus:ring-1 focus:ring-[#64ff96] resize-none"
+			placeholder="Ask about this…"
+		></textarea>
+		<div class="mt-3 flex justify-end gap-2">
+			<button
+				type="button"
+				onclick={closeBranchMenu}
+				class="rounded-lg border border-white/10 bg-white/5 px-3 py-1.5 text-xs text-white/70 hover:bg-white/10 hover:text-white transition-colors"
+			>
+				Cancel
+			</button>
+			<button
+				type="button"
+				onclick={submitBranchPrompt}
+				disabled={!branchPrompt.trim() || isLoading}
+				class="rounded-lg bg-gradient-to-r from-[#64ff96] to-[#3dd977] px-3 py-1.5 text-xs font-semibold text-[#050810] transition-all hover:shadow-lg hover:shadow-[#64ff96]/20 disabled:opacity-50 disabled:cursor-not-allowed"
+			>
+				Ask
+			</button>
+		</div>
+	</div>
+{/if}
 
 <!-- Add Datasets Dialog -->
 {#if showAddDatasets}
-	<div class="fixed inset-0 z-50 flex items-center justify-center bg-black/50 backdrop-blur-sm" onclick={() => { showAddDatasets = false; selectedDatasets = new Set(); }}>
-		<div class="w-full max-w-md rounded-xl border border-white/10 bg-[#0a0d14] p-6 shadow-2xl" onclick={(e) => e.stopPropagation()}>
+	<!-- svelte-ignore a11y_no_static_element_interactions -->
+	<div class="fixed inset-0 z-50 flex items-center justify-center bg-black/50 backdrop-blur-sm" onclick={() => { showAddDatasets = false; selectedDatasets = new Set(); }} onkeydown={(e) => e.key === 'Escape' && (showAddDatasets = false)} role="dialog" aria-modal="true" tabindex="-1">
+		<!-- svelte-ignore a11y_no_static_element_interactions -->
+		<div class="w-full max-w-md rounded-xl border border-white/10 bg-[#0a0d14] p-6 shadow-2xl" onclick={(e) => e.stopPropagation()} onkeydown={(e) => e.stopPropagation()}>
 			<h2 class="text-lg font-semibold text-white mb-4">Add Datasets</h2>
 
 			{#if availableDatasets.length === 0}
@@ -524,63 +940,6 @@
 					class="rounded-lg bg-gradient-to-r from-[#64ff96] to-[#3dd977] px-4 py-2 text-sm font-semibold text-[#050810] transition-all hover:shadow-lg hover:shadow-[#64ff96]/20 disabled:opacity-50 disabled:cursor-not-allowed"
 				>
 					Add {selectedDatasets.size || ''} Dataset{selectedDatasets.size !== 1 ? 's' : ''}
-				</button>
-			</div>
-		</div>
-	</div>
-{/if}
-
-<!-- Save Dashboard Dialog -->
-{#if showSaveDialog}
-	<div class="fixed inset-0 z-50 flex items-center justify-center bg-black/50 backdrop-blur-sm">
-		<div class="w-full max-w-md rounded-xl border border-white/10 bg-[#0a0d14] p-6 shadow-2xl">
-			<h2 class="text-lg font-semibold text-white mb-4">Save Dashboard</h2>
-
-			{#if saveError}
-				<div class="mb-4 rounded-lg bg-red-500/10 border border-red-500/20 px-4 py-3 text-sm text-red-400">
-					{saveError}
-				</div>
-			{/if}
-
-			<div class="space-y-4">
-				<div>
-					<label for="save-name" class="block text-sm text-white/70 mb-1">Name</label>
-					<input
-						id="save-name"
-						type="text"
-						bind:value={saveName}
-						class="w-full rounded-lg border border-white/10 bg-white/5 px-4 py-2.5 text-white placeholder-white/40 focus:border-[#64ff96] focus:outline-none focus:ring-1 focus:ring-[#64ff96]"
-						placeholder="Dashboard name..."
-					/>
-				</div>
-
-				<div>
-					<label for="save-description" class="block text-sm text-white/70 mb-1">Description (optional)</label>
-					<textarea
-						id="save-description"
-						bind:value={saveDescription}
-						rows="3"
-						class="w-full rounded-lg border border-white/10 bg-white/5 px-4 py-2.5 text-white placeholder-white/40 focus:border-[#64ff96] focus:outline-none focus:ring-1 focus:ring-[#64ff96] resize-none"
-						placeholder="What does this dashboard show?"
-					></textarea>
-				</div>
-			</div>
-
-			<div class="mt-6 flex justify-end gap-3">
-				<button
-					type="button"
-					onclick={() => showSaveDialog = false}
-					class="rounded-lg border border-white/10 bg-white/5 px-4 py-2 text-sm text-white/70 hover:bg-white/10 hover:text-white transition-colors"
-				>
-					Cancel
-				</button>
-				<button
-					type="button"
-					onclick={handleSave}
-					disabled={!saveName.trim() || isSaving}
-					class="rounded-lg bg-gradient-to-r from-[#64ff96] to-[#3dd977] px-4 py-2 text-sm font-semibold text-[#050810] transition-all hover:shadow-lg hover:shadow-[#64ff96]/20 disabled:opacity-50 disabled:cursor-not-allowed"
-				>
-					{#if isSaving}Saving...{:else}Save{/if}
 				</button>
 			</div>
 		</div>

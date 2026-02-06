@@ -5,10 +5,13 @@
 	import HowItWorks from '$lib/components/HowItWorks.svelte';
 	import CTA from '$lib/components/CTA.svelte';
 	import Footer from '$lib/components/Footer.svelte';
+	import type { PageData } from './$types';
+
+	let { data }: { data: PageData } = $props();
 </script>
 
 <svelte:head>
-	<title>CiteSeer - Question-Driven Analytics</title>
+	<title>SiteSeer - Question-Driven Analytics</title>
 </svelte:head>
 
 <div class="w-full relative">
@@ -16,6 +19,6 @@
 	<StarCanvas />
 	<Features />
 	<HowItWorks />
-	<CTA />
+	<CTA user={data.user} datasets={data.datasets} hasApiKey={data.hasApiKey} />
 	<Footer />
 </div>

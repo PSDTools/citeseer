@@ -16,10 +16,38 @@ export const load: PageServerLoad = async ({ params, parent }) => {
 		error(404, 'Dashboard not found');
 	}
 
-	// Re-execute the queries to get fresh data
-	const results: Record<number, QueryResult> = {};
+	// Build breadcrumb path from parent dashboards (if any)
+	const breadcrumb: { id: string; name: string; question: string }[] = [];
+	const visited = new Set<string>();
+	let current = dashboard;
 
-	if (dashboard.plan?.viz) {
+	while (current.parentDashboardId) {
+		if (visited.has(current.parentDashboardId)) break;
+		visited.add(current.parentDashboardId);
+
+		const [parent] = await db
+			.select({
+				id: dashboards.id,
+				name: dashboards.name,
+				question: dashboards.question,
+				parentDashboardId: dashboards.parentDashboardId
+			})
+			.from(dashboards)
+			.where(and(eq(dashboards.id, current.parentDashboardId), eq(dashboards.orgId, org.id)));
+
+		if (!parent) break;
+
+		breadcrumb.unshift({ id: parent.id, name: parent.name, question: parent.question });
+		current = parent;
+	}
+
+	// Use stored results if available, otherwise re-execute queries
+	let results: Record<number, QueryResult> = dashboard.results || {};
+
+	// Re-execute queries if no stored results
+	const needsExecution = !dashboard.results || Object.keys(dashboard.results).length === 0;
+
+	if (needsExecution && dashboard.plan?.viz) {
 		// Get datasets - either from context or all org datasets
 		let datasetIds: string[] = [];
 
@@ -74,6 +102,7 @@ export const load: PageServerLoad = async ({ params, parent }) => {
 
 	return {
 		dashboard,
+		breadcrumb,
 		results
 	};
 };

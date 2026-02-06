@@ -2,11 +2,17 @@
 	import { goto, invalidateAll } from '$app/navigation';
 	import ChartPanel from '$lib/components/viz/ChartPanel.svelte';
 	import type { PageData } from './$types';
+	import type { BranchContext, ChartSelectDetail } from '$lib/types/toon';
 
 	let { data }: { data: PageData } = $props();
 
 	let showDeleteConfirm = $state(false);
 	let isDeleting = $state(false);
+	let showBranchMenu = $state(false);
+	let branchMenuX = $state(0);
+	let branchMenuY = $state(0);
+	let branchMenuDetail = $state<ChartSelectDetail | null>(null);
+	let branchPrompt = $state('');
 
 	async function handleDelete() {
 		isDeleting = true;
@@ -33,11 +39,76 @@
 			minute: '2-digit'
 		});
 	}
+
+	function openBranchMenu(detail: ChartSelectDetail) {
+		if (!data.dashboard.contextId) return;
+		if (!detail.field || detail.value == null) return;
+		branchMenuDetail = detail;
+		branchMenuX = detail.clientX;
+		branchMenuY = detail.clientY;
+		branchPrompt = '';
+		showBranchMenu = true;
+	}
+
+	function closeBranchMenu() {
+		showBranchMenu = false;
+		branchMenuDetail = null;
+		branchPrompt = '';
+	}
+
+	function submitBranchPrompt() {
+		if (!branchMenuDetail || !data.dashboard.contextId) return;
+		const prompt = branchPrompt.trim();
+		if (!prompt) return;
+
+		const detail = branchMenuDetail;
+		const panel = data.dashboard.plan?.viz?.[detail.panelIndex ?? -1];
+		const parentSql = panel?.sql || data.dashboard.plan?.sql;
+
+		const branchContext: BranchContext = {
+			parentDashboardId: data.dashboard.id,
+			parentQuestion: data.dashboard.question,
+			parentSql,
+			filters: { [detail.field!]: detail.value! },
+			selectedMark: {
+				panelIndex: detail.panelIndex,
+				panelTitle: detail.panelTitle,
+				field: detail.field!,
+				value: detail.value!,
+				metricField: detail.metricField,
+				metricValue: detail.metricValue,
+				datum: detail.datum
+			}
+		};
+
+		if (typeof sessionStorage !== 'undefined') {
+			sessionStorage.setItem(
+				'siteseer.branchContext',
+				JSON.stringify({
+					contextId: data.dashboard.contextId,
+					question: prompt,
+					branchContext
+				})
+			);
+		}
+
+		closeBranchMenu();
+		goto(`/contexts/${data.dashboard.contextId}?q=${encodeURIComponent(prompt)}`);
+	}
 </script>
 
 <svelte:head>
 	<title>{data.dashboard.name} - SiteSeer</title>
 </svelte:head>
+
+<svelte:window
+	on:click={() => {
+		if (showBranchMenu) closeBranchMenu();
+	}}
+	on:keydown={(e) => {
+		if (e.key === 'Escape' && showBranchMenu) closeBranchMenu();
+	}}
+/>
 
 <div class="p-8">
 	<!-- Header -->
@@ -50,10 +121,38 @@
 				>
 					← Back
 				</a>
+				{#if data.breadcrumb?.length}
+					<nav class="mb-2 flex flex-wrap items-center gap-1 text-xs text-white/50">
+						{#each data.breadcrumb as crumb, idx}
+							<a href="/saved/{crumb.id}" class="hover:text-white/70">
+								{crumb.name}
+							</a>
+							{#if idx < data.breadcrumb.length - 1}
+								<span class="text-white/30">›</span>
+							{/if}
+						{/each}
+					</nav>
+				{/if}
 				<h1 class="text-2xl font-bold text-white">{data.dashboard.name}</h1>
 				<p class="mt-1 text-white/60">{data.dashboard.question}</p>
 				{#if data.dashboard.description}
 					<p class="mt-2 text-sm text-white/50">{data.dashboard.description}</p>
+				{/if}
+				{#if data.dashboard.nodeContext?.filters}
+					<div class="mt-2 flex flex-wrap items-center gap-2 text-xs text-white/50">
+						<span class="text-white/40">Inherited filters:</span>
+						{#each Object.entries(data.dashboard.nodeContext.filters) as [field, value]}
+							<span class="rounded-full border border-white/10 bg-white/5 px-2 py-0.5 text-white/70">
+								{field} = {String(value)}
+							</span>
+						{/each}
+					</div>
+				{/if}
+				{#if data.dashboard.nodeContext?.selectedMark}
+					<p class="mt-2 text-xs text-white/40">
+						Selected: {data.dashboard.nodeContext.selectedMark.field} =
+						{String(data.dashboard.nodeContext.selectedMark.value)}
+					</p>
 				{/if}
 				<p class="mt-2 text-xs text-white/40">
 					Saved {formatDate(data.dashboard.createdAt)}
@@ -91,6 +190,20 @@
 			</div>
 		{/if}
 
+		<!-- Suggested Investigations -->
+		{#if data.dashboard.plan.suggestedInvestigations && data.dashboard.plan.suggestedInvestigations.length > 0}
+			<div class="mb-6 flex flex-wrap gap-2">
+				{#each data.dashboard.plan.suggestedInvestigations as investigation, i (i)}
+					<a
+						href="/contexts/{data.dashboard.contextId}?q={encodeURIComponent(investigation)}"
+						class="rounded-full border border-white/10 bg-white/5 px-3 py-1.5 text-xs text-white/70 hover:bg-white/10 hover:text-white hover:border-white/20 transition-colors no-underline"
+					>
+						{investigation}
+					</a>
+				{/each}
+			</div>
+		{/if}
+
 		<div class="grid gap-6 md:grid-cols-2">
 			{#each data.dashboard.plan.viz as panel, i}
 				{@const result = data.results[i]}
@@ -101,7 +214,13 @@
 							<p class="text-sm text-red-400">Error: {result.error}</p>
 						</div>
 					{:else}
-						<ChartPanel {panel} result={result} />
+						<ChartPanel
+							{panel}
+							result={result}
+							panelIndex={i}
+							interactive={true}
+							on:select={(event) => openBranchMenu(event.detail)}
+						/>
 					{/if}
 				{/if}
 			{/each}
@@ -112,6 +231,75 @@
 		</div>
 	{/if}
 </div>
+
+<!-- Branch Menu -->
+{#if showBranchMenu && branchMenuDetail}
+	<!-- svelte-ignore a11y_no_static_element_interactions -->
+	<div
+		class="fixed z-50 w-[360px] rounded-lg border border-white/10 bg-[#0a0d14] p-4 shadow-xl"
+		style="left: {branchMenuX}px; top: {branchMenuY}px;"
+		onclick={(e) => e.stopPropagation()}
+		onkeydown={(e) => e.stopPropagation()}
+	>
+		<div class="mb-3 space-y-2">
+			<div class="text-xs font-medium text-white/70">Selected Context</div>
+			{#if branchMenuDetail.panelTitle}
+				<div class="text-xs text-white/50">
+					<span class="text-white/40">Panel:</span>
+					<span class="text-white/80"> {branchMenuDetail.panelTitle}</span>
+				</div>
+			{/if}
+			{#if branchMenuDetail.datum && Object.keys(branchMenuDetail.datum).length > 0}
+				<div class="rounded border border-white/10 bg-white/5 p-2 max-h-32 overflow-y-auto">
+					<div class="text-[10px] text-white/40 uppercase tracking-wide mb-1">Data Point</div>
+					<div class="space-y-0.5">
+						{#each Object.entries(branchMenuDetail.datum) as [key, val]}
+							<div class="text-xs flex justify-between gap-2">
+								<span class="text-white/50 truncate">{key}</span>
+								<span class="text-[#64ff96] font-mono text-right">{val != null ? String(val) : '—'}</span>
+							</div>
+						{/each}
+					</div>
+				</div>
+			{:else}
+				<div class="text-xs text-white/50">
+					{branchMenuDetail.field}: <span class="text-[#64ff96]">{String(branchMenuDetail.value)}</span>
+				</div>
+				{#if branchMenuDetail.metricField && branchMenuDetail.metricValue != null}
+					<div class="text-xs text-white/50">
+						{branchMenuDetail.metricField}:
+						<span class="text-white/80">{String(branchMenuDetail.metricValue)}</span>
+					</div>
+				{/if}
+			{/if}
+		</div>
+		<label class="block text-xs text-white/60 mb-1" for="branch-prompt">Ask a question about this data</label>
+		<textarea
+			id="branch-prompt"
+			bind:value={branchPrompt}
+			rows="3"
+			class="w-full rounded-lg border border-white/10 bg-white/5 px-3 py-2 text-sm text-white placeholder-white/40 focus:border-[#64ff96] focus:outline-none focus:ring-1 focus:ring-[#64ff96] resize-none"
+			placeholder="Ask about this…"
+		></textarea>
+		<div class="mt-3 flex justify-end gap-2">
+			<button
+				type="button"
+				onclick={closeBranchMenu}
+				class="rounded-lg border border-white/10 bg-white/5 px-3 py-1.5 text-xs text-white/70 hover:bg-white/10 hover:text-white transition-colors"
+			>
+				Cancel
+			</button>
+			<button
+				type="button"
+				onclick={submitBranchPrompt}
+				disabled={!branchPrompt.trim()}
+				class="rounded-lg bg-gradient-to-r from-[#64ff96] to-[#3dd977] px-3 py-1.5 text-xs font-semibold text-[#050810] transition-all hover:shadow-lg hover:shadow-[#64ff96]/20 disabled:opacity-50 disabled:cursor-not-allowed"
+			>
+				Ask
+			</button>
+		</div>
+	</div>
+{/if}
 
 <!-- Delete Confirmation Dialog -->
 {#if showDeleteConfirm}
