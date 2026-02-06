@@ -1,5 +1,6 @@
 <script lang="ts">
 	import { page } from '$app/stores';
+	import logo from '$lib/assets/logo.svg';
 
 	interface Dataset {
 		id: string;
@@ -80,7 +81,7 @@
 		<!-- Logo -->
 		<div class="flex h-14 items-center justify-between border-b border-white/10 px-5">
 			<a href="/" class="flex items-center gap-2.5 text-lg font-bold" onclick={() => onclose?.()}>
-				<img src="/logo.svg" alt="CiteSeer logo" class="h-5 w-5" />
+				<img src={logo} alt="CiteSeer logo" class="h-5 w-5" />
 				<span class="bg-gradient-to-r from-[#64ff96] to-[#3dd977] bg-clip-text text-transparent">
 					CiteSeer
 				</span>

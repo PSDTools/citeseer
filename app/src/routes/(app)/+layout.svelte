@@ -2,6 +2,7 @@
 	import Sidebar from '$lib/components/app/Sidebar.svelte';
 	import type { LayoutData } from './$types';
 	import type { Snippet } from 'svelte';
+	import logo from '$lib/assets/logo.svg';
 
 	interface Props {
 		data: LayoutData;
@@ -34,7 +35,7 @@
 			</svg>
 		</button>
 		<a href="/" class="ml-3 flex items-center gap-2 text-lg font-bold">
-			<img src="/logo.svg" alt="CiteSeer logo" class="h-5 w-5" />
+			<img src={logo} alt="CiteSeer logo" class="h-5 w-5" />
 			<span class="bg-gradient-to-r from-[#64ff96] to-[#3dd977] bg-clip-text text-transparent">
 				CiteSeer
 			</span>
@@ -43,7 +44,7 @@
 
 	<!-- Mobile backdrop -->
 	{#if sidebarOpen}
-		<!-- svelte-ignore a11y_no_static_element_interactions -->
+		<!-- svelte-ignore a11y_no_static_element_interactions, a11y_click_events_have_key_events -->
 		<div
 			class="fixed inset-0 z-40 bg-black/60 backdrop-blur-sm lg:hidden"
 			onclick={() => (sidebarOpen = false)}
