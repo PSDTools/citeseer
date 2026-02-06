@@ -31,23 +31,15 @@ export const load: PageServerLoad = async ({ parent }) => {
 				.from(contextDatasets)
 				.where(eq(contextDatasets.contextId, ctx.id));
 
-			const [dashboardCount] = await db
+			const [questionCount] = await db
 				.select({ count: count() })
 				.from(dashboards)
 				.where(eq(dashboards.contextId, ctx.id));
 
-			const recentDashboards = await db
-				.select({ id: dashboards.id, name: dashboards.name })
-				.from(dashboards)
-				.where(eq(dashboards.contextId, ctx.id))
-				.orderBy(desc(dashboards.createdAt))
-				.limit(3);
-
 			return {
 				...ctx,
 				datasetCount: datasetCount.count,
-				dashboardCount: dashboardCount.count,
-				recentDashboards
+				questionCount: questionCount.count
 			};
 		})
 	);

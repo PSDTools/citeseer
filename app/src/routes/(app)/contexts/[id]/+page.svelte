@@ -2,7 +2,9 @@
 	import { invalidateAll, goto } from '$app/navigation';
 	import { page } from '$app/stores';
 	import ChartPanel from '$lib/components/viz/ChartPanel.svelte';
+	import BranchMenu from '$lib/components/viz/BranchMenu.svelte';
 	import ExplorationGraph, { type GraphNode } from '$lib/components/viz/ExplorationGraph.svelte';
+	import Modal from '$lib/components/ui/Modal.svelte';
 	import type { PageData } from './$types';
 	import type { AnalyticalPlan, QueryResult, BranchContext, ChartSelectDetail } from '$lib/types/toon';
 
@@ -17,6 +19,7 @@
 	let lastQuestion = $state('');
 	let currentNodeContext = $state<BranchContext | null>(null);
 	let currentDashboardId = $state<string | null>(null);
+	let loadingStep = $state(0);
 
 	// Graph-based branching state
 	let graphNodes = $state<GraphNode[]>([]);
@@ -25,7 +28,6 @@
 	let branchMenuX = $state(0);
 	let branchMenuY = $state(0);
 	let branchMenuDetail = $state<ChartSelectDetail | null>(null);
-	let branchPrompt = $state('');
 
 	// Node actions state
 	let isRegenerating = $state(false);
@@ -50,16 +52,14 @@
 	let showDeleteConfirm = $state(false);
 	let isDeleting = $state(false);
 
+	const loadingSteps = ['Analyzing your question...', 'Building SQL query...', 'Executing against your data...', 'Generating visualizations...'];
+
 	// Initialize graph from saved dashboards on mount
 	function initializeGraphFromDashboards() {
 		if (data.dashboards.length === 0) return;
 
-		// Build a map of dashboard ID to dashboard for easy lookup
-		const dashboardMap = new Map(data.dashboards.map(d => [d.id, d]));
-
-		// Convert saved dashboards to graph nodes
 		const nodes: GraphNode[] = data.dashboards
-			.filter(d => d.plan && d.results) // Only include dashboards with data
+			.filter(d => d.plan && d.results)
 			.map(d => ({
 				id: d.id,
 				question: d.question,
@@ -73,8 +73,7 @@
 
 		if (nodes.length > 0) {
 			graphNodes = nodes;
-			// Set the most recent dashboard as active
-			const mostRecent = nodes[0]; // Already sorted by createdAt desc
+			const mostRecent = nodes[0];
 			activeNodeId = mostRecent.id;
 			currentPlan = mostRecent.plan ?? null;
 			results = mostRecent.results ?? null;
@@ -84,9 +83,7 @@
 		}
 	}
 
-	// Run initialization when component mounts
 	$effect(() => {
-		// Only run once on initial mount when graphNodes is empty
 		if (graphNodes.length === 0 && data.dashboards.length > 0) {
 			initializeGraphFromDashboards();
 		}
@@ -127,6 +124,25 @@
 		}
 	});
 
+	// Advance loading steps on a timer
+	let loadingInterval: ReturnType<typeof setInterval> | null = null;
+
+	function startLoadingSteps() {
+		loadingStep = 0;
+		loadingInterval = setInterval(() => {
+			if (loadingStep < loadingSteps.length - 1) {
+				loadingStep++;
+			}
+		}, 2500);
+	}
+
+	function stopLoadingSteps() {
+		if (loadingInterval) {
+			clearInterval(loadingInterval);
+			loadingInterval = null;
+		}
+	}
+
 	async function handleSubmit(payload?: { question: string; branchContext?: BranchContext }) {
 		const submittedQuestion = payload?.question?.trim() ?? question.trim();
 		if (!submittedQuestion || isLoading) return;
@@ -139,6 +155,7 @@
 		currentPlan = null;
 		results = null;
 		realignSuggestions = [];
+		startLoadingSteps();
 
 		try {
 			const response = await fetch('/api/query', {
@@ -162,9 +179,7 @@
 			lastQuestion = submittedQuestion;
 			currentNodeContext = branchContext || null;
 
-			// Only save and create graph nodes for feasible plans
 			if (result.plan.feasible) {
-				// Auto-save as dashboard
 				const saveResponse = await fetch('/api/dashboards', {
 					method: 'POST',
 					headers: { 'Content-Type': 'application/json' },
@@ -183,7 +198,6 @@
 				const saveResult = await saveResponse.json();
 				const dashboardId = saveResult?.dashboard?.id;
 
-				// Create new graph node with stored plan and results
 				const newNode: GraphNode = {
 					id: dashboardId || crypto.randomUUID(),
 					question: submittedQuestion,
@@ -198,17 +212,17 @@
 				if (isFollowup) {
 					graphNodes = [...graphNodes, newNode];
 				} else {
-					// New root question - start fresh graph
 					graphNodes = [newNode];
 				}
 				activeNodeId = newNode.id;
 				currentDashboardId = dashboardId || null;
 			}
-			question = ''; // Clear input after successful query
+			question = '';
 		} catch (e) {
 			error = e instanceof Error ? e.message : 'Failed to execute query';
 		} finally {
 			isLoading = false;
+			stopLoadingSteps();
 		}
 	}
 
@@ -232,7 +246,7 @@
 				realignSuggestions = result.suggestions;
 			}
 		} catch {
-			// Silently fail - button just doesn't produce suggestions
+			// Silently fail
 		} finally {
 			isRealigning = false;
 		}
@@ -258,20 +272,16 @@
 		branchMenuX = Math.max(16, branchMenuX);
 		branchMenuY = Math.max(16, branchMenuY);
 
-		branchPrompt = '';
 		showBranchMenu = true;
 	}
 
 	function closeBranchMenu() {
 		showBranchMenu = false;
 		branchMenuDetail = null;
-		branchPrompt = '';
 	}
 
-	function submitBranchPrompt() {
+	function submitBranchPrompt(prompt: string) {
 		if (!branchMenuDetail) return;
-		const prompt = branchPrompt.trim();
-		if (!prompt) return;
 
 		const detail = branchMenuDetail;
 		const parentDashboardId = currentDashboardId || undefined;
@@ -304,14 +314,11 @@
 		deletingNodeId = nodeId;
 
 		try {
-			// Delete from database if it has a dashboard ID
 			if (node.dashboardId) {
 				await fetch(`/api/dashboards/${node.dashboardId}`, { method: 'DELETE' });
 			}
 
-			// Remove from graph (and any children)
 			const nodesToRemove = new Set<string>([nodeId]);
-			// Find all descendants
 			let changed = true;
 			while (changed) {
 				changed = false;
@@ -325,7 +332,6 @@
 
 			graphNodes = graphNodes.filter(n => !nodesToRemove.has(n.id));
 
-			// If we deleted the active node, switch to another or clear
 			if (nodesToRemove.has(activeNodeId || '')) {
 				if (graphNodes.length > 0) {
 					const newActive = graphNodes[0];
@@ -357,7 +363,6 @@
 		error = null;
 
 		try {
-			// Re-run the query
 			const response = await fetch('/api/query', {
 				method: 'POST',
 				headers: { 'Content-Type': 'application/json' },
@@ -374,7 +379,6 @@
 				throw new Error(result.message || 'Query failed');
 			}
 
-			// Update the dashboard in the database
 			if (node.dashboardId) {
 				await fetch(`/api/dashboards/${node.dashboardId}`, {
 					method: 'PATCH',
@@ -387,14 +391,12 @@
 				});
 			}
 
-			// Update the node in the graph
 			graphNodes = graphNodes.map(n =>
 				n.id === nodeId
 					? { ...n, plan: result.plan, results: result.results }
 					: n
 			);
 
-			// If this is the active node, update the display
 			if (activeNodeId === nodeId) {
 				currentPlan = result.plan;
 				results = result.results;
@@ -485,7 +487,6 @@
 		}
 	}
 
-	// Get datasets not already in this context
 	const availableDatasets = $derived(
 		data.allDatasets.filter((d) => !data.datasets.some((cd) => cd.id === d.id))
 	);
@@ -495,195 +496,127 @@
 	<title>{data.context.name} - CiteSeer</title>
 </svelte:head>
 
-<svelte:window
-	on:click={() => {
-		if (showBranchMenu) closeBranchMenu();
-	}}
-	on:keydown={(e) => {
-		if (e.key === 'Escape' && showBranchMenu) closeBranchMenu();
-	}}
-/>
-
-<div class="p-8">
+<div class="p-6 lg:p-8">
 	<!-- Header -->
-	<div class="mb-8">
-		<a href="/dashboard" data-sveltekit-reload class="text-sm text-white/50 hover:text-white/70 mb-4 inline-flex items-center gap-1.5 transition-colors">
+	<div class="mb-6">
+		<a href="/dashboard" data-sveltekit-reload class="text-sm text-white/40 hover:text-white/70 mb-3 inline-flex items-center gap-1.5 transition-colors">
 			<svg class="h-4 w-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
 				<path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 19l-7-7 7-7" />
 			</svg>
-			Dashboard
+			Home
 		</a>
 		<div class="flex items-start justify-between gap-4">
 			<div class="flex-1 min-w-0">
-				<div class="flex items-center gap-3">
-					<div class="flex h-12 w-12 items-center justify-center rounded-xl bg-gradient-to-br from-[#64ff96]/20 to-[#3dd977]/10 border border-[#64ff96]/20">
-						<svg class="h-6 w-6 text-[#64ff96]" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-							<path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5" d="M19 11H5m14 0a2 2 0 012 2v6a2 2 0 01-2 2H5a2 2 0 01-2-2v-6a2 2 0 012-2m14 0V9a2 2 0 00-2-2M5 11V9a2 2 0 012-2m0 0V5a2 2 0 012-2h6a2 2 0 012 2v2M7 7h10" />
-						</svg>
-					</div>
-					<div class="min-w-0">
-						<h1 class="text-2xl font-bold text-white truncate">{data.context.name}</h1>
-						{#if data.context.description}
-							<p class="mt-0.5 text-white/60 line-clamp-2">{data.context.description}</p>
-						{:else}
-							<p class="mt-0.5 text-white/40 italic">No description</p>
-						{/if}
-					</div>
-				</div>
+				<h1 class="text-2xl font-bold text-white truncate">{data.context.name}</h1>
+				{#if data.context.description}
+					<p class="mt-0.5 text-white/50 line-clamp-1">{data.context.description}</p>
+				{/if}
 			</div>
-			<div class="flex items-center gap-2">
+			<div class="flex items-center gap-2 flex-shrink-0">
 				<button
 					type="button"
 					onclick={openEditDialog}
-					class="flex items-center gap-2 rounded-lg border border-white/10 bg-white/5 px-3 py-2 text-sm text-white/70 hover:bg-white/10 hover:text-white transition-colors"
+					class="rounded-lg border border-white/10 bg-white/5 p-2 text-white/50 hover:bg-white/10 hover:text-white transition-colors"
+					title="Edit context"
 				>
 					<svg class="h-4 w-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
 						<path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z" />
 					</svg>
-					Edit
 				</button>
 				<button
 					type="button"
 					onclick={() => showDeleteConfirm = true}
-					class="flex items-center gap-2 rounded-lg border border-red-500/20 bg-red-500/5 px-3 py-2 text-sm text-red-400 hover:bg-red-500/10 hover:border-red-500/30 transition-colors"
+					class="rounded-lg border border-red-500/20 bg-red-500/5 p-2 text-red-400/70 hover:bg-red-500/10 hover:text-red-400 transition-colors"
+					title="Delete context"
 				>
 					<svg class="h-4 w-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
 						<path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16" />
 					</svg>
-					Delete
 				</button>
 			</div>
 		</div>
 
+		<!-- Datasets as compact chips -->
+		<div class="mt-3 flex flex-wrap items-center gap-2">
+			{#if data.datasets.length > 0}
+				{#each data.datasets as dataset}
+					<span class="group inline-flex items-center gap-1.5 rounded-full border border-white/10 bg-white/5 pl-2.5 pr-1 py-1 text-xs text-white/60">
+						{dataset.name}
+						<span class="text-white/30">{dataset.rowCount.toLocaleString()}</span>
+						<button
+							type="button"
+							onclick={() => removeDataset(dataset.id)}
+							class="rounded-full p-0.5 text-white/20 hover:text-red-400 hover:bg-red-500/10 opacity-0 group-hover:opacity-100 transition-all"
+							title="Remove dataset"
+						>
+							<svg class="h-3 w-3" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+								<path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12" />
+							</svg>
+						</button>
+					</span>
+				{/each}
+			{/if}
+			<button
+				type="button"
+				onclick={() => showAddDatasets = true}
+				class="inline-flex items-center gap-1 rounded-full border border-dashed border-white/15 px-2.5 py-1 text-xs text-white/40 hover:text-[#64ff96] hover:border-[#64ff96]/30 transition-colors"
+			>
+				<svg class="h-3 w-3" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+					<path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4v16m8-8H4" />
+				</svg>
+				{#if data.datasets.length === 0}Add datasets{:else}Add{/if}
+			</button>
+		</div>
+
 		{#if currentNodeContext?.filters || currentNodeContext?.selectedMark}
-			<div class="mt-4 flex flex-wrap items-center gap-2 text-xs text-white/50">
-				<span class="text-white/40">Context:</span>
+			<div class="mt-3 flex flex-wrap items-center gap-2 text-xs text-white/50">
+				<span class="text-white/40">Filtered:</span>
 				{#if currentNodeContext?.filters}
 					{#each Object.entries(currentNodeContext.filters) as [field, value]}
-						<span class="rounded-full border border-white/10 bg-white/5 px-2 py-0.5 text-white/70">
+						<span class="rounded-full border border-white/10 bg-white/5 px-2.5 py-0.5 text-white/70">
 							{field} = {String(value)}
 						</span>
 					{/each}
 				{/if}
 				{#if currentNodeContext?.selectedMark}
-					<span class="rounded-full border border-white/10 bg-white/5 px-2 py-0.5 text-white/70">
-						Selected {currentNodeContext.selectedMark.field} = {String(currentNodeContext.selectedMark.value)}
+					<span class="rounded-full border border-white/10 bg-white/5 px-2.5 py-0.5 text-white/70">
+						{currentNodeContext.selectedMark.field} = {String(currentNodeContext.selectedMark.value)}
 					</span>
 				{/if}
 			</div>
 		{/if}
 	</div>
 
-	<!-- Datasets in Context -->
-	<div class="mb-8 rounded-xl border border-white/10 bg-white/[0.02] p-5">
-		<div class="flex items-center justify-between mb-4">
-			<div class="flex items-center gap-2">
-				<svg class="h-5 w-5 text-white/50" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-					<path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5" d="M4 7v10c0 2.21 3.582 4 8 4s8-1.79 8-4V7M4 7c0 2.21 3.582 4 8 4s8-1.79 8-4M4 7c0-2.21 3.582-4 8-4s8 1.79 8 4m0 5c0 2.21-3.582 4-8 4s-8-1.79-8-4" />
-				</svg>
-				<h2 class="text-sm font-medium text-white">Data Sources</h2>
-				<span class="text-xs text-white/40 bg-white/5 px-2 py-0.5 rounded-full">{data.datasets.length}</span>
-			</div>
-			<button
-				type="button"
-				onclick={() => { console.log('Add clicked', availableDatasets.length); showAddDatasets = true; }}
-				class="flex items-center gap-1.5 text-sm text-[#64ff96] hover:text-[#7dffab] transition-colors cursor-pointer z-10 relative"
-			>
-				<svg class="h-4 w-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-					<path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4v16m8-8H4" />
-				</svg>
-				Add ({availableDatasets.length} available)
-			</button>
-		</div>
-
-		{#if data.datasets.length === 0}
-			<div class="rounded-lg border border-dashed border-white/20 bg-white/[0.02] p-6 text-center">
-				<svg class="h-10 w-10 mx-auto text-white/20 mb-3" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-					<path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5" d="M4 7v10c0 2.21 3.582 4 8 4s8-1.79 8-4V7M4 7c0 2.21 3.582 4 8 4s8-1.79 8-4M4 7c0-2.21 3.582-4 8-4s8 1.79 8 4" />
-				</svg>
-				<p class="text-white/50 text-sm mb-2">No datasets in this context yet</p>
-				{#if availableDatasets.length > 0}
-					<button
-						type="button"
-						onclick={() => showAddDatasets = true}
-						class="text-sm text-[#64ff96] hover:underline"
-					>
-						Add datasets to get started
-					</button>
-				{:else}
-					<a href="/datasets" class="inline-block text-sm text-[#64ff96] hover:underline">
-						Upload datasets first
-					</a>
-				{/if}
-			</div>
-		{:else}
-			<div class="grid gap-2 sm:grid-cols-2 lg:grid-cols-3">
-				{#each data.datasets as dataset}
-					<div class="group flex items-center justify-between rounded-lg border border-white/10 bg-white/5 px-4 py-3 hover:border-white/20 transition-colors">
-						<div class="flex items-center gap-3 min-w-0">
-							<div class="flex h-8 w-8 items-center justify-center rounded-lg bg-[#64ff96]/10 border border-[#64ff96]/20 flex-shrink-0">
-								<svg class="h-4 w-4 text-[#64ff96]" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-									<path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 17v-2m3 2v-4m3 4v-6m2 10H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z" />
-								</svg>
-							</div>
-							<div class="min-w-0">
-								<p class="text-sm text-white font-medium truncate">{dataset.name}</p>
-								<p class="text-xs text-white/40">{dataset.rowCount.toLocaleString()} rows</p>
-							</div>
-						</div>
-						<button
-							type="button"
-							onclick={() => removeDataset(dataset.id)}
-							class="text-white/20 hover:text-red-400 opacity-0 group-hover:opacity-100 transition-all flex-shrink-0 ml-2"
-							title="Remove from context"
-						>
-							<svg class="h-4 w-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-								<path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12" />
-							</svg>
-						</button>
-					</div>
-				{/each}
-			</div>
-		{/if}
-	</div>
-
-	<!-- Query Input -->
+	<!-- Query Input — primary action, right after header -->
 	{#if data.datasets.length > 0 && data.hasApiKey}
 		<div class="mb-8">
-			<div class="rounded-xl border border-white/10 bg-white/[0.02] p-5">
-				<div class="flex items-center gap-2 mb-3">
-					<svg class="h-5 w-5 text-white/50" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-						<path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5" d="M8.228 9c.549-1.165 2.03-2 3.772-2 2.21 0 4 1.343 4 3 0 1.4-1.278 2.575-3.006 2.907-.542.104-.994.54-.994 1.093m0 3h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
-					</svg>
-					<h2 class="text-sm font-medium text-white">Ask a Question</h2>
-				</div>
-				<div class="relative">
-					<input
-						type="text"
-						bind:value={question}
-						onkeydown={handleKeydown}
-						placeholder="What would you like to know about your data?"
-						class="w-full rounded-xl border border-white/10 bg-white/5 px-5 py-4 pr-14 text-white placeholder-white/40 focus:border-[#64ff96] focus:outline-none focus:ring-1 focus:ring-[#64ff96]"
-					/>
-					<button
-						type="button"
-						onclick={() => handleSubmit()}
-						disabled={!question.trim() || isLoading}
-						class="absolute right-2 top-1/2 -translate-y-1/2 rounded-lg bg-gradient-to-r from-[#64ff96] to-[#3dd977] p-2.5 text-[#050810] transition-all hover:shadow-lg hover:shadow-[#64ff96]/20 disabled:opacity-50 disabled:cursor-not-allowed"
-					>
-						{#if isLoading}
-							<svg class="h-5 w-5 animate-spin" fill="none" viewBox="0 0 24 24">
-								<circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4" />
-								<path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z" />
-							</svg>
-						{:else}
-							<svg class="h-5 w-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-								<path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M14 5l7 7m0 0l-7 7m7-7H3" />
-							</svg>
-						{/if}
-					</button>
-				</div>
-				<p class="mt-2 text-xs text-white/40">Press Enter to submit • AI will analyze your data and create visualizations</p>
+			<div class="relative">
+				<input
+					type="text"
+					bind:value={question}
+					onkeydown={handleKeydown}
+					placeholder="Ask a question about your data..."
+					disabled={isLoading}
+					class="w-full rounded-xl border border-white/10 bg-white/[0.03] px-5 py-4 pr-14 text-white placeholder-white/30 focus:border-[#64ff96] focus:outline-none focus:ring-1 focus:ring-[#64ff96] disabled:opacity-50"
+				/>
+				<button
+					type="button"
+					onclick={() => handleSubmit()}
+					disabled={!question.trim() || isLoading}
+					aria-label="Submit question"
+					class="absolute right-2 top-1/2 -translate-y-1/2 rounded-lg bg-gradient-to-r from-[#64ff96] to-[#3dd977] p-2.5 text-[#050810] transition-all hover:shadow-lg hover:shadow-[#64ff96]/20 disabled:opacity-50 disabled:cursor-not-allowed"
+				>
+					{#if isLoading}
+						<svg class="h-5 w-5 animate-spin" fill="none" viewBox="0 0 24 24">
+							<circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4" />
+							<path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z" />
+						</svg>
+					{:else}
+						<svg class="h-5 w-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+							<path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M14 5l7 7m0 0l-7 7m7-7H3" />
+						</svg>
+					{/if}
+				</button>
 			</div>
 		</div>
 	{:else if !data.hasApiKey}
@@ -694,9 +627,29 @@
 				</svg>
 				<div>
 					<p class="text-sm font-medium text-amber-400 mb-1">API Key Required</p>
-					<p class="text-sm text-white/60">
-						<a href="/settings" class="text-[#64ff96] hover:underline">Add your Gemini API key</a> in settings to start asking questions about your data.
+					<p class="text-sm text-white/50">
+						<a href="/settings" class="text-[#64ff96] hover:underline">Add your Gemini API key</a> in settings to start asking questions.
 					</p>
+				</div>
+			</div>
+		</div>
+	{/if}
+
+	<!-- Loading State -->
+	{#if isLoading}
+		<div class="mb-8 rounded-xl border border-[#64ff96]/20 bg-[#64ff96]/5 p-8">
+			<div class="flex flex-col items-center text-center">
+				<div class="mb-4 relative">
+					<svg class="h-10 w-10 animate-spin text-[#64ff96]" fill="none" viewBox="0 0 24 24">
+						<circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4" />
+						<path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z" />
+					</svg>
+				</div>
+				<p class="text-white font-medium mb-2">{loadingSteps[loadingStep]}</p>
+				<div class="flex items-center gap-2 mt-3">
+					{#each loadingSteps as _, i}
+						<div class="h-1.5 w-8 rounded-full transition-colors duration-300 {i <= loadingStep ? 'bg-[#64ff96]' : 'bg-white/10'}"></div>
+					{/each}
 				</div>
 			</div>
 		</div>
@@ -704,13 +657,18 @@
 
 	<!-- Error Display -->
 	{#if error}
-		<div class="mb-6 rounded-lg bg-red-500/10 border border-red-500/20 px-4 py-3 text-sm text-red-400">
-			{error}
+		<div class="mb-6 rounded-lg bg-red-500/10 border border-red-500/20 px-4 py-3 text-sm text-red-400 flex items-center justify-between">
+			<span>{error}</span>
+			<button onclick={() => error = null} class="text-red-400/70 hover:text-red-400 ml-2">
+				<svg class="h-4 w-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+					<path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12" />
+				</svg>
+			</button>
 		</div>
 	{/if}
 
 	<!-- Results Display -->
-	{#if currentPlan}
+	{#if currentPlan && !isLoading}
 		<div class="mb-8">
 			{#if !currentPlan.feasible}
 				<div class="rounded-xl border border-amber-500/20 bg-amber-500/5 p-6 mb-6">
@@ -818,11 +776,11 @@
 				{/if}
 
 				{#if activeNodeId}
-					<div class="flex items-center justify-between mb-4">
-						<div class="text-sm text-white/60">
+					<div class="flex items-center justify-between mb-4 gap-4">
+						<div class="text-sm text-white/50 truncate">
 							<span class="text-white/40">Current:</span> {lastQuestion}
 						</div>
-						<div class="flex items-center gap-2">
+						<div class="flex items-center gap-2 flex-shrink-0">
 							<button
 								type="button"
 								onclick={() => activeNodeId && regenerateNode(activeNodeId)}
@@ -883,240 +841,198 @@
 		</div>
 	{/if}
 
+	<!-- Empty state when context has datasets but no queries yet -->
+	{#if data.datasets.length > 0 && data.hasApiKey && !currentPlan && !isLoading && graphNodes.length === 0 && data.dashboards.length === 0}
+		<div class="rounded-xl border border-dashed border-white/15 bg-white/[0.02] p-10 text-center">
+			<div class="mx-auto mb-4 flex h-14 w-14 items-center justify-center rounded-full bg-[#64ff96]/10">
+				<svg class="h-7 w-7 text-[#64ff96]" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+					<path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5" d="M8.228 9c.549-1.165 2.03-2 3.772-2 2.21 0 4 1.343 4 3 0 1.4-1.278 2.575-3.006 2.907-.542.104-.994.54-.994 1.093m0 3h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
+				</svg>
+			</div>
+			<h3 class="text-base font-medium text-white">Ready to analyze</h3>
+			<p class="mt-1 text-sm text-white/50">Ask a question above to start exploring your data</p>
+		</div>
+	{/if}
+
+	<!-- Saved Queries -->
+	{#if data.dashboards.length > 0}
+		<section class="mt-10">
+			<h2 class="text-sm font-medium text-white/60 mb-3">Previous Questions</h2>
+			<div class="rounded-xl border border-white/10 bg-white/[0.02] divide-y divide-white/5">
+				{#each data.dashboards as dashboard}
+					<a
+						href="/saved/{dashboard.id}"
+						class="flex items-center justify-between gap-4 py-3 hover:bg-white/[0.03] transition-colors group {dashboard.parentDashboardId ? 'pl-10 pr-5' : 'px-5'}"
+					>
+						<span class="text-sm text-white/60 group-hover:text-white truncate {dashboard.parentDashboardId ? 'text-xs' : ''}">{dashboard.question}</span>
+						<svg class="h-4 w-4 text-white/10 group-hover:text-white/30 flex-shrink-0 transition-colors" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+							<path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5l7 7-7 7" />
+						</svg>
+					</a>
+				{/each}
+			</div>
+		</section>
+	{/if}
 </div>
 
 <!-- Branch Menu -->
 {#if showBranchMenu && branchMenuDetail}
-	<!-- svelte-ignore a11y_no_static_element_interactions -->
-	<div
-		class="fixed z-50 w-[360px] rounded-lg border border-white/10 bg-[#0a0d14] p-4 shadow-xl"
-		style="left: {branchMenuX}px; top: {branchMenuY}px;"
-		onclick={(e) => e.stopPropagation()}
-		onkeydown={(e) => e.stopPropagation()}
-	>
-		<div class="mb-3 space-y-2">
-			<div class="text-xs font-medium text-white/70">Selected Context</div>
-			
-			{#if lastQuestion}
-				<div class="text-xs text-white/50">
-					<span class="text-white/40">Question:</span>
-					<span class="text-white/80 italic"> "{lastQuestion}"</span>
-				</div>
-			{/if}
-			
-			{#if branchMenuDetail.panelTitle}
-				<div class="text-xs text-white/50">
-					<span class="text-white/40">Panel:</span>
-					<span class="text-white/80"> {branchMenuDetail.panelTitle}</span>
-				</div>
-			{/if}
-			
-			{#if branchMenuDetail.datum && Object.keys(branchMenuDetail.datum).length > 0}
-				<div class="rounded border border-white/10 bg-white/5 p-2 max-h-32 overflow-y-auto">
-					<div class="text-[10px] text-white/40 uppercase tracking-wide mb-1">Data Point</div>
-					<div class="space-y-0.5">
-						{#each Object.entries(branchMenuDetail.datum) as [key, val]}
-							<div class="text-xs flex justify-between gap-2">
-								<span class="text-white/50 truncate">{key}</span>
-								<span class="text-[#64ff96] font-mono text-right">{val != null ? String(val) : '—'}</span>
-							</div>
-						{/each}
-					</div>
-				</div>
-			{:else}
-				<div class="text-xs text-white/50">{branchMenuDetail.field}: <span class="text-[#64ff96]">{String(branchMenuDetail.value)}</span></div>
-				{#if branchMenuDetail.metricField && branchMenuDetail.metricValue != null}
-					<div class="text-xs text-white/50">{branchMenuDetail.metricField}: <span class="text-white/80">{String(branchMenuDetail.metricValue)}</span></div>
-				{/if}
-			{/if}
-		</div>
-		<label class="block text-xs text-white/60 mb-1" for="branch-prompt">Ask a question about this data</label>
-		<textarea
-			id="branch-prompt"
-			bind:value={branchPrompt}
-			rows="3"
-			class="w-full rounded-lg border border-white/10 bg-white/5 px-3 py-2 text-sm text-white placeholder-white/40 focus:border-[#64ff96] focus:outline-none focus:ring-1 focus:ring-[#64ff96] resize-none"
-			placeholder="Ask about this…"
-		></textarea>
-		<div class="mt-3 flex justify-end gap-2">
-			<button
-				type="button"
-				onclick={closeBranchMenu}
-				class="rounded-lg border border-white/10 bg-white/5 px-3 py-1.5 text-xs text-white/70 hover:bg-white/10 hover:text-white transition-colors"
-			>
-				Cancel
-			</button>
-			<button
-				type="button"
-				onclick={submitBranchPrompt}
-				disabled={!branchPrompt.trim() || isLoading}
-				class="rounded-lg bg-gradient-to-r from-[#64ff96] to-[#3dd977] px-3 py-1.5 text-xs font-semibold text-[#050810] transition-all hover:shadow-lg hover:shadow-[#64ff96]/20 disabled:opacity-50 disabled:cursor-not-allowed"
-			>
-				Ask
-			</button>
-		</div>
-	</div>
+	<BranchMenu
+		detail={branchMenuDetail}
+		x={branchMenuX}
+		y={branchMenuY}
+		{lastQuestion}
+		disabled={isLoading}
+		onsubmit={submitBranchPrompt}
+		onclose={closeBranchMenu}
+	/>
 {/if}
 
 <!-- Add Datasets Dialog -->
-{#if showAddDatasets}
-	<!-- svelte-ignore a11y_no_static_element_interactions -->
-	<div class="fixed inset-0 z-50 flex items-center justify-center bg-black/50 backdrop-blur-sm" onclick={() => { showAddDatasets = false; selectedDatasets = new Set(); }} onkeydown={(e) => e.key === 'Escape' && (showAddDatasets = false)} role="dialog" aria-modal="true" tabindex="-1">
-		<!-- svelte-ignore a11y_no_static_element_interactions -->
-		<div class="w-full max-w-md rounded-xl border border-white/10 bg-[#0a0d14] p-6 shadow-2xl" onclick={(e) => e.stopPropagation()} onkeydown={(e) => e.stopPropagation()}>
-			<h2 class="text-lg font-semibold text-white mb-4">Add Datasets</h2>
+<Modal open={showAddDatasets} onclose={() => { showAddDatasets = false; selectedDatasets = new Set(); }} maxWidth="max-w-md">
+	<h2 class="text-lg font-semibold text-white mb-4">Add Datasets</h2>
 
-			{#if availableDatasets.length === 0}
-				<div class="text-center py-8">
-					<svg class="h-12 w-12 mx-auto text-white/20 mb-3" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-						<path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5" d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z" />
-					</svg>
-					<p class="text-white/60 mb-2">All datasets are already in this context</p>
-					<a href="/datasets" class="text-sm text-[#64ff96] hover:underline">Upload more datasets</a>
-				</div>
-			{:else}
-				<div class="space-y-2 max-h-64 overflow-y-auto">
-					{#each availableDatasets as dataset}
-						<label class="flex items-center gap-3 rounded-lg border border-white/10 bg-white/5 p-3 cursor-pointer hover:bg-white/10 transition-colors">
-							<input
-								type="checkbox"
-								checked={selectedDatasets.has(dataset.id)}
-								onchange={() => {
-									const newSet = new Set(selectedDatasets);
-									if (newSet.has(dataset.id)) {
-										newSet.delete(dataset.id);
-									} else {
-										newSet.add(dataset.id);
-									}
-									selectedDatasets = newSet;
-								}}
-								class="rounded border-white/20 bg-white/5 text-[#64ff96] focus:ring-[#64ff96]"
-							/>
-							<div class="flex-1 min-w-0">
-								<p class="text-white truncate">{dataset.name}</p>
-								<p class="text-xs text-white/50">{dataset.rowCount.toLocaleString()} rows</p>
-							</div>
-						</label>
-					{/each}
-				</div>
-			{/if}
-
-			<div class="mt-6 flex justify-end gap-3">
-				<button
-					type="button"
-					onclick={() => { showAddDatasets = false; selectedDatasets = new Set(); }}
-					class="rounded-lg border border-white/10 bg-white/5 px-4 py-2 text-sm text-white/70 hover:bg-white/10 hover:text-white transition-colors"
-				>
-					Cancel
-				</button>
-				<button
-					type="button"
-					onclick={addSelectedDatasets}
-					disabled={selectedDatasets.size === 0}
-					class="rounded-lg bg-gradient-to-r from-[#64ff96] to-[#3dd977] px-4 py-2 text-sm font-semibold text-[#050810] transition-all hover:shadow-lg hover:shadow-[#64ff96]/20 disabled:opacity-50 disabled:cursor-not-allowed"
-				>
-					Add {selectedDatasets.size || ''} Dataset{selectedDatasets.size !== 1 ? 's' : ''}
-				</button>
-			</div>
+	{#if availableDatasets.length === 0}
+		<div class="text-center py-8">
+			<svg class="h-12 w-12 mx-auto text-white/20 mb-3" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+				<path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5" d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z" />
+			</svg>
+			<p class="text-white/50 mb-2">All datasets are already in this context</p>
+			<a href="/datasets" class="text-sm text-[#64ff96] hover:underline">Upload more datasets</a>
 		</div>
+	{:else}
+		<div class="space-y-2 max-h-64 overflow-y-auto">
+			{#each availableDatasets as dataset}
+				<label class="flex items-center gap-3 rounded-lg border border-white/10 bg-white/5 p-3 cursor-pointer hover:bg-white/10 transition-colors">
+					<input
+						type="checkbox"
+						checked={selectedDatasets.has(dataset.id)}
+						onchange={() => {
+							const newSet = new Set(selectedDatasets);
+							if (newSet.has(dataset.id)) {
+								newSet.delete(dataset.id);
+							} else {
+								newSet.add(dataset.id);
+							}
+							selectedDatasets = newSet;
+						}}
+						class="rounded border-white/20 bg-white/5 text-[#64ff96] focus:ring-[#64ff96]"
+					/>
+					<div class="flex-1 min-w-0">
+						<p class="text-white truncate">{dataset.name}</p>
+						<p class="text-xs text-white/50">{dataset.rowCount.toLocaleString()} rows</p>
+					</div>
+				</label>
+			{/each}
+		</div>
+	{/if}
+
+	<div class="mt-6 flex justify-end gap-3">
+		<button
+			type="button"
+			onclick={() => { showAddDatasets = false; selectedDatasets = new Set(); }}
+			class="rounded-lg border border-white/10 bg-white/5 px-4 py-2 text-sm text-white/70 hover:bg-white/10 hover:text-white transition-colors"
+		>
+			Cancel
+		</button>
+		<button
+			type="button"
+			onclick={addSelectedDatasets}
+			disabled={selectedDatasets.size === 0}
+			class="rounded-lg bg-gradient-to-r from-[#64ff96] to-[#3dd977] px-4 py-2 text-sm font-semibold text-[#050810] transition-all hover:shadow-lg hover:shadow-[#64ff96]/20 disabled:opacity-50 disabled:cursor-not-allowed"
+		>
+			Add {selectedDatasets.size || ''} Dataset{selectedDatasets.size !== 1 ? 's' : ''}
+		</button>
 	</div>
-{/if}
+</Modal>
 
 <!-- Edit Context Dialog -->
-{#if showEditDialog}
-	<div class="fixed inset-0 z-50 flex items-center justify-center bg-black/50 backdrop-blur-sm">
-		<div class="w-full max-w-md rounded-xl border border-white/10 bg-[#0a0d14] p-6 shadow-2xl">
-			<h2 class="text-lg font-semibold text-white mb-4">Edit Context</h2>
+<Modal open={showEditDialog} onclose={() => showEditDialog = false} maxWidth="max-w-md">
+	<h2 class="text-lg font-semibold text-white mb-4">Edit Context</h2>
 
-			{#if editError}
-				<div class="mb-4 rounded-lg bg-red-500/10 border border-red-500/20 px-4 py-3 text-sm text-red-400">
-					{editError}
-				</div>
-			{/if}
+	{#if editError}
+		<div class="mb-4 rounded-lg bg-red-500/10 border border-red-500/20 px-4 py-3 text-sm text-red-400">
+			{editError}
+		</div>
+	{/if}
 
-			<div class="space-y-4">
-				<div>
-					<label for="edit-name" class="block text-sm text-white/70 mb-1">Name</label>
-					<input
-						id="edit-name"
-						type="text"
-						bind:value={editName}
-						class="w-full rounded-lg border border-white/10 bg-white/5 px-4 py-2.5 text-white placeholder-white/40 focus:border-[#64ff96] focus:outline-none focus:ring-1 focus:ring-[#64ff96]"
-						placeholder="Context name..."
-					/>
-				</div>
+	<div class="space-y-4">
+		<div>
+			<label for="edit-name" class="block text-sm text-white/70 mb-1.5">Name</label>
+			<input
+				id="edit-name"
+				type="text"
+				bind:value={editName}
+				class="w-full rounded-lg border border-white/10 bg-white/5 px-4 py-2.5 text-white placeholder-white/30 focus:border-[#64ff96] focus:outline-none focus:ring-1 focus:ring-[#64ff96]"
+				placeholder="Context name..."
+			/>
+		</div>
 
-				<div>
-					<label for="edit-description" class="block text-sm text-white/70 mb-1">Description (optional)</label>
-					<textarea
-						id="edit-description"
-						bind:value={editDescription}
-						rows="3"
-						class="w-full rounded-lg border border-white/10 bg-white/5 px-4 py-2.5 text-white placeholder-white/40 focus:border-[#64ff96] focus:outline-none focus:ring-1 focus:ring-[#64ff96] resize-none"
-						placeholder="What is this context for?"
-					></textarea>
-				</div>
-			</div>
-
-			<div class="mt-6 flex justify-end gap-3">
-				<button
-					type="button"
-					onclick={() => showEditDialog = false}
-					class="rounded-lg border border-white/10 bg-white/5 px-4 py-2 text-sm text-white/70 hover:bg-white/10 hover:text-white transition-colors"
-				>
-					Cancel
-				</button>
-				<button
-					type="button"
-					onclick={handleEdit}
-					disabled={!editName.trim() || isEditing}
-					class="rounded-lg bg-gradient-to-r from-[#64ff96] to-[#3dd977] px-4 py-2 text-sm font-semibold text-[#050810] transition-all hover:shadow-lg hover:shadow-[#64ff96]/20 disabled:opacity-50 disabled:cursor-not-allowed"
-				>
-					{#if isEditing}Saving...{:else}Save Changes{/if}
-				</button>
-			</div>
+		<div>
+			<label for="edit-description" class="block text-sm text-white/70 mb-1.5">Description (optional)</label>
+			<textarea
+				id="edit-description"
+				bind:value={editDescription}
+				rows="3"
+				class="w-full rounded-lg border border-white/10 bg-white/5 px-4 py-2.5 text-white placeholder-white/30 focus:border-[#64ff96] focus:outline-none focus:ring-1 focus:ring-[#64ff96] resize-none"
+				placeholder="What is this context for?"
+			></textarea>
 		</div>
 	</div>
-{/if}
+
+	<div class="mt-6 flex justify-end gap-3">
+		<button
+			type="button"
+			onclick={() => showEditDialog = false}
+			class="rounded-lg border border-white/10 bg-white/5 px-4 py-2 text-sm text-white/70 hover:bg-white/10 hover:text-white transition-colors"
+		>
+			Cancel
+		</button>
+		<button
+			type="button"
+			onclick={handleEdit}
+			disabled={!editName.trim() || isEditing}
+			class="rounded-lg bg-gradient-to-r from-[#64ff96] to-[#3dd977] px-4 py-2 text-sm font-semibold text-[#050810] transition-all hover:shadow-lg hover:shadow-[#64ff96]/20 disabled:opacity-50 disabled:cursor-not-allowed"
+		>
+			{#if isEditing}Saving...{:else}Save Changes{/if}
+		</button>
+	</div>
+</Modal>
 
 <!-- Delete Context Confirm Dialog -->
-{#if showDeleteConfirm}
-	<div class="fixed inset-0 z-50 flex items-center justify-center bg-black/50 backdrop-blur-sm">
-		<div class="w-full max-w-md rounded-xl border border-white/10 bg-[#0a0d14] p-6 shadow-2xl">
-			<div class="flex items-center gap-3 mb-4">
-				<div class="flex h-10 w-10 items-center justify-center rounded-full bg-red-500/10 border border-red-500/20">
-					<svg class="h-5 w-5 text-red-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-						<path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z" />
-					</svg>
-				</div>
-				<div>
-					<h2 class="text-lg font-semibold text-white">Delete Context</h2>
-					<p class="text-sm text-white/60">This action cannot be undone</p>
-				</div>
-			</div>
-
-			<p class="text-white/70 mb-6">
-				Are you sure you want to delete <span class="font-medium text-white">{data.context.name}</span>? 
-				This will remove the context and all saved dashboards associated with it.
-			</p>
-
-			<div class="flex justify-end gap-3">
-				<button
-					type="button"
-					onclick={() => showDeleteConfirm = false}
-					class="rounded-lg border border-white/10 bg-white/5 px-4 py-2 text-sm text-white/70 hover:bg-white/10 hover:text-white transition-colors"
-				>
-					Cancel
-				</button>
-				<button
-					type="button"
-					onclick={handleDelete}
-					disabled={isDeleting}
-					class="rounded-lg bg-red-500 px-4 py-2 text-sm font-semibold text-white transition-all hover:bg-red-600 disabled:opacity-50 disabled:cursor-not-allowed"
-				>
-					{#if isDeleting}Deleting...{:else}Delete Context{/if}
-				</button>
-			</div>
+<Modal open={showDeleteConfirm} onclose={() => showDeleteConfirm = false} maxWidth="max-w-md">
+	<div class="flex items-center gap-3 mb-4">
+		<div class="flex h-10 w-10 items-center justify-center rounded-full bg-red-500/10 border border-red-500/20">
+			<svg class="h-5 w-5 text-red-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+				<path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z" />
+			</svg>
+		</div>
+		<div>
+			<h2 class="text-lg font-semibold text-white">Delete Context</h2>
+			<p class="text-sm text-white/50">This action cannot be undone</p>
 		</div>
 	</div>
-{/if}
+
+	<p class="text-white/70 mb-6">
+		Are you sure you want to delete <span class="font-medium text-white">{data.context.name}</span>?
+		This will remove the context and all saved dashboards associated with it.
+	</p>
+
+	<div class="flex justify-end gap-3">
+		<button
+			type="button"
+			onclick={() => showDeleteConfirm = false}
+			class="rounded-lg border border-white/10 bg-white/5 px-4 py-2 text-sm text-white/70 hover:bg-white/10 hover:text-white transition-colors"
+		>
+			Cancel
+		</button>
+		<button
+			type="button"
+			onclick={handleDelete}
+			disabled={isDeleting}
+			class="rounded-lg bg-red-500 px-4 py-2 text-sm font-semibold text-white transition-all hover:bg-red-600 disabled:opacity-50 disabled:cursor-not-allowed"
+		>
+			{#if isDeleting}Deleting...{:else}Delete Context{/if}
+		</button>
+	</div>
+</Modal>

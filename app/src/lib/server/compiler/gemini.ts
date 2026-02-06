@@ -84,6 +84,7 @@ export class GeminiCompiler {
 		const systemPrompt = getSystemPrompt(schemaContext, branchContext);
 
 		let lastError: Error | null = null;
+		let formatHint = '';
 
 		for (let attempt = 0; attempt < MAX_RETRIES; attempt++) {
 			try {
@@ -92,7 +93,7 @@ export class GeminiCompiler {
 					contents: [
 						{
 							role: 'user',
-							parts: [{ text: systemPrompt + '\n\nQuestion: ' + question }]
+							parts: [{ text: systemPrompt + '\n\nQuestion: ' + question + formatHint }]
 						}
 					],
 					config: {
@@ -119,6 +120,9 @@ export class GeminiCompiler {
 				if (error instanceof ToonParseError) {
 					break;
 				}
+
+				// Add format hint for next retry
+				formatHint = '\n\nIMPORTANT: You MUST respond with a @plan{...} object in TOON format. Do not use JSON or any other format.';
 			}
 		}
 

@@ -315,6 +315,12 @@ export function extractToon(response: string): string {
 		return toonBlockMatch[1].trim();
 	}
 
+	// Fallback: match any @type{...} pattern
+	const anyToonMatch = response.match(/@(\w+)\s*\{[\s\S]*\}/);
+	if (anyToonMatch) {
+		return anyToonMatch[0];
+	}
+
 	// Return as-is
 	return response.trim();
 }

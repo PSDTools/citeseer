@@ -65,7 +65,7 @@
 			</p>
 			<button
 				onclick={() => showAll = !showAll}
-				class="text-xs text-indigo-400 hover:text-indigo-300 transition-colors"
+				class="text-xs text-[#64ff96] hover:text-[#7dffab] transition-colors"
 			>
 				{showAll ? 'Show less' : 'Show all'}
 			</button>

@@ -23,9 +23,11 @@
 		org: { id: string; name: string; slug: string };
 		datasets: Dataset[];
 		contexts: Context[];
+		mobileOpen?: boolean;
+		onclose?: () => void;
 	}
 
-	let { user, org, datasets, contexts }: Props = $props();
+	let { user, org, datasets, contexts, mobileOpen = false, onclose }: Props = $props();
 
 	let contextsExpanded = $state(true);
 	let datasetsExpanded = $state(false);
@@ -59,7 +61,7 @@
 		expandedContexts = newSet;
 	}
 
-	// Auto-expand context if we're on it (only run once on mount or pathname change)
+	// Auto-expand context if we're on it
 	$effect(() => {
 		const pathname = $page.url.pathname;
 		const match = pathname.match(/\/contexts\/([^/]+)/);
@@ -69,22 +71,35 @@
 	});
 </script>
 
-<aside class="fixed left-0 top-0 z-40 h-screen w-64 border-r border-white/10 bg-[#050810]">
+<aside
+	class="fixed left-0 top-0 z-50 h-screen w-64 border-r border-white/10 bg-[#050810] transition-transform duration-200
+		{mobileOpen ? 'translate-x-0' : '-translate-x-full'} lg:translate-x-0 lg:z-40"
+>
 	<div class="flex h-full flex-col">
 		<!-- Logo -->
-		<div class="flex h-16 items-center border-b border-white/10 px-6">
-			<a href="/" class="flex items-center gap-3 text-xl font-bold">
-				<img src="/logo.svg" alt="CiteSeer logo" class="h-6 w-6" />
+		<div class="flex h-14 items-center justify-between border-b border-white/10 px-5">
+			<a href="/" class="flex items-center gap-2.5 text-lg font-bold" onclick={() => onclose?.()}>
+				<img src="/logo.svg" alt="CiteSeer logo" class="h-5 w-5" />
 				<span class="bg-gradient-to-r from-[#64ff96] to-[#3dd977] bg-clip-text text-transparent">
 					CiteSeer
 				</span>
 			</a>
+			<button
+				type="button"
+				onclick={() => onclose?.()}
+				class="rounded-lg p-1.5 text-white/50 hover:bg-white/5 hover:text-white transition-colors lg:hidden"
+				aria-label="Close menu"
+			>
+				<svg class="h-5 w-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+					<path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12" />
+				</svg>
+			</button>
 		</div>
 
 		<!-- Organization -->
 		<div class="border-b border-white/10 px-4 py-3">
 			<div class="rounded-lg bg-white/5 px-3 py-2">
-				<p class="text-xs text-white/50">Workspace</p>
+				<p class="text-xs text-white/40">Workspace</p>
 				<p class="text-sm font-medium text-white truncate">{org.name}</p>
 			</div>
 		</div>
@@ -96,7 +111,7 @@
 				<button
 					type="button"
 					onclick={() => contextsExpanded = !contextsExpanded}
-					class="flex w-full items-center gap-3 rounded-lg px-3 py-2.5 text-sm font-medium transition-colors {isActive('/contexts')
+					class="flex w-full items-center gap-3 rounded-lg px-3 py-2 text-sm font-medium transition-colors {isActive('/contexts')
 						? 'bg-[#64ff96]/10 text-[#64ff96]'
 						: 'text-white/70 hover:bg-white/5 hover:text-white'}"
 				>
@@ -143,6 +158,7 @@
 										{/if}
 										<a
 											href="/contexts/{context.id}"
+											onclick={() => onclose?.()}
 											class="flex-1 flex items-center gap-2 rounded-lg px-2 py-1.5 text-sm transition-colors {isContextActive(context.id)
 												? 'bg-[#64ff96]/10 text-[#64ff96]'
 												: 'text-white/60 hover:bg-white/5 hover:text-white/80'}"
@@ -155,6 +171,7 @@
 											{#each context.dashboards as dashboard}
 												<a
 													href="/saved/{dashboard.id}"
+													onclick={() => onclose?.()}
 													class="flex items-center gap-2 rounded-lg px-2 py-1.5 text-xs transition-colors {isDashboardActive(dashboard.id)
 														? 'bg-[#64ff96]/10 text-[#64ff96]'
 														: 'text-white/40 hover:bg-white/5 hover:text-white/60'}"
@@ -172,6 +189,7 @@
 						{/if}
 						<a
 							href="/dashboard"
+							onclick={() => onclose?.()}
 							class="flex items-center gap-2 rounded-lg px-3 py-2 text-sm text-white/40 hover:bg-white/5 hover:text-white/60 transition-colors"
 						>
 							<svg class="h-4 w-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -188,7 +206,7 @@
 				<button
 					type="button"
 					onclick={() => datasetsExpanded = !datasetsExpanded}
-					class="flex w-full items-center gap-3 rounded-lg px-3 py-2.5 text-sm font-medium transition-colors {isActive('/datasets')
+					class="flex w-full items-center gap-3 rounded-lg px-3 py-2 text-sm font-medium transition-colors {isActive('/datasets')
 						? 'bg-[#64ff96]/10 text-[#64ff96]'
 						: 'text-white/70 hover:bg-white/5 hover:text-white'}"
 				>
@@ -215,6 +233,7 @@
 							{#each datasets as dataset}
 								<a
 									href="/datasets/{dataset.id}"
+									onclick={() => onclose?.()}
 									class="flex items-center gap-2 rounded-lg px-3 py-2 text-sm transition-colors {isDatasetActive(dataset.id)
 										? 'bg-[#64ff96]/10 text-[#64ff96]'
 										: 'text-white/50 hover:bg-white/5 hover:text-white/80'}"
@@ -226,6 +245,7 @@
 						{/if}
 						<a
 							href="/datasets"
+							onclick={() => onclose?.()}
 							class="flex items-center gap-2 rounded-lg px-3 py-2 text-sm text-white/40 hover:bg-white/5 hover:text-white/60 transition-colors"
 						>
 							<svg class="h-4 w-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -240,7 +260,8 @@
 			<!-- Settings -->
 			<a
 				href="/settings"
-				class="flex items-center gap-3 rounded-lg px-3 py-2.5 text-sm font-medium transition-colors mt-2 {isActive('/settings')
+				onclick={() => onclose?.()}
+				class="flex items-center gap-3 rounded-lg px-3 py-2 text-sm font-medium transition-colors mt-2 {isActive('/settings')
 					? 'bg-[#64ff96]/10 text-[#64ff96]'
 					: 'text-white/70 hover:bg-white/5 hover:text-white'}"
 			>
