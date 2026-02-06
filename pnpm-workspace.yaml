@@ -2,3 +2,8 @@ onlyBuiltDependencies:
   - esbuild
 
 engineStrict: true
+
+allowBuilds:
+  protobufjs@7.5.4: true
+
+strictDepBuilds: true
