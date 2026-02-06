@@ -73,9 +73,10 @@
 	<div class="flex h-full flex-col">
 		<!-- Logo -->
 		<div class="flex h-16 items-center border-b border-white/10 px-6">
-			<a href="/" class="text-xl font-bold">
+			<a href="/" class="flex items-center gap-3 text-xl font-bold">
+				<img src="/logo.svg" alt="CiteSeer logo" class="h-6 w-6" />
 				<span class="bg-gradient-to-r from-[#64ff96] to-[#3dd977] bg-clip-text text-transparent">
-					SiteSeer
+					CiteSeer
 				</span>
 			</a>
 		</div>

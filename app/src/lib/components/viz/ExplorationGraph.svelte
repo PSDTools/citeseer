@@ -46,6 +46,8 @@
 	} = $props();
 
 	let container: HTMLDivElement;
+	// svelte-ignore state_referenced_locally
+	let containerWidth = $state(width);
 	// eslint-disable-next-line @typescript-eslint/no-explicit-any
 	let svg: any;
 	// eslint-disable-next-line @typescript-eslint/no-explicit-any
@@ -77,11 +79,14 @@
 		// Clear existing
 		d3.select(container).selectAll('*').remove();
 
-		svg = d3.select(container)
+		const w = containerWidth || width;
+
+		svg = d3
+			.select(container)
 			.append('svg')
-			.attr('width', width)
+			.attr('width', w)
 			.attr('height', height)
-			.attr('viewBox', [0, 0, width, height]);
+			.attr('viewBox', [0, 0, w, height]);
 
 		// Add arrow marker for links
 		svg
@@ -104,6 +109,11 @@
 	function updateGraph() {
 		if (!svg || nodes.length === 0) return;
 
+		const w = containerWidth || width;
+
+		// Update SVG dimensions if they changed
+		svg.attr('width', w).attr('viewBox', [0, 0, w, height]);
+
 		const d3Nodes: D3Node[] = nodes.map((n) => ({ ...n }));
 		const d3Links = buildLinks(d3Nodes);
 
@@ -111,15 +121,18 @@
 		if (simulation) simulation.stop();
 
 		// Create force simulation
-		simulation = d3.forceSimulation(d3Nodes)
+		simulation = d3
+			.forceSimulation(d3Nodes)
 			.force(
 				'link',
-				d3.forceLink(d3Links)
-					.id((d: D3Node) => d.id)
+				d3
+					.forceLink(d3Links)
+					// eslint-disable-next-line @typescript-eslint/no-explicit-any
+					.id((d: any) => d.id)
 					.distance(80)
 			)
 			.force('charge', d3.forceManyBody().strength(-200))
-			.force('center', d3.forceCenter(width / 2, height / 2))
+			.force('center', d3.forceCenter(w / 2, height / 2))
 			.force('collision', d3.forceCollide().radius(40));
 
 		// Clear and rebuild
@@ -127,9 +140,11 @@
 		const g = svg.append('g').attr('class', 'graph-content');
 
 		// Add zoom behavior
-		const zoomBehavior = d3.zoom()
+		const zoomBehavior = d3
+			.zoom()
 			.scaleExtent([0.3, 3])
-			.on('zoom', (event: { transform: string }) => {
+			// eslint-disable-next-line @typescript-eslint/no-explicit-any
+			.on('zoom', (event: any) => {
 				g.attr('transform', event.transform);
 			});
 		svg.call(zoomBehavior);
@@ -155,23 +170,28 @@
 			.attr('class', 'node')
 			.style('cursor', 'pointer')
 			.call(
-				d3.drag()
-					.on('start', (event: { active: boolean }, d: D3Node) => {
+				d3
+					.drag()
+					// eslint-disable-next-line @typescript-eslint/no-explicit-any
+					.on('start', (event: any, d: any) => {
 						if (!event.active) simulation.alphaTarget(0.3).restart();
 						d.fx = d.x;
 						d.fy = d.y;
 					})
-					.on('drag', (event: { x: number; y: number }, d: D3Node) => {
+					// eslint-disable-next-line @typescript-eslint/no-explicit-any
+					.on('drag', (event: any, d: any) => {
 						d.fx = event.x;
 						d.fy = event.y;
 					})
-					.on('end', (event: { active: boolean }, d: D3Node) => {
+					// eslint-disable-next-line @typescript-eslint/no-explicit-any
+					.on('end', (event: any, d: any) => {
 						if (!event.active) simulation.alphaTarget(0);
 						d.fx = null;
 						d.fy = null;
 					})
 			)
-			.on('click', (event: MouseEvent, d: D3Node) => {
+			// eslint-disable-next-line @typescript-eslint/no-explicit-any
+			.on('click', (event: any, d: any) => {
 				event.stopPropagation();
 				onNodeClick(d);
 			});
@@ -181,7 +201,9 @@
 			.append('circle')
 			.attr('r', 12)
 			.attr('fill', (d: D3Node) => (d.id === activeNodeId ? '#64ff96' : '#1a1f2e'))
-			.attr('stroke', (d: D3Node) => (d.id === activeNodeId ? '#64ff96' : 'rgba(100, 255, 150, 0.5)'))
+			.attr('stroke', (d: D3Node) =>
+				d.id === activeNodeId ? '#64ff96' : 'rgba(100, 255, 150, 0.5)'
+			)
 			.attr('stroke-width', 2);
 
 		// Node labels
@@ -226,15 +248,17 @@
 	});
 
 	$effect(() => {
-		// Re-run when nodes or activeNodeId changes
+		// Re-run when nodes, activeNodeId, or containerWidth changes
 		nodes;
 		activeNodeId;
+		containerWidth;
 		if (svg) updateGraph();
 	});
 </script>
 
 <div
 	bind:this={container}
-	class="w-full rounded-lg border border-white/10 bg-[#0a0d14]/50 overflow-hidden"
+	bind:clientWidth={containerWidth}
+	class="w-full overflow-hidden rounded-lg border border-white/10 bg-[#0a0d14]/50"
 	style="height: {height}px;"
 ></div>

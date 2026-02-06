@@ -6,7 +6,7 @@
 </script>
 
 <svelte:head>
-	<title>Sign In - SiteSeer</title>
+	<title>Sign In - CiteSeer</title>
 </svelte:head>
 
 <div class="min-h-screen flex items-center justify-center bg-[#050810] px-4">
@@ -17,7 +17,7 @@
 					<span
 						class="bg-gradient-to-r from-[#64ff96] to-[#3dd977] bg-clip-text text-transparent"
 					>
-						SiteSeer
+						CiteSeer
 					</span>
 				</h1>
 			</a>

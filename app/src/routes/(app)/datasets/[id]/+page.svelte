@@ -53,7 +53,7 @@
 </script>
 
 <svelte:head>
-	<title>{data.dataset.name} - SiteSeer</title>
+	<title>{data.dataset.name} - CiteSeer</title>
 </svelte:head>
 
 <div class="p-8">

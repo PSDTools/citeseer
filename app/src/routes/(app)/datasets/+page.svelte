@@ -128,7 +128,7 @@
 </script>
 
 <svelte:head>
-	<title>Datasets - SiteSeer</title>
+	<title>Datasets - CiteSeer</title>
 </svelte:head>
 
 <div class="p-8">

@@ -3,9 +3,10 @@
 
 <nav class="fixed top-0 left-0 right-0 z-50 px-8 py-4 bg-[#050810]/80 backdrop-blur-xl border-b border-white/[0.06]">
 	<div class="max-w-[1400px] mx-auto flex items-center justify-between">
-		<a href="/" class="text-xl font-bold tracking-wide">
+		<a href="/" class="flex items-center gap-3 text-xl font-bold tracking-wide">
+			<img src="/logo.svg" alt="CiteSeer logo" class="h-6 w-6" />
 			<span class="bg-gradient-to-r from-[#64ff96] to-[#3dd977] bg-clip-text text-transparent">
-				SiteSeer
+				CiteSeer
 			</span>
 		</a>
 

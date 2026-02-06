@@ -7,7 +7,7 @@
 </script>
 
 <svelte:head>
-	<title>Settings - SiteSeer</title>
+	<title>Settings - CiteSeer</title>
 </svelte:head>
 
 <div class="p-8">

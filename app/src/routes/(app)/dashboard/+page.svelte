@@ -70,13 +70,13 @@
 </script>
 
 <svelte:head>
-	<title>Home - SiteSeer</title>
+	<title>Home - CiteSeer</title>
 </svelte:head>
 
 <div class="p-8">
 	<!-- Header -->
 	<div class="mb-8">
-		<h1 class="text-2xl font-bold text-white">Welcome to SiteSeer</h1>
+		<h1 class="text-2xl font-bold text-white">Welcome to CiteSeer</h1>
 		<p class="mt-1 text-white/60">AI-powered data analysis at your fingertips</p>
 	</div>
 

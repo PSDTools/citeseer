@@ -1,6 +1,6 @@
 #!/usr/bin/env npx tsx
 /**
- * SiteSeer Auto-Setup Script
+ * CiteSeer Auto-Setup Script
  *
  * This script:
  * 1. Creates .env file if missing
@@ -17,7 +17,7 @@ const ROOT = join(import.meta.dirname, '..');
 const ENV_FILE = join(ROOT, '.env');
 const ENV_EXAMPLE = join(ROOT, '.env.example');
 
-const DEFAULT_DATABASE_URL = 'postgresql://siteseer:siteseer@localhost:5432/siteseer';
+const DEFAULT_DATABASE_URL = 'postgresql://citeseer:citeseer@localhost:5432/citeseer';
 
 function log(msg: string) {
 	console.log(`\x1b[32m✓\x1b[0m ${msg}`);
@@ -58,7 +58,7 @@ async function waitForPostgres(maxAttempts = 30): Promise<boolean> {
 	for (let i = 0; i < maxAttempts; i++) {
 		try {
 			execSync(
-				`docker exec siteseer-db pg_isready -U siteseer`,
+				`docker exec citeseer-db pg_isready -U citeseer`,
 				{ stdio: 'pipe' }
 			);
 			return true;
@@ -70,7 +70,7 @@ async function waitForPostgres(maxAttempts = 30): Promise<boolean> {
 }
 
 async function main() {
-	console.log('\n🚀 \x1b[1mSiteSeer Setup\x1b[0m\n');
+	console.log('\n🚀 \x1b[1mCiteSeer Setup\x1b[0m\n');
 
 	// Step 1: Create .env if missing
 	if (!existsSync(ENV_FILE)) {
@@ -100,17 +100,17 @@ NODE_ENV=development
 		info('Docker detected, checking PostgreSQL container...');
 
 		// Check if container is running
-		const containerRunning = run('docker ps --filter name=siteseer-db --format "{{.Names}}"', true).trim();
+		const containerRunning = run('docker ps --filter name=citeseer-db --format "{{.Names}}"', true).trim();
 
-		if (containerRunning === 'siteseer-db') {
+		if (containerRunning === 'citeseer-db') {
 			log('PostgreSQL container already running');
 		} else {
 			// Check if container exists but stopped
-			const containerExists = run('docker ps -a --filter name=siteseer-db --format "{{.Names}}"', true).trim();
+			const containerExists = run('docker ps -a --filter name=citeseer-db --format "{{.Names}}"', true).trim();
 
-			if (containerExists === 'siteseer-db') {
+			if (containerExists === 'citeseer-db') {
 				info('Starting existing PostgreSQL container...');
-				run('docker start siteseer-db');
+				run('docker start citeseer-db');
 			} else {
 				info('Starting PostgreSQL with Docker Compose...');
 				run('docker compose up -d');

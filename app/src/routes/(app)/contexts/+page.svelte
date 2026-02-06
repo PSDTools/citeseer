@@ -78,7 +78,7 @@
 </script>
 
 <svelte:head>
-	<title>Contexts - SiteSeer</title>
+	<title>Contexts - CiteSeer</title>
 </svelte:head>
 
 <div class="p-8">

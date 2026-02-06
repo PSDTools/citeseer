@@ -7,7 +7,7 @@
 </script>
 
 <svelte:head>
-	<title>Get Started - SiteSeer</title>
+	<title>Get Started - CiteSeer</title>
 </svelte:head>
 
 <div class="min-h-screen flex items-center justify-center bg-[#050810] px-4">
@@ -15,7 +15,7 @@
 		<div class="text-center mb-8">
 			<h1 class="text-3xl font-bold">
 				<span class="bg-gradient-to-r from-[#64ff96] to-[#3dd977] bg-clip-text text-transparent">
-					Welcome to SiteSeer
+					Welcome to CiteSeer
 				</span>
 			</h1>
 			<p class="mt-2 text-white/60">Let's set up your workspace</p>

@@ -42,6 +42,10 @@
 	let isEditing = $state(false);
 	let editError = $state<string | null>(null);
 
+	// Realign question state
+	let realignSuggestions = $state<string[]>([]);
+	let isRealigning = $state(false);
+
 	// Delete context state
 	let showDeleteConfirm = $state(false);
 	let isDeleting = $state(false);
@@ -103,7 +107,7 @@
 	$effect(() => {
 		if (hasProcessedBranchPayload) return;
 		if (typeof sessionStorage === 'undefined') return;
-		const raw = sessionStorage.getItem('siteseer.branchContext');
+		const raw = sessionStorage.getItem('citeseer.branchContext');
 		if (!raw) return;
 		try {
 			const payload = JSON.parse(raw) as {
@@ -115,11 +119,11 @@
 			if (!payload.question || !payload.branchContext) return;
 
 			hasProcessedBranchPayload = true;
-			sessionStorage.removeItem('siteseer.branchContext');
+			sessionStorage.removeItem('citeseer.branchContext');
 			question = payload.question;
 			void handleSubmit({ question: payload.question, branchContext: payload.branchContext });
 		} catch {
-			sessionStorage.removeItem('siteseer.branchContext');
+			sessionStorage.removeItem('citeseer.branchContext');
 		}
 	});
 
@@ -134,6 +138,7 @@
 		error = null;
 		currentPlan = null;
 		results = null;
+		realignSuggestions = [];
 
 		try {
 			const response = await fetch('/api/query', {
@@ -157,50 +162,79 @@
 			lastQuestion = submittedQuestion;
 			currentNodeContext = branchContext || null;
 
-			// Auto-save as dashboard
-			const saveResponse = await fetch('/api/dashboards', {
-				method: 'POST',
-				headers: { 'Content-Type': 'application/json' },
-				body: JSON.stringify({
-					name: submittedQuestion.slice(0, 100),
+			// Only save and create graph nodes for feasible plans
+			if (result.plan.feasible) {
+				// Auto-save as dashboard
+				const saveResponse = await fetch('/api/dashboards', {
+					method: 'POST',
+					headers: { 'Content-Type': 'application/json' },
+					body: JSON.stringify({
+						name: submittedQuestion.slice(0, 100),
+						question: submittedQuestion,
+						plan: result.plan,
+						panels: result.plan.viz || [],
+						results: result.results,
+						contextId: data.context.id,
+						parentDashboardId: isFollowup ? currentDashboardId : undefined,
+						nodeContext: branchContext || undefined
+					})
+				});
+
+				const saveResult = await saveResponse.json();
+				const dashboardId = saveResult?.dashboard?.id;
+
+				// Create new graph node with stored plan and results
+				const newNode: GraphNode = {
+					id: dashboardId || crypto.randomUUID(),
 					question: submittedQuestion,
+					parentId: isFollowup ? activeNodeId : null,
+					dashboardId: dashboardId,
+					filters: branchContext?.filters,
+					timestamp: Date.now(),
 					plan: result.plan,
-					panels: result.plan.viz || [],
-					results: result.results,
-					contextId: data.context.id,
-					parentDashboardId: isFollowup ? currentDashboardId : undefined,
-					nodeContext: branchContext || undefined
-				})
-			});
+					results: result.results
+				};
 
-			const saveResult = await saveResponse.json();
-			const dashboardId = saveResult?.dashboard?.id;
-
-			// Create new graph node with stored plan and results
-			const newNode: GraphNode = {
-				id: dashboardId || crypto.randomUUID(),
-				question: submittedQuestion,
-				parentId: isFollowup ? activeNodeId : null,
-				dashboardId: dashboardId,
-				filters: branchContext?.filters,
-				timestamp: Date.now(),
-				plan: result.plan,
-				results: result.results
-			};
-
-			if (isFollowup) {
-				graphNodes = [...graphNodes, newNode];
-			} else {
-				// New root question - start fresh graph
-				graphNodes = [newNode];
+				if (isFollowup) {
+					graphNodes = [...graphNodes, newNode];
+				} else {
+					// New root question - start fresh graph
+					graphNodes = [newNode];
+				}
+				activeNodeId = newNode.id;
+				currentDashboardId = dashboardId || null;
 			}
-			activeNodeId = newNode.id;
-			currentDashboardId = dashboardId || null;
 			question = ''; // Clear input after successful query
 		} catch (e) {
 			error = e instanceof Error ? e.message : 'Failed to execute query';
 		} finally {
 			isLoading = false;
+		}
+	}
+
+	async function handleRealign() {
+		if (!currentPlan || isRealigning) return;
+
+		isRealigning = true;
+		try {
+			const response = await fetch('/api/query/realign', {
+				method: 'POST',
+				headers: { 'Content-Type': 'application/json' },
+				body: JSON.stringify({
+					question: lastQuestion,
+					reason: currentPlan.reason || 'Unable to answer',
+					contextId: data.context.id
+				})
+			});
+
+			const result = await response.json();
+			if (response.ok && Array.isArray(result.suggestions)) {
+				realignSuggestions = result.suggestions;
+			}
+		} catch {
+			// Silently fail - button just doesn't produce suggestions
+		} finally {
+			isRealigning = false;
 		}
 	}
 
@@ -216,8 +250,14 @@
 		if (!detail.field || detail.value == null) return;
 
 		branchMenuDetail = detail;
-		branchMenuX = detail.clientX;
-		branchMenuY = detail.clientY;
+
+		const menuW = 360;
+		const menuH = 320;
+		branchMenuX = Math.min(detail.clientX, window.innerWidth - menuW - 16);
+		branchMenuY = Math.min(detail.clientY, window.innerHeight - menuH - 16);
+		branchMenuX = Math.max(16, branchMenuX);
+		branchMenuY = Math.max(16, branchMenuY);
+
 		branchPrompt = '';
 		showBranchMenu = true;
 	}
@@ -452,7 +492,7 @@
 </script>
 
 <svelte:head>
-	<title>{data.context.name} - SiteSeer</title>
+	<title>{data.context.name} - CiteSeer</title>
 </svelte:head>
 
 <svelte:window
@@ -676,6 +716,47 @@
 				<div class="rounded-xl border border-amber-500/20 bg-amber-500/5 p-6 mb-6">
 					<h3 class="font-medium text-amber-400">Unable to Answer</h3>
 					<p class="mt-2 text-white/70">{currentPlan.reason}</p>
+
+					{#if realignSuggestions.length === 0}
+						<button
+							type="button"
+							onclick={handleRealign}
+							disabled={isRealigning}
+							class="mt-4 flex items-center gap-2 rounded-lg border border-white/10 bg-white/5 px-4 py-2 text-sm text-white/70 hover:bg-white/10 hover:text-white transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
+						>
+							{#if isRealigning}
+								<svg class="h-4 w-4 animate-spin" fill="none" viewBox="0 0 24 24">
+									<circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4" />
+									<path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z" />
+								</svg>
+								Thinking...
+							{:else}
+								<svg class="h-4 w-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+									<path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9.663 17h4.673M12 3v1m6.364 1.636l-.707.707M21 12h-1M4 12H3m3.343-5.657l-.707-.707m2.828 9.9a5 5 0 117.072 0l-.548.547A3.374 3.374 0 0014 18.469V19a2 2 0 11-4 0v-.531c0-.895-.356-1.754-.988-2.386l-.548-.547z" />
+								</svg>
+								Suggest questions I can ask
+							{/if}
+						</button>
+					{:else}
+						<div class="mt-4">
+							<p class="text-xs text-white/50 mb-2">Try one of these instead:</p>
+							<div class="space-y-2">
+								{#each realignSuggestions as suggestion}
+									<button
+										type="button"
+										onclick={() => {
+											question = suggestion;
+											handleSubmit();
+										}}
+										disabled={isLoading}
+										class="w-full text-left rounded-lg border border-white/10 bg-white/5 px-4 py-2.5 text-sm text-white/70 hover:bg-white/10 hover:text-white hover:border-white/20 transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
+									>
+										{suggestion}
+									</button>
+								{/each}
+							</div>
+						</div>
+					{/if}
 				</div>
 			{:else if currentPlan.validationError}
 				<div class="rounded-lg bg-red-500/10 border border-red-500/20 px-4 py-3 text-sm text-red-400 mb-6">
@@ -727,13 +808,8 @@
 							nodes={graphNodes}
 							{activeNodeId}
 							onNodeClick={(node) => {
-								// Switch to the clicked node's results
-								if (node.plan && node.results) {
-									currentPlan = node.plan;
-									results = node.results;
-									lastQuestion = node.question;
-									activeNodeId = node.id;
-									currentDashboardId = node.dashboardId || null;
+								if (node.dashboardId) {
+									goto(`/saved/${node.dashboardId}`);
 								}
 							}}
 							height={Math.min(200 + graphNodes.length * 20, 400)}

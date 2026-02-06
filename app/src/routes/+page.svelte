@@ -11,7 +11,7 @@
 </script>
 
 <svelte:head>
-	<title>SiteSeer - Question-Driven Analytics</title>
+	<title>CiteSeer - Question-Driven Analytics</title>
 </svelte:head>
 
 <div class="w-full relative">

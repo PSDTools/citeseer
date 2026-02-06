@@ -582,6 +582,7 @@ export async function applyForecastToResult(options: {
 				seasonLength = seasonality.seasonLength;
 			}
 			if (!seasonLength) {
+				strategy = 'moving_average';
 				forecastValues = movingAverageForecast(points, horizon, window ?? Math.min(6, points.length));
 			} else {
 				forecastValues = seasonalNaiveForecast(points, horizon, seasonLength);
@@ -603,7 +604,16 @@ export async function applyForecastToResult(options: {
 		[UPPER_FIELD]: null
 	}));
 
-	const forecastRows: Record<string, unknown>[] = [];
+	// Bridge row: duplicate last actual point as a Forecast point so the lines connect
+	const bridgeRow: Record<string, unknown> = {
+		[xField]: lastPoint.x,
+		[yField]: lastPoint.y,
+		[seriesField]: 'Forecast',
+		[LOWER_FIELD]: null,
+		[UPPER_FIELD]: null
+	};
+
+	const forecastRows: Record<string, unknown>[] = [bridgeRow];
 	for (let i = 1; i <= horizon; i++) {
 		let nextX: string | number = i;
 		if (format === 'number' && typeof lastPoint.number === 'number') {

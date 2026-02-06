@@ -88,6 +88,14 @@ export function resolveStatField(panel: PanelSpec, result: QueryResult): string 
 	return valueField || columns[0];
 }
 
+const INTERNAL_COLUMNS = new Set(['__series', 'forecast_series', 'forecast_lower', 'forecast_upper']);
+
+function tooltipColumns(columns: string[], seriesField?: string): { field: string }[] {
+	return columns
+		.filter((col) => !INTERNAL_COLUMNS.has(col) && col !== seriesField)
+		.map((col) => ({ field: col }));
+}
+
 export function panelToVegaLite(panel: PanelSpec, result: QueryResult): VisualizationSpec | null {
 	if (!result.success || result.data.length === 0) {
 		return null;
@@ -99,18 +107,6 @@ export function panelToVegaLite(panel: PanelSpec, result: QueryResult): Visualiz
 		return null;
 	}
 	
-	console.log('panelToVegaLite mapping:', {
-		'panel.x': panel.x,
-		'panel.y': panel.y,
-		'resolved xField': xField,
-		'resolved yField': yField,
-		'available columns': [...columns],
-		'first row keys': Object.keys(result.data[0] || {}),
-		'first row values': Object.entries(result.data[0] || {}).map(([k, v]) => `${k}=${v} (${typeof v})`),
-		'x value': result.data[0]?.[xField],
-		'y value': result.data[0]?.[yField]
-	});
-
 	const baseSpec = {
 		$schema: 'https://vega.github.io/schema/vega-lite/v6.json',
 		data: { values: result.data },
@@ -183,7 +179,7 @@ export function panelToVegaLite(panel: PanelSpec, result: QueryResult): Visualiz
 									xOffset: { field: seriesField as string }
 								}
 							: {}),
-						tooltip: result.columns.map((col) => ({ field: col }))
+						tooltip: hasForecastSeries ? tooltipColumns(result.columns, seriesField) : result.columns.map((col) => ({ field: col }))
 					}
 				} as VisualizationSpec;
 			}
@@ -272,7 +268,7 @@ export function panelToVegaLite(panel: PanelSpec, result: QueryResult): Visualiz
 					field: yField,
 					type: 'quantitative'
 				},
-				tooltip: result.columns.map((col) => ({ field: col }))
+				tooltip: hasForecastSeries ? tooltipColumns(result.columns, seriesField) : result.columns.map((col) => ({ field: col }))
 			};
 
 			if (!hasForecastSeries) {

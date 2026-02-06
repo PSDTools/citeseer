@@ -3,7 +3,6 @@
 	import VegaChart from './VegaChart.svelte';
 	import StatCard from './StatCard.svelte';
 	import DataTable from './DataTable.svelte';
-	import InsightCard from './InsightCard.svelte';
 	import {
 		panelToVegaLite,
 		resolvePanelFields,
@@ -23,38 +22,8 @@
 	const dispatch = createEventDispatcher<{ select: ChartSelectDetail }>();
 
 	let { panel, result, panelIndex, interactive = false }: Props = $props();
-
-	const forecastLabels: Record<string, string> = {
-		auto: 'Auto',
-		linear: 'Linear trend',
-		drift: 'Drift',
-		moving_average: 'Moving average',
-		exp_smoothing: 'Exponential smoothing',
-		seasonal_naive: 'Seasonal naive'
-	};
-
-	function formatForecastMeta() {
-		if (!panel.forecast) return null;
-		const strategy = panel.forecast.strategy ? forecastLabels[panel.forecast.strategy] || panel.forecast.strategy : 'Auto';
-		const horizon = panel.forecast.horizon ? `${panel.forecast.horizon} period${panel.forecast.horizon === 1 ? '' : 's'}` : null;
-		const confidence = panel.forecast.confidence ? panel.forecast.confidence.toUpperCase() : null;
-		const interval = panel.forecast.intervalPct
-			? `${Math.round(panel.forecast.intervalPct * 100)}% interval`
-			: panel.forecast
-				? '90% interval'
-				: null;
-		return { strategy, horizon, confidence, interval };
-	}
 </script>
 
-{#if panel.type === 'insight'}
-	<InsightCard
-		title={panel.title}
-		narrative={panel.narrative || panel.description || ''}
-		confidence={panel.confidence}
-		recommendations={panel.recommendations}
-	/>
-{:else}
 <div class="rounded-xl border border-white/10 bg-white/[0.02] p-4">
 	{#if !result.success}
 		<div class="p-4 text-center">
@@ -125,47 +94,18 @@
 		{/if}
 	{/if}
 
-	{#if panel.forecast || panel.summary || panel.description}
+	{#if panel.summary}
 		<div class="mt-3 border-t border-white/5 pt-3">
-			{#if panel.forecast}
-				{@const meta = formatForecastMeta()}
-				{#if meta}
-					<div class="flex flex-wrap items-center gap-2 text-xs text-white/60 mb-2">
-						<span class="rounded-full border border-white/10 bg-white/5 px-2 py-0.5 text-white/70">
-							Forecast: {meta.strategy}
-						</span>
-						{#if meta.horizon}
-							<span class="rounded-full border border-white/10 bg-white/5 px-2 py-0.5">
-								Horizon: {meta.horizon}
-							</span>
-						{/if}
-						{#if meta.confidence}
-							<span class="rounded-full border border-white/10 bg-white/5 px-2 py-0.5">
-								Confidence: {meta.confidence}
-							</span>
-						{/if}
-						{#if meta.interval}
-							<span class="rounded-full border border-white/10 bg-white/5 px-2 py-0.5">
-								{meta.interval}
-							</span>
-						{/if}
-					</div>
-				{/if}
-			{/if}
-
-			{#if panel.summary}
-				<div class="flex items-start gap-2">
-					<svg class="h-4 w-4 text-[#64ff96] flex-shrink-0 mt-0.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-						<path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
-					</svg>
-					<p class="text-sm text-white/80 leading-relaxed">{panel.summary}</p>
-				</div>
-			{:else if panel.description}
-				<p class="text-sm text-white/60">
-					{panel.description}
-				</p>
-			{/if}
+			<div class="flex items-start gap-2">
+				<svg class="h-4 w-4 text-[#64ff96] flex-shrink-0 mt-0.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+					<path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
+				</svg>
+				<p class="text-sm text-white/80 leading-relaxed">{panel.summary}</p>
+			</div>
 		</div>
+	{:else if panel.description}
+		<p class="mt-3 text-sm text-white/60 border-t border-white/5 pt-3">
+			{panel.description}
+		</p>
 	{/if}
 </div>
-{/if}

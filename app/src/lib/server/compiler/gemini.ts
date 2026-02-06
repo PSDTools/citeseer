@@ -411,6 +411,62 @@ Be helpful and specific. Reference actual column names and values from the schem
 	}
 
 	/**
+	 * Suggest alternative questions when the original question is infeasible.
+	 */
+	async realignQuestion(context: {
+		question: string;
+		reason: string;
+		datasets: DatasetProfile[];
+	}): Promise<{ suggestions: string[] }> {
+		const schemaContext = GeminiCompiler.generateSchemaContext(context.datasets);
+
+		const prompt = `You are a helpful data analyst. A user asked a question that cannot be answered with the available data.
+
+## Original Question
+"${context.question}"
+
+## Reason It Cannot Be Answered
+${context.reason}
+
+## Available Data Schema
+${schemaContext}
+
+## Your Task
+Suggest 3-5 alternative questions that:
+1. Stay as close to the user's original intent as possible
+2. Reference REAL columns and values from the schema above
+3. Span different analysis angles (e.g., trends, comparisons, distributions, top-N)
+4. Are specific enough to produce useful visualizations
+5. Are written in plain, conversational English — like a human would naturally ask (e.g., "What are the top 10 industries by emissions?" not "SELECT NAICS_code GROUP BY emissions ORDER BY DESC LIMIT 10")
+
+Respond in this exact JSON format:
+{
+  "suggestions": ["Question 1", "Question 2", "Question 3"]
+}`;
+
+		try {
+			const response = await this.client.models.generateContent({
+				model: this.model,
+				contents: [{ role: 'user', parts: [{ text: prompt }] }],
+				config: { temperature: 0.5, maxOutputTokens: 1024 }
+			});
+
+			const text = response.text || '';
+			const jsonMatch = text.match(/\{[\s\S]*\}/);
+			if (jsonMatch) {
+				const parsed = JSON.parse(jsonMatch[0]);
+				if (Array.isArray(parsed.suggestions)) {
+					return { suggestions: parsed.suggestions };
+				}
+			}
+		} catch (error) {
+			console.error('Failed to realign question:', error);
+		}
+
+		return { suggestions: [] };
+	}
+
+	/**
 	 * Generate executive summaries for dashboard panels based on actual query results.
 	 * This analyzes the real data to produce actionable insights.
 	 */

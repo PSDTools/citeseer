@@ -44,8 +44,14 @@
 		if (!data.dashboard.contextId) return;
 		if (!detail.field || detail.value == null) return;
 		branchMenuDetail = detail;
-		branchMenuX = detail.clientX;
-		branchMenuY = detail.clientY;
+
+		const menuW = 360;
+		const menuH = 320;
+		branchMenuX = Math.min(detail.clientX, window.innerWidth - menuW - 16);
+		branchMenuY = Math.min(detail.clientY, window.innerHeight - menuH - 16);
+		branchMenuX = Math.max(16, branchMenuX);
+		branchMenuY = Math.max(16, branchMenuY);
+
 		branchPrompt = '';
 		showBranchMenu = true;
 	}
@@ -83,7 +89,7 @@
 
 		if (typeof sessionStorage !== 'undefined') {
 			sessionStorage.setItem(
-				'siteseer.branchContext',
+				'citeseer.branchContext',
 				JSON.stringify({
 					contextId: data.dashboard.contextId,
 					question: prompt,
@@ -98,7 +104,7 @@
 </script>
 
 <svelte:head>
-	<title>{data.dashboard.name} - SiteSeer</title>
+	<title>{data.dashboard.name} - CiteSeer</title>
 </svelte:head>
 
 <svelte:window
