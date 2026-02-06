@@ -1,5 +1,5 @@
 <script lang="ts">
-	import { page } from '$app/stores';
+	import { page } from '$app/state';
 	import logo from '$lib/assets/logo.svg';
 
 	interface Dataset {
@@ -38,19 +38,19 @@
 		'M10.325 4.317c.426-1.756 2.924-1.756 3.35 0a1.724 1.724 0 002.573 1.066c1.543-.94 3.31.826 2.37 2.37a1.724 1.724 0 001.065 2.572c1.756.426 1.756 2.924 0 3.35a1.724 1.724 0 00-1.066 2.573c.94 1.543-.826 3.31-2.37 2.37a1.724 1.724 0 00-2.572 1.065c-.426 1.756-2.924 1.756-3.35 0a1.724 1.724 0 00-2.573-1.066c-1.543.94-3.31-.826-2.37-2.37a1.724 1.724 0 00-1.065-2.572c-1.756-.426-1.756-2.924 0-3.35a1.724 1.724 0 001.066-2.573c-.94-1.543.826-3.31 2.37-2.37.996.608 2.296.07 2.572-1.065z M15 12a3 3 0 11-6 0 3 3 0 016 0z';
 
 	function isActive(href: string) {
-		return $page.url.pathname === href || $page.url.pathname.startsWith(href + '/');
+		return page.url.pathname === href || page.url.pathname.startsWith(href + '/');
 	}
 
 	function isContextActive(id: string) {
-		return $page.url.pathname.startsWith(`/contexts/${id}`);
+		return page.url.pathname.startsWith(`/contexts/${id}`);
 	}
 
 	function isDatasetActive(id: string) {
-		return $page.url.pathname === `/datasets/${id}`;
+		return page.url.pathname === `/datasets/${id}`;
 	}
 
 	function isDashboardActive(id: string) {
-		return $page.url.pathname === `/saved/${id}`;
+		return page.url.pathname === `/saved/${id}`;
 	}
 
 	function toggleContext(id: string) {
@@ -65,7 +65,7 @@
 
 	// Auto-expand context if we're on it
 	$effect(() => {
-		const pathname = $page.url.pathname;
+		const pathname = page.url.pathname;
 		const match = pathname.match(/\/contexts\/([^/]+)/);
 		if (match && !expandedContexts.has(match[1])) {
 			expandedContexts = new Set([...expandedContexts, match[1]]);

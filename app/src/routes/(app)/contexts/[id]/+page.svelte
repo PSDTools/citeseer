@@ -1,6 +1,6 @@
 <script lang="ts">
 	import { invalidateAll, goto } from '$app/navigation';
-	import { page } from '$app/stores';
+	import { page } from '$app/state';
 	import ChartPanel from '$lib/components/viz/ChartPanel.svelte';
 	import BranchMenu from '$lib/components/viz/BranchMenu.svelte';
 	import ExplorationGraph, { type GraphNode } from '$lib/components/viz/ExplorationGraph.svelte';
@@ -102,7 +102,7 @@
 	// Auto-fill question from ?q= URL param
 	let hasProcessedUrlQuery = $state(false);
 	$effect(() => {
-		const q = $page.url.searchParams.get('q');
+		const q = page.url.searchParams.get('q');
 		if (q && !hasProcessedUrlQuery) {
 			hasProcessedUrlQuery = true;
 			question = q;
