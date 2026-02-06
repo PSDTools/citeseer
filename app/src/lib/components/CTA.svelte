@@ -122,12 +122,12 @@
 	}
 </script>
 
-<section class="relative py-32 max-md:py-20 px-5 z-10 bg-gradient-to-b from-[#0b1628] to-[#0d1a30]">
+<section class="relative z-10 bg-gradient-to-b from-[#0b1628] to-[#0d1a30] px-5 py-32 max-md:py-20">
 	{#if user}
 		<!-- Logged in: Show prompt interface -->
-		<div class="max-w-4xl mx-auto">
-			<div class="text-center mb-8">
-				<h2 class="text-[2.25rem] max-md:text-[1.75rem] font-semibold mb-4 text-white/95">
+		<div class="mx-auto max-w-4xl">
+			<div class="mb-8 text-center">
+				<h2 class="mb-4 text-[2.25rem] font-semibold text-white/95 max-md:text-[1.75rem]">
 					Ask your data anything
 				</h2>
 				<p class="text-lg text-white/60">
@@ -137,33 +137,42 @@
 
 			{#if !hasApiKey}
 				<div class="mb-6 rounded-xl border border-amber-500/20 bg-amber-500/5 p-4 text-center">
-					<p class="text-amber-400 text-sm">
-						Add your Gemini API key in <a href="/settings" class="underline hover:text-amber-300">Settings</a> to start asking questions.
+					<p class="text-sm text-amber-400">
+						Add your Gemini API key in <a href="/settings" class="underline hover:text-amber-300"
+							>Settings</a
+						> to start asking questions.
 					</p>
 				</div>
 			{/if}
 
 			<!-- Dataset Selection -->
 			<div class="mb-6">
-				<div class="flex items-center gap-3 justify-center flex-wrap">
+				<div class="flex flex-wrap items-center justify-center gap-3">
 					{#if datasets.length > 0}
 						<select
 							bind:value={selectedDatasetId}
-							class="px-4 py-3 rounded-lg border border-white/20 bg-white/5 text-white/90 outline-none focus:border-[rgba(100,255,150,0.5)] min-w-[200px]"
+							class="min-w-[200px] rounded-lg border border-white/20 bg-white/5 px-4 py-3 text-white/90 outline-none focus:border-[rgba(100,255,150,0.5)]"
 						>
 							<option value={null}>All datasets</option>
 							{#each datasets as dataset}
-								<option value={dataset.id}>{dataset.name} ({dataset.rowCount.toLocaleString()} rows)</option>
+								<option value={dataset.id}
+									>{dataset.name} ({dataset.rowCount.toLocaleString()} rows)</option
+								>
 							{/each}
 						</select>
 					{/if}
 					<button
 						type="button"
-						onclick={() => showUpload = !showUpload}
-						class="px-4 py-3 rounded-lg border border-white/20 bg-white/5 text-white/70 hover:bg-white/10 hover:text-white transition-colors flex items-center gap-2"
+						onclick={() => (showUpload = !showUpload)}
+						class="flex items-center gap-2 rounded-lg border border-white/20 bg-white/5 px-4 py-3 text-white/70 transition-colors hover:bg-white/10 hover:text-white"
 					>
 						<svg class="h-5 w-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-							<path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4v16m8-8H4" />
+							<path
+								stroke-linecap="round"
+								stroke-linejoin="round"
+								stroke-width="2"
+								d="M12 4v16m8-8H4"
+							/>
 						</svg>
 						Upload CSV
 					</button>
@@ -172,10 +181,12 @@
 
 			<!-- Upload Panel -->
 			{#if showUpload}
-				<div class="mb-6 rounded-xl border border-white/10 bg-white/5 p-6 max-w-lg mx-auto">
-					<h3 class="text-white font-medium mb-4">Upload a dataset</h3>
+				<div class="mx-auto mb-6 max-w-lg rounded-xl border border-white/10 bg-white/5 p-6">
+					<h3 class="mb-4 font-medium text-white">Upload a dataset</h3>
 					{#if uploadError}
-						<div class="mb-4 rounded-lg bg-red-500/10 border border-red-500/20 px-4 py-2 text-sm text-red-400">
+						<div
+							class="mb-4 rounded-lg border border-red-500/20 bg-red-500/10 px-4 py-2 text-sm text-red-400"
+						>
 							{uploadError}
 						</div>
 					{/if}
@@ -183,7 +194,7 @@
 						type="file"
 						accept=".csv"
 						onchange={handleFileSelect}
-						class="block w-full text-sm text-white/60 file:mr-4 file:py-2 file:px-4 file:rounded-lg file:border-0 file:text-sm file:font-semibold file:bg-[#64ff96]/10 file:text-[#64ff96] hover:file:bg-[#64ff96]/20 file:cursor-pointer"
+						class="block w-full text-sm text-white/60 file:mr-4 file:cursor-pointer file:rounded-lg file:border-0 file:bg-[#64ff96]/10 file:px-4 file:py-2 file:text-sm file:font-semibold file:text-[#64ff96] hover:file:bg-[#64ff96]/20"
 					/>
 					{#if uploadFile}
 						<div class="mt-4 flex items-center justify-between">
@@ -192,7 +203,7 @@
 								type="button"
 								onclick={handleUpload}
 								disabled={isUploading}
-								class="px-4 py-2 rounded-lg bg-gradient-to-r from-[#64ff96] to-[#3dd977] text-[#0a1628] text-sm font-semibold disabled:opacity-50"
+								class="rounded-lg bg-gradient-to-r from-[#64ff96] to-[#3dd977] px-4 py-2 text-sm font-semibold text-[#0a1628] disabled:opacity-50"
 							>
 								{isUploading ? 'Uploading...' : 'Upload'}
 							</button>
@@ -202,29 +213,47 @@
 			{/if}
 
 			<!-- Query Input -->
-			<div class="relative max-w-2xl mx-auto mb-8">
+			<div class="relative mx-auto mb-8 max-w-2xl">
 				<input
 					type="text"
 					bind:value={question}
 					onkeydown={handleKeydown}
-					placeholder={datasets.length > 0 ? "What would you like to know about your data?" : "Upload a dataset to get started..."}
+					placeholder={datasets.length > 0
+						? 'What would you like to know about your data?'
+						: 'Upload a dataset to get started...'}
 					disabled={!hasApiKey || datasets.length === 0}
-					class="w-full px-6 py-4 pr-14 text-base border border-white/20 rounded-xl bg-white/5 text-white/90 outline-none transition-colors focus:border-[rgba(100,255,150,0.5)] placeholder:text-white/40 disabled:opacity-50 disabled:cursor-not-allowed"
+					class="w-full rounded-xl border border-white/20 bg-white/5 px-6 py-4 pr-14 text-base text-white/90 transition-colors outline-none placeholder:text-white/40 focus:border-[rgba(100,255,150,0.5)] disabled:cursor-not-allowed disabled:opacity-50"
 				/>
 				<button
 					type="button"
 					onclick={handleQuery}
 					disabled={!question.trim() || isLoading || !hasApiKey || datasets.length === 0}
-					class="absolute right-2 top-1/2 -translate-y-1/2 rounded-lg bg-gradient-to-r from-[#64ff96] to-[#3dd977] p-2.5 text-[#050810] transition-all hover:shadow-lg hover:shadow-[#64ff96]/20 disabled:opacity-50 disabled:cursor-not-allowed"
+					class="absolute top-1/2 right-2 -translate-y-1/2 rounded-lg bg-gradient-to-r from-[#64ff96] to-[#3dd977] p-2.5 text-[#050810] transition-all hover:shadow-lg hover:shadow-[#64ff96]/20 disabled:cursor-not-allowed disabled:opacity-50"
 				>
 					{#if isLoading}
 						<svg class="h-5 w-5 animate-spin" fill="none" viewBox="0 0 24 24">
-							<circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4" />
-							<path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z" />
+							<circle
+								class="opacity-25"
+								cx="12"
+								cy="12"
+								r="10"
+								stroke="currentColor"
+								stroke-width="4"
+							/>
+							<path
+								class="opacity-75"
+								fill="currentColor"
+								d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"
+							/>
 						</svg>
 					{:else}
 						<svg class="h-5 w-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-							<path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M14 5l7 7m0 0l-7 7m7-7H3" />
+							<path
+								stroke-linecap="round"
+								stroke-linejoin="round"
+								stroke-width="2"
+								d="M14 5l7 7m0 0l-7 7m7-7H3"
+							/>
 						</svg>
 					{/if}
 				</button>
@@ -232,7 +261,9 @@
 
 			<!-- Error Display -->
 			{#if error}
-				<div class="mb-6 rounded-lg bg-red-500/10 border border-red-500/20 px-4 py-3 text-sm text-red-400 max-w-2xl mx-auto">
+				<div
+					class="mx-auto mb-6 max-w-2xl rounded-lg border border-red-500/20 bg-red-500/10 px-4 py-3 text-sm text-red-400"
+				>
 					{error}
 				</div>
 			{/if}
@@ -251,17 +282,22 @@
 					<div class="mt-6 text-center">
 						<a
 							href="/dashboard"
-							class="inline-flex items-center gap-2 px-6 py-3 rounded-lg border border-white/20 bg-white/5 text-white/70 hover:bg-white/10 hover:text-white transition-colors"
+							class="inline-flex items-center gap-2 rounded-lg border border-white/20 bg-white/5 px-6 py-3 text-white/70 transition-colors hover:bg-white/10 hover:text-white"
 						>
 							Continue in Dashboard
 							<svg class="h-4 w-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-								<path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5l7 7-7 7" />
+								<path
+									stroke-linecap="round"
+									stroke-linejoin="round"
+									stroke-width="2"
+									d="M9 5l7 7-7 7"
+								/>
 							</svg>
 						</a>
 					</div>
 				</div>
 			{:else if currentPlan && !currentPlan.feasible}
-				<div class="rounded-xl border border-amber-500/20 bg-amber-500/5 p-6 max-w-2xl mx-auto">
+				<div class="mx-auto max-w-2xl rounded-xl border border-amber-500/20 bg-amber-500/5 p-6">
 					<h3 class="font-medium text-amber-400">Unable to Answer</h3>
 					<p class="mt-2 text-white/70">{currentPlan.reason}</p>
 				</div>
@@ -270,7 +306,7 @@
 			<!-- Quick link to dashboard -->
 			{#if !currentPlan}
 				<div class="text-center">
-					<a href="/dashboard" class="text-[#64ff96] hover:underline text-sm">
+					<a href="/dashboard" class="text-sm text-[#64ff96] hover:underline">
 						Go to full dashboard →
 					</a>
 				</div>
@@ -279,28 +315,31 @@
 	{:else}
 		<!-- Logged out: Show signup form -->
 		<div class="text-center">
-			<h2 class="text-[2.25rem] max-md:text-[1.75rem] font-semibold mb-4 text-white/95">
+			<h2 class="mb-4 text-[2.25rem] font-semibold text-white/95 max-md:text-[1.75rem]">
 				Ready to see what your data is telling you?
 			</h2>
-			<p class="text-lg text-white/60 mb-10">
+			<p class="mb-10 text-lg text-white/60">
 				Join supply chain teams who've moved beyond static dashboards.
 			</p>
-			<form onsubmit={handleEmailSubmit} class="flex gap-3 justify-center max-w-[500px] mx-auto max-md:flex-col">
+			<form
+				onsubmit={handleEmailSubmit}
+				class="mx-auto flex max-w-[500px] justify-center gap-3 max-md:flex-col"
+			>
 				<input
 					type="email"
 					bind:value={email}
 					placeholder="Enter your work email"
 					required
-					class="flex-1 max-md:w-full px-5 py-3.5 text-base border border-white/20 rounded-lg bg-white/5 text-white/90 outline-none transition-colors focus:border-[rgba(100,255,150,0.5)] placeholder:text-white/40"
+					class="flex-1 rounded-lg border border-white/20 bg-white/5 px-5 py-3.5 text-base text-white/90 transition-colors outline-none placeholder:text-white/40 focus:border-[rgba(100,255,150,0.5)] max-md:w-full"
 				/>
 				<button
 					type="submit"
-					class="px-8 py-3.5 text-base font-semibold rounded-lg bg-gradient-to-br from-[#64ff96] to-[#3dd977] text-[#0a1628] cursor-pointer hover:-translate-y-0.5 hover:shadow-[0_8px_24px_rgba(100,255,150,0.3)] transition-all"
+					class="cursor-pointer rounded-lg bg-gradient-to-br from-[#64ff96] to-[#3dd977] px-8 py-3.5 text-base font-semibold text-[#0a1628] transition-all hover:-translate-y-0.5 hover:shadow-[0_8px_24px_rgba(100,255,150,0.3)]"
 				>
 					Request Access
 				</button>
 			</form>
-			<p class="mt-6 text-white/40 text-sm">
+			<p class="mt-6 text-sm text-white/40">
 				Already have an account? <a href="/login" class="text-[#64ff96] hover:underline">Sign in</a>
 			</p>
 		</div>

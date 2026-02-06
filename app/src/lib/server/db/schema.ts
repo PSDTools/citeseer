@@ -290,7 +290,13 @@ export interface ColumnSchema {
 	maxValue?: unknown;
 }
 
-export type ForecastStrategy = 'auto' | 'linear' | 'drift' | 'moving_average' | 'exp_smoothing' | 'seasonal_naive';
+export type ForecastStrategy =
+	| 'auto'
+	| 'linear'
+	| 'drift'
+	| 'moving_average'
+	| 'exp_smoothing'
+	| 'seasonal_naive';
 
 export interface ForecastSpec {
 	strategy?: ForecastStrategy;

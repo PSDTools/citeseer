@@ -139,9 +139,9 @@ export class DateNormalizer {
 	 */
 	private normalizeColumnName(name: string): string {
 		return name
-			.replace(/\|/g, '')  // Remove pipes
-			.trim()               // Trim whitespace
-			.toLowerCase();       // Case-insensitive
+			.replace(/\|/g, '') // Remove pipes
+			.trim() // Trim whitespace
+			.toLowerCase(); // Case-insensitive
 	}
 
 	/**
@@ -176,7 +176,8 @@ export class DateNormalizer {
 			// MM/DD/YYYY
 			{
 				pattern: /^(\d{1,2})\/(\d{1,2})\/(\d{4})$/,
-				transform: (m: RegExpMatchArray) => `${m[3]}-${m[1].padStart(2, '0')}-${m[2].padStart(2, '0')}`
+				transform: (m: RegExpMatchArray) =>
+					`${m[3]}-${m[1].padStart(2, '0')}-${m[2].padStart(2, '0')}`
 			},
 			// DD/MM/YYYY (if day > 12)
 			{
@@ -192,12 +193,14 @@ export class DateNormalizer {
 			// DD-MM-YYYY
 			{
 				pattern: /^(\d{1,2})-(\d{1,2})-(\d{4})$/,
-				transform: (m: RegExpMatchArray) => `${m[3]}-${m[2].padStart(2, '0')}-${m[1].padStart(2, '0')}`
+				transform: (m: RegExpMatchArray) =>
+					`${m[3]}-${m[2].padStart(2, '0')}-${m[1].padStart(2, '0')}`
 			},
 			// YYYY/MM/DD
 			{
 				pattern: /^(\d{4})\/(\d{1,2})\/(\d{1,2})$/,
-				transform: (m: RegExpMatchArray) => `${m[1]}-${m[2].padStart(2, '0')}-${m[3].padStart(2, '0')}`
+				transform: (m: RegExpMatchArray) =>
+					`${m[1]}-${m[2].padStart(2, '0')}-${m[3].padStart(2, '0')}`
 			},
 			// Month name formats: "Jan 15, 2024" or "15 Jan 2024"
 			{
@@ -248,18 +251,30 @@ export class DateNormalizer {
 
 	private monthToNumber(month: string): string | null {
 		const months: Record<string, string> = {
-			jan: '01', january: '01',
-			feb: '02', february: '02',
-			mar: '03', march: '03',
-			apr: '04', april: '04',
+			jan: '01',
+			january: '01',
+			feb: '02',
+			february: '02',
+			mar: '03',
+			march: '03',
+			apr: '04',
+			april: '04',
 			may: '05',
-			jun: '06', june: '06',
-			jul: '07', july: '07',
-			aug: '08', august: '08',
-			sep: '09', sept: '09', september: '09',
-			oct: '10', october: '10',
-			nov: '11', november: '11',
-			dec: '12', december: '12'
+			jun: '06',
+			june: '06',
+			jul: '07',
+			july: '07',
+			aug: '08',
+			august: '08',
+			sep: '09',
+			sept: '09',
+			september: '09',
+			oct: '10',
+			october: '10',
+			nov: '11',
+			november: '11',
+			dec: '12',
+			december: '12'
 		};
 		return months[month.toLowerCase()] || null;
 	}

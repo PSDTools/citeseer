@@ -113,7 +113,9 @@ export const actions: Actions = {
 			error(401, 'Unauthorized');
 		}
 
-		const { org } = await (await import('$lib/server/auth')).getUserOrganizations(locals.user.id).then(orgs => ({ org: orgs[0] }));
+		const { org } = await (await import('$lib/server/auth'))
+			.getUserOrganizations(locals.user.id)
+			.then((orgs) => ({ org: orgs[0] }));
 
 		if (!org) {
 			error(403, 'No organization');

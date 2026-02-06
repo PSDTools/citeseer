@@ -14,7 +14,7 @@
 	<title>CiteSeer - Question-Driven Analytics</title>
 </svelte:head>
 
-<div class="w-full relative">
+<div class="relative w-full">
 	<Navbar />
 	<StarCanvas />
 	<Features />

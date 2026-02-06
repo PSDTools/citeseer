@@ -59,18 +59,23 @@ export const POST: RequestHandler = async ({ request, locals }) => {
 
 		// Get API key for LLM-assisted date detection
 		const [orgSettings] = await db.select().from(settings).where(eq(settings.orgId, org.id));
-		
+
 		// Normalize date columns if API key is available
 		let normalizedRows = rows;
 		if (orgSettings?.geminiApiKey) {
 			try {
-				const dateNormalizer = new DateNormalizer(orgSettings.geminiApiKey, orgSettings.geminiModel);
+				const dateNormalizer = new DateNormalizer(
+					orgSettings.geminiApiKey,
+					orgSettings.geminiModel
+				);
 				const columns = Object.keys(rows[0]);
 				const analysis = await dateNormalizer.analyzeDateColumns(rows, columns);
-				
+
 				if (analysis.dateColumns.length > 0) {
-					console.log(`Normalizing ${analysis.dateColumns.length} date columns:`, 
-						analysis.dateColumns.map(d => d.columnName));
+					console.log(
+						`Normalizing ${analysis.dateColumns.length} date columns:`,
+						analysis.dateColumns.map((d) => d.columnName)
+					);
 					normalizedRows = dateNormalizer.normalizeRows(rows, analysis.dateColumns);
 				}
 			} catch (e) {
@@ -158,8 +163,7 @@ function inferSchema(rows: Record<string, unknown>[]): ColumnSchema[] {
 
 		// Heuristics for column roles
 		const nameLower = name.toLowerCase();
-		const isEntityId =
-			nameLower.endsWith('_id') || nameLower.endsWith('id') || nameLower === 'id';
+		const isEntityId = nameLower.endsWith('_id') || nameLower.endsWith('id') || nameLower === 'id';
 		const isMetric = isNumeric && !isEntityId && distinctValues.size > 10;
 		const isCategorical = !isNumeric && !isTimestamp && distinctValues.size <= 50;
 
@@ -223,20 +227,14 @@ export const PUT: RequestHandler = async ({ request, locals }) => {
 
 	if (body.action === 'clean-all-columns') {
 		// Get all datasets for the org
-		const orgDatasets = await db
-			.select()
-			.from(datasets)
-			.where(eq(datasets.orgId, org.id));
+		const orgDatasets = await db.select().from(datasets).where(eq(datasets.orgId, org.id));
 
 		let totalCleaned = 0;
 		const results: { datasetId: string; datasetName: string; cleaned: number }[] = [];
 
 		for (const dataset of orgDatasets) {
 			// Get rows for this dataset
-			const rows = await db
-				.select()
-				.from(datasetRows)
-				.where(eq(datasetRows.datasetId, dataset.id));
+			const rows = await db.select().from(datasetRows).where(eq(datasetRows.datasetId, dataset.id));
 
 			if (rows.length === 0) continue;
 
@@ -273,24 +271,18 @@ export const PUT: RequestHandler = async ({ request, locals }) => {
 							const newKey = columnMapping.get(key) || key;
 							newData[newKey] = value;
 						}
-						return db
-							.update(datasetRows)
-							.set({ data: newData })
-							.where(eq(datasetRows.id, row.id));
+						return db.update(datasetRows).set({ data: newData }).where(eq(datasetRows.id, row.id));
 					})
 				);
 			}
 
 			// Update schema
-			const updatedSchema = (dataset.schema as ColumnSchema[]).map(col => ({
+			const updatedSchema = (dataset.schema as ColumnSchema[]).map((col) => ({
 				...col,
 				name: cleanColumnName(col.name)
 			}));
 
-			await db
-				.update(datasets)
-				.set({ schema: updatedSchema })
-				.where(eq(datasets.id, dataset.id));
+			await db.update(datasets).set({ schema: updatedSchema }).where(eq(datasets.id, dataset.id));
 
 			totalCleaned += columnMapping.size;
 			results.push({

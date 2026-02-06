@@ -165,7 +165,12 @@
 				});
 
 				if (validPosition && exclusion) {
-					if (x >= exclusion.left && x <= exclusion.right && y >= exclusion.top && y <= exclusion.bottom) {
+					if (
+						x >= exclusion.left &&
+						x <= exclusion.right &&
+						y >= exclusion.top &&
+						y <= exclusion.bottom
+					) {
 						validPosition = false;
 					}
 				}
@@ -260,7 +265,9 @@
 		const heroHeight = getHeroHeight();
 		shootingStars = shootingStars
 			.map((s) => ({ ...s, x: s.x + s.vx, y: s.y + s.vy, age: s.age + 1 }))
-			.filter((s) => s.age <= s.life && s.x > -200 && s.x < canvas.width + 200 && s.y < heroHeight + 200);
+			.filter(
+				(s) => s.age <= s.life && s.x > -200 && s.x < canvas.width + 200 && s.y < heroHeight + 200
+			);
 
 		shootingStarTimer += 1;
 		if (shootingStarTimer > 80 + Math.random() * 240) {
@@ -370,7 +377,14 @@
 			ctx!.fill();
 
 			const glowRadius = radius * 3.5;
-			const grad = ctx!.createRadialGradient(star.x, star.y, radius * 0.2, star.x, star.y, glowRadius);
+			const grad = ctx!.createRadialGradient(
+				star.x,
+				star.y,
+				radius * 0.2,
+				star.x,
+				star.y,
+				glowRadius
+			);
 			grad.addColorStop(0, star.color);
 			grad.addColorStop(0.25, star.color);
 			grad.addColorStop(1, 'rgba(0,0,0,0)');
@@ -433,33 +447,46 @@
 	});
 </script>
 
-<section bind:this={heroSection} class="hero-section relative w-full h-screen flex items-center justify-center overflow-hidden">
-	<canvas bind:this={canvas} class="absolute top-0 left-0 w-full h-full z-0 cursor-crosshair"></canvas>
+<section
+	bind:this={heroSection}
+	class="hero-section relative flex h-screen w-full items-center justify-center overflow-hidden"
+>
+	<canvas bind:this={canvas} class="absolute top-0 left-0 z-0 h-full w-full cursor-crosshair"
+	></canvas>
 	<Telescope />
 
-	<div class="hero-content relative z-[3] text-center px-5 pointer-events-none">
-		<h1 class="text-[5.5rem] max-lg:text-[4rem] max-md:text-[3rem] font-bold tracking-[3px] max-lg:tracking-[2px] max-md:tracking-[1.5px] text-white/95 mb-6 leading-none">
+	<div class="hero-content pointer-events-none relative z-[3] px-5 text-center">
+		<h1
+			class="mb-6 text-[5.5rem] leading-none font-bold tracking-[3px] text-white/95 max-lg:text-[4rem] max-lg:tracking-[2px] max-md:text-[3rem] max-md:tracking-[1.5px]"
+		>
 			CiteSeer
 		</h1>
-		<p class="text-[1.35rem] max-lg:text-[1.15rem] max-md:text-base font-normal text-white/70 mb-10 leading-relaxed">
+		<p
+			class="mb-10 text-[1.35rem] leading-relaxed font-normal text-white/70 max-lg:text-[1.15rem] max-md:text-base"
+		>
 			Question-driven analytics for supply-chain teams.<br />Ask anything. See everything.
 		</p>
-		<div class="flex gap-4 justify-center pointer-events-auto max-md:flex-col max-md:items-center">
-			<button class="px-8 py-3.5 text-base font-semibold rounded-lg bg-gradient-to-br from-[#64ff96] to-[#3dd977] text-[#0a1628] cursor-pointer hover:-translate-y-0.5 hover:shadow-[0_8px_24px_rgba(100,255,150,0.3)] transition-all max-md:w-full max-md:max-w-[280px]">
+		<div class="pointer-events-auto flex justify-center gap-4 max-md:flex-col max-md:items-center">
+			<button
+				class="cursor-pointer rounded-lg bg-gradient-to-br from-[#64ff96] to-[#3dd977] px-8 py-3.5 text-base font-semibold text-[#0a1628] transition-all hover:-translate-y-0.5 hover:shadow-[0_8px_24px_rgba(100,255,150,0.3)] max-md:w-full max-md:max-w-[280px]"
+			>
 				Get Started
 			</button>
-			<button class="px-8 py-3.5 text-base font-semibold rounded-lg border border-white/30 bg-white/5 text-white/90 cursor-pointer backdrop-blur-lg hover:bg-white/10 hover:border-white/50 transition-all max-md:w-full max-md:max-w-[280px]">
+			<button
+				class="cursor-pointer rounded-lg border border-white/30 bg-white/5 px-8 py-3.5 text-base font-semibold text-white/90 backdrop-blur-lg transition-all hover:border-white/50 hover:bg-white/10 max-md:w-full max-md:max-w-[280px]"
+			>
 				Watch Demo
 			</button>
 		</div>
 	</div>
 
 	<!-- Datapoint labels -->
-	<div class="absolute top-0 left-0 w-full h-full z-[2] pointer-events-none">
+	<div class="pointer-events-none absolute top-0 left-0 z-[2] h-full w-full">
 		{#each stars as star}
 			<div
-				class="absolute text-[0.85rem] text-white/95 whitespace-nowrap font-semibold tracking-wide bg-white/10 backdrop-blur-lg px-3.5 py-2 rounded-lg border border-white/25 shadow-[0_8px_32px_rgba(0,0,0,0.3)]"
-				style="left: {star.x + 45}px; top: {star.y + 35}px; opacity: {star.currentOpacity}; transform: translate(-50%, -50%);"
+				class="absolute rounded-lg border border-white/25 bg-white/10 px-3.5 py-2 text-[0.85rem] font-semibold tracking-wide whitespace-nowrap text-white/95 shadow-[0_8px_32px_rgba(0,0,0,0.3)] backdrop-blur-lg"
+				style="left: {star.x + 45}px; top: {star.y +
+					35}px; opacity: {star.currentOpacity}; transform: translate(-50%, -50%);"
 			>
 				{star.labelText}
 			</div>

@@ -243,11 +243,15 @@ function correlation(a: number[], b: number[]): number {
 	return num / Math.sqrt(denA * denB);
 }
 
-function detectSeasonality(points: SeriesPoint[], cadence: CadenceInfo): { seasonLength?: number; strength?: number } {
+function detectSeasonality(
+	points: SeriesPoint[],
+	cadence: CadenceInfo
+): { seasonLength?: number; strength?: number } {
 	const n = points.length;
 	let seasonLength: number | undefined;
 	if (cadence.unit === 'month' && n >= 24) seasonLength = 12 * cadence.step;
-	if (cadence.unit === 'week' && n >= 26) seasonLength = n >= 104 ? 52 * cadence.step : 13 * cadence.step;
+	if (cadence.unit === 'week' && n >= 26)
+		seasonLength = n >= 104 ? 52 * cadence.step : 13 * cadence.step;
 	if (cadence.unit === 'day' && n >= 21) seasonLength = 7 * cadence.step;
 	if (!seasonLength || seasonLength >= n) return {};
 
@@ -363,7 +367,11 @@ function computeResidualStd(
 	return Math.sqrt(variance);
 }
 
-function seasonalNaiveForecast(points: SeriesPoint[], horizon: number, seasonLength: number): number[] {
+function seasonalNaiveForecast(
+	points: SeriesPoint[],
+	horizon: number,
+	seasonLength: number
+): number[] {
 	const n = points.length;
 	const forecasts: number[] = [];
 	for (let i = 0; i < horizon; i++) {
@@ -417,7 +425,11 @@ function resolveForecastSpec(panel: PanelSpec): ForecastSpec | undefined {
 	return panel.forecast;
 }
 
-function sortRowsByX(rows: Record<string, unknown>[], xField: string, format: XFormat): Record<string, unknown>[] {
+function sortRowsByX(
+	rows: Record<string, unknown>[],
+	xField: string,
+	format: XFormat
+): Record<string, unknown>[] {
 	if (format === 'string') return rows;
 	return [...rows].sort((a, b) => {
 		const aParsed = parseXValue(a[xField], 0);
@@ -562,8 +574,7 @@ export async function applyForecastToResult(options: {
 				? 'medium'
 				: 'low');
 	const intervalPct =
-		resolveForecastSpec(panel)?.intervalPct ??
-		confidenceToIntervalPct(resolvedConfidence);
+		resolveForecastSpec(panel)?.intervalPct ?? confidenceToIntervalPct(resolvedConfidence);
 	const intervalZ = intervalPctToZ(intervalPct);
 
 	let forecastValues: number[] = [];
@@ -583,7 +594,11 @@ export async function applyForecastToResult(options: {
 			}
 			if (!seasonLength) {
 				strategy = 'moving_average';
-				forecastValues = movingAverageForecast(points, horizon, window ?? Math.min(6, points.length));
+				forecastValues = movingAverageForecast(
+					points,
+					horizon,
+					window ?? Math.min(6, points.length)
+				);
 			} else {
 				forecastValues = seasonalNaiveForecast(points, horizon, seasonLength);
 			}
@@ -595,7 +610,9 @@ export async function applyForecastToResult(options: {
 	}
 
 	const lastPoint = points[points.length - 1];
-	const seriesField = ['__series', 'forecast_series', 'series'].find((field) => !columns.includes(field)) || '__series';
+	const seriesField =
+		['__series', 'forecast_series', 'series'].find((field) => !columns.includes(field)) ||
+		'__series';
 	const residualStd = computeResidualStd(points, strategy, { window, alpha, seasonLength });
 	const actualRows = result.data.map((row) => ({
 		...row,

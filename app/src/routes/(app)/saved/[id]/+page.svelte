@@ -121,10 +121,15 @@
 			<div class="min-w-0">
 				<a
 					href={data.dashboard.contextId ? `/contexts/${data.dashboard.contextId}` : '/contexts'}
-					class="text-sm text-white/40 hover:text-white/70 mb-3 inline-flex items-center gap-1.5 transition-colors"
+					class="mb-3 inline-flex items-center gap-1.5 text-sm text-white/40 transition-colors hover:text-white/70"
 				>
 					<svg class="h-4 w-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-						<path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 19l-7-7 7-7" />
+						<path
+							stroke-linecap="round"
+							stroke-linejoin="round"
+							stroke-width="2"
+							d="M15 19l-7-7 7-7"
+						/>
 					</svg>
 					Back
 				</a>
@@ -132,12 +137,22 @@
 				{#if data.breadcrumb?.length}
 					<nav class="mb-3 flex flex-wrap items-center gap-1.5 text-sm text-white/50">
 						{#each data.breadcrumb as crumb, idx}
-							<a href="/saved/{crumb.id}" class="hover:text-white/70 transition-colors">
+							<a href="/saved/{crumb.id}" class="transition-colors hover:text-white/70">
 								{crumb.name}
 							</a>
 							{#if idx < data.breadcrumb.length - 1}
-								<svg class="h-3.5 w-3.5 text-white/20" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-									<path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5l7 7-7 7" />
+								<svg
+									class="h-3.5 w-3.5 text-white/20"
+									fill="none"
+									stroke="currentColor"
+									viewBox="0 0 24 24"
+								>
+									<path
+										stroke-linecap="round"
+										stroke-linejoin="round"
+										stroke-width="2"
+										d="M9 5l7 7-7 7"
+									/>
 								</svg>
 							{/if}
 						{/each}
@@ -157,26 +172,37 @@
 					{#if data.dashboard.nodeContext?.filters}
 						<span class="h-3 w-px bg-white/10"></span>
 						{#each Object.entries(data.dashboard.nodeContext.filters) as [field, value]}
-							<span class="rounded-full border border-white/10 bg-white/5 px-2.5 py-0.5 text-white/60">
+							<span
+								class="rounded-full border border-white/10 bg-white/5 px-2.5 py-0.5 text-white/60"
+							>
 								{field} = {String(value)}
 							</span>
 						{/each}
 					{/if}
 
 					{#if data.dashboard.nodeContext?.selectedMark}
-						<span class="rounded-full border border-white/10 bg-white/5 px-2.5 py-0.5 text-white/60">
-							Selected: {data.dashboard.nodeContext.selectedMark.field} = {String(data.dashboard.nodeContext.selectedMark.value)}
+						<span
+							class="rounded-full border border-white/10 bg-white/5 px-2.5 py-0.5 text-white/60"
+						>
+							Selected: {data.dashboard.nodeContext.selectedMark.field} = {String(
+								data.dashboard.nodeContext.selectedMark.value
+							)}
 						</span>
 					{/if}
 				</div>
 			</div>
 			<button
 				type="button"
-				onclick={() => showDeleteConfirm = true}
-				class="flex items-center gap-2 rounded-lg border border-red-500/20 bg-red-500/5 px-3 py-2 text-sm text-red-400 hover:bg-red-500/10 hover:border-red-500/30 transition-colors flex-shrink-0"
+				onclick={() => (showDeleteConfirm = true)}
+				class="flex flex-shrink-0 items-center gap-2 rounded-lg border border-red-500/20 bg-red-500/5 px-3 py-2 text-sm text-red-400 transition-colors hover:border-red-500/30 hover:bg-red-500/10"
 			>
 				<svg class="h-4 w-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-					<path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16" />
+					<path
+						stroke-linecap="round"
+						stroke-linejoin="round"
+						stroke-width="2"
+						d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16"
+					/>
 				</svg>
 				Delete
 			</button>
@@ -189,14 +215,26 @@
 		{#if data.dashboard.plan.executiveSummary}
 			<div class="mb-6 rounded-xl border border-[#64ff96]/20 bg-[#64ff96]/5 p-5">
 				<div class="flex items-start gap-3">
-					<div class="flex h-8 w-8 items-center justify-center rounded-lg bg-[#64ff96]/10 border border-[#64ff96]/20 flex-shrink-0">
-						<svg class="h-4 w-4 text-[#64ff96]" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-							<path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12l2 2 4-4m5.618-4.016A11.955 11.955 0 0112 2.944a11.955 11.955 0 01-8.618 3.04A12.02 12.02 0 003 9c0 5.591 3.824 10.29 9 11.622 5.176-1.332 9-6.03 9-11.622 0-1.042-.133-2.052-.382-3.016z" />
+					<div
+						class="flex h-8 w-8 flex-shrink-0 items-center justify-center rounded-lg border border-[#64ff96]/20 bg-[#64ff96]/10"
+					>
+						<svg
+							class="h-4 w-4 text-[#64ff96]"
+							fill="none"
+							stroke="currentColor"
+							viewBox="0 0 24 24"
+						>
+							<path
+								stroke-linecap="round"
+								stroke-linejoin="round"
+								stroke-width="2"
+								d="M9 12l2 2 4-4m5.618-4.016A11.955 11.955 0 0112 2.944a11.955 11.955 0 01-8.618 3.04A12.02 12.02 0 003 9c0 5.591 3.824 10.29 9 11.622 5.176-1.332 9-6.03 9-11.622 0-1.042-.133-2.052-.382-3.016z"
+							/>
 						</svg>
 					</div>
 					<div>
-						<h3 class="text-sm font-medium text-[#64ff96] mb-1">Executive Summary</h3>
-						<p class="text-white/90 leading-relaxed">{data.dashboard.plan.executiveSummary}</p>
+						<h3 class="mb-1 text-sm font-medium text-[#64ff96]">Executive Summary</h3>
+						<p class="leading-relaxed text-white/90">{data.dashboard.plan.executiveSummary}</p>
 					</div>
 				</div>
 			</div>
@@ -208,7 +246,7 @@
 				{#each data.dashboard.plan.suggestedInvestigations as investigation, i (i)}
 					<a
 						href="/contexts/{data.dashboard.contextId}?q={encodeURIComponent(investigation)}"
-						class="rounded-full border border-white/10 bg-white/5 px-3 py-1.5 text-xs text-white/70 hover:bg-white/10 hover:text-white hover:border-white/20 transition-colors no-underline"
+						class="rounded-full border border-white/10 bg-white/5 px-3 py-1.5 text-xs text-white/70 no-underline transition-colors hover:border-white/20 hover:bg-white/10 hover:text-white"
 					>
 						{investigation}
 					</a>
@@ -222,13 +260,13 @@
 				{#if result}
 					{#if result.error}
 						<div class="rounded-xl border border-red-500/20 bg-red-500/5 p-6">
-							<h3 class="font-medium text-white mb-2">{panel.title}</h3>
+							<h3 class="mb-2 font-medium text-white">{panel.title}</h3>
 							<p class="text-sm text-red-400">Error: {result.error}</p>
 						</div>
 					{:else}
 						<ChartPanel
 							{panel}
-							result={result}
+							{result}
 							panelIndex={i}
 							interactive={true}
 							on:select={(event) => openBranchMenu(event.detail)}
@@ -257,17 +295,17 @@
 {/if}
 
 <!-- Delete Confirmation Dialog -->
-<Modal open={showDeleteConfirm} onclose={() => showDeleteConfirm = false} maxWidth="max-w-sm">
-	<h2 class="text-lg font-semibold text-white mb-2">Delete Dashboard</h2>
-	<p class="text-white/50 text-sm mb-6">
+<Modal open={showDeleteConfirm} onclose={() => (showDeleteConfirm = false)} maxWidth="max-w-sm">
+	<h2 class="mb-2 text-lg font-semibold text-white">Delete Dashboard</h2>
+	<p class="mb-6 text-sm text-white/50">
 		Are you sure you want to delete "{data.dashboard.name}"? This action cannot be undone.
 	</p>
 
 	<div class="flex justify-end gap-3">
 		<button
 			type="button"
-			onclick={() => showDeleteConfirm = false}
-			class="rounded-lg border border-white/10 bg-white/5 px-4 py-2 text-sm text-white/70 hover:bg-white/10 hover:text-white transition-colors"
+			onclick={() => (showDeleteConfirm = false)}
+			class="rounded-lg border border-white/10 bg-white/5 px-4 py-2 text-sm text-white/70 transition-colors hover:bg-white/10 hover:text-white"
 		>
 			Cancel
 		</button>
@@ -275,7 +313,7 @@
 			type="button"
 			onclick={handleDelete}
 			disabled={isDeleting}
-			class="rounded-lg bg-red-500 px-4 py-2 text-sm font-semibold text-white hover:bg-red-600 transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
+			class="rounded-lg bg-red-500 px-4 py-2 text-sm font-semibold text-white transition-colors hover:bg-red-600 disabled:cursor-not-allowed disabled:opacity-50"
 		>
 			{#if isDeleting}Deleting...{:else}Delete{/if}
 		</button>

@@ -96,9 +96,7 @@ export const DELETE: RequestHandler = async ({ locals, params, request }) => {
 
 	await db
 		.delete(contextDatasets)
-		.where(
-			and(eq(contextDatasets.contextId, params.id), eq(contextDatasets.datasetId, datasetId))
-		);
+		.where(and(eq(contextDatasets.contextId, params.id), eq(contextDatasets.datasetId, datasetId)));
 
 	return json({ success: true });
 };

@@ -34,17 +34,17 @@ function findMatchingColumn(expected: string, columns: string[]): string | undef
 	if (columns.includes(expected)) {
 		return expected;
 	}
-	
+
 	// Normalize for comparison: lowercase, remove spaces/underscores
 	const normalize = (s: string) => s.toLowerCase().replace(/[_\s]+/g, '');
 	const normalizedExpected = normalize(expected);
-	
+
 	for (const col of columns) {
 		if (normalize(col) === normalizedExpected) {
 			return col;
 		}
 	}
-	
+
 	return undefined;
 }
 
@@ -88,7 +88,12 @@ export function resolveStatField(panel: PanelSpec, result: QueryResult): string 
 	return valueField || columns[0];
 }
 
-const INTERNAL_COLUMNS = new Set(['__series', 'forecast_series', 'forecast_lower', 'forecast_upper']);
+const INTERNAL_COLUMNS = new Set([
+	'__series',
+	'forecast_series',
+	'forecast_lower',
+	'forecast_upper'
+]);
 
 function tooltipColumns(columns: string[], seriesField?: string): { field: string }[] {
 	return columns
@@ -106,7 +111,7 @@ export function panelToVegaLite(panel: PanelSpec, result: QueryResult): Visualiz
 	if (!xField || !yField) {
 		return null;
 	}
-	
+
 	const baseSpec = {
 		$schema: 'https://vega.github.io/schema/vega-lite/v6.json',
 		data: { values: result.data },
@@ -136,53 +141,55 @@ export function panelToVegaLite(panel: PanelSpec, result: QueryResult): Visualiz
 	};
 
 	switch (panel.type) {
-		case 'bar':
-			{
-				const seriesField = findSeriesField(columns, result.data, Boolean(panel.forecast));
-				const hasSeries = Boolean(seriesField);
-				const seriesValues = hasSeries
-					? Array.from(new Set(result.data.map((row) => String(row[seriesField as string]))))
-					: [];
-				const hasForecastSeries = hasSeries && seriesValues.includes('Actual') && seriesValues.includes('Forecast');
+		case 'bar': {
+			const seriesField = findSeriesField(columns, result.data, Boolean(panel.forecast));
+			const hasSeries = Boolean(seriesField);
+			const seriesValues = hasSeries
+				? Array.from(new Set(result.data.map((row) => String(row[seriesField as string]))))
+				: [];
+			const hasForecastSeries =
+				hasSeries && seriesValues.includes('Actual') && seriesValues.includes('Forecast');
 
-				return {
-					...baseSpec,
-					mark: {
-						type: 'bar',
-						color: COLORS.primary,
-						cornerRadiusEnd: 4
+			return {
+				...baseSpec,
+				mark: {
+					type: 'bar',
+					color: COLORS.primary,
+					cornerRadiusEnd: 4
+				},
+				encoding: {
+					x: {
+						field: xField,
+						type: 'nominal',
+						axis: { labelAngle: -45 }
 					},
-					encoding: {
-						x: {
-							field: xField,
-							type: 'nominal',
-							axis: { labelAngle: -45 }
-						},
-						y: {
-							field: yField,
-							type: 'quantitative'
-						},
-						...(hasSeries
-							? {
-									color: {
-										field: seriesField as string,
-										type: 'nominal',
-										...(hasForecastSeries
-											? {
-													scale: {
-														domain: ['Actual', 'Forecast'],
-														range: [COLORS.primary, '#fbbf24']
-													}
+					y: {
+						field: yField,
+						type: 'quantitative'
+					},
+					...(hasSeries
+						? {
+								color: {
+									field: seriesField as string,
+									type: 'nominal',
+									...(hasForecastSeries
+										? {
+												scale: {
+													domain: ['Actual', 'Forecast'],
+													range: [COLORS.primary, '#fbbf24']
 												}
-											: {})
-									},
-									xOffset: { field: seriesField as string }
-								}
-							: {}),
-						tooltip: hasForecastSeries ? tooltipColumns(result.columns, seriesField) : result.columns.map((col) => ({ field: col }))
-					}
-				} as VisualizationSpec;
-			}
+											}
+										: {})
+								},
+								xOffset: { field: seriesField as string }
+							}
+						: {}),
+					tooltip: hasForecastSeries
+						? tooltipColumns(result.columns, seriesField)
+						: result.columns.map((col) => ({ field: col }))
+				}
+			} as VisualizationSpec;
+		}
 
 		case 'line': {
 			// Detect date format for x values
@@ -193,23 +200,24 @@ export function panelToVegaLite(panel: PanelSpec, result: QueryResult): Visualiz
 			const seriesValues = hasSeries
 				? Array.from(new Set(result.data.map((row) => String(row[seriesField as string]))))
 				: [];
-			const hasForecastSeries = hasSeries && seriesValues.includes('Actual') && seriesValues.includes('Forecast');
+			const hasForecastSeries =
+				hasSeries && seriesValues.includes('Actual') && seriesValues.includes('Forecast');
 			const lowerField = columns.includes('forecast_lower') ? 'forecast_lower' : undefined;
 			const upperField = columns.includes('forecast_upper') ? 'forecast_upper' : undefined;
 			const hasIntervals = Boolean(lowerField && upperField && hasForecastSeries);
-			
+
 			// Check for YYYY-MM format (e.g., "2015-02")
 			const isYearMonth = /^\d{4}-\d{2}$/.test(strValue);
 			// Check for full ISO date (e.g., "2015-02-01" or "2015-02-01T00:00:00")
 			const isFullDate = /^\d{4}-\d{2}-\d{2}/.test(strValue);
 			const isValidDate = (isYearMonth || isFullDate) && !isNaN(Date.parse(strValue));
-			
+
 			// Build x encoding based on date type
 			const xEncoding: Record<string, unknown> = {
 				field: xField,
 				axis: { labelAngle: -45 }
 			};
-			
+
 			if (isYearMonth && isValidDate) {
 				// For YYYY-MM format, use temporal with yearmonth timeUnit
 				xEncoding.type = 'temporal';
@@ -221,7 +229,7 @@ export function panelToVegaLite(panel: PanelSpec, result: QueryResult): Visualiz
 				xEncoding.type = 'ordinal';
 				xEncoding.sort = null; // preserve data order
 			}
-			
+
 			const lineMark: Record<string, unknown> = {
 				type: 'line',
 				strokeWidth: 2,
@@ -268,7 +276,9 @@ export function panelToVegaLite(panel: PanelSpec, result: QueryResult): Visualiz
 					field: yField,
 					type: 'quantitative'
 				},
-				tooltip: hasForecastSeries ? tooltipColumns(result.columns, seriesField) : result.columns.map((col) => ({ field: col }))
+				tooltip: hasForecastSeries
+					? tooltipColumns(result.columns, seriesField)
+					: result.columns.map((col) => ({ field: col }))
 			};
 
 			if (!hasForecastSeries) {
@@ -419,8 +429,8 @@ export function extractTableData(panel: PanelSpec, result: QueryResult): TableDa
 	}
 
 	// Map panel.columns to actual result columns
-	const columns = panel.columns 
-		? panel.columns.map(col => findMatchingColumn(col, result.columns) || col)
+	const columns = panel.columns
+		? panel.columns.map((col) => findMatchingColumn(col, result.columns) || col)
 		: result.columns;
 
 	return {

@@ -28,7 +28,7 @@
 			name="email"
 			required
 			autocomplete="email"
-			class="mt-1 block w-full rounded-lg border border-white/10 bg-white/5 px-4 py-3 text-white placeholder-white/40 focus:border-[#64ff96] focus:outline-none focus:ring-1 focus:ring-[#64ff96]"
+			class="mt-1 block w-full rounded-lg border border-white/10 bg-white/5 px-4 py-3 text-white placeholder-white/40 focus:border-[#64ff96] focus:ring-1 focus:ring-[#64ff96] focus:outline-none"
 			placeholder="you@example.com"
 		/>
 	</div>
@@ -42,7 +42,7 @@
 			required
 			minlength="8"
 			autocomplete="new-password"
-			class="mt-1 block w-full rounded-lg border border-white/10 bg-white/5 px-4 py-3 text-white placeholder-white/40 focus:border-[#64ff96] focus:outline-none focus:ring-1 focus:ring-[#64ff96]"
+			class="mt-1 block w-full rounded-lg border border-white/10 bg-white/5 px-4 py-3 text-white placeholder-white/40 focus:border-[#64ff96] focus:ring-1 focus:ring-[#64ff96] focus:outline-none"
 			placeholder="••••••••"
 		/>
 		<p class="mt-1 text-xs text-white/50">Must be at least 8 characters</p>
@@ -59,13 +59,13 @@
 			required
 			minlength="8"
 			autocomplete="new-password"
-			class="mt-1 block w-full rounded-lg border border-white/10 bg-white/5 px-4 py-3 text-white placeholder-white/40 focus:border-[#64ff96] focus:outline-none focus:ring-1 focus:ring-[#64ff96]"
+			class="mt-1 block w-full rounded-lg border border-white/10 bg-white/5 px-4 py-3 text-white placeholder-white/40 focus:border-[#64ff96] focus:ring-1 focus:ring-[#64ff96] focus:outline-none"
 			placeholder="••••••••"
 		/>
 	</div>
 
 	{#if error}
-		<div class="rounded-lg bg-red-500/10 border border-red-500/20 px-4 py-3 text-sm text-red-400">
+		<div class="rounded-lg border border-red-500/20 bg-red-500/10 px-4 py-3 text-sm text-red-400">
 			{error}
 		</div>
 	{/if}
@@ -73,7 +73,7 @@
 	<button
 		type="submit"
 		disabled={loading}
-		class="w-full rounded-lg bg-gradient-to-r from-[#64ff96] to-[#3dd977] px-4 py-3 font-semibold text-[#050810] transition-all hover:shadow-lg hover:shadow-[#64ff96]/20 disabled:opacity-50 disabled:cursor-not-allowed"
+		class="w-full rounded-lg bg-gradient-to-r from-[#64ff96] to-[#3dd977] px-4 py-3 font-semibold text-[#050810] transition-all hover:shadow-lg hover:shadow-[#64ff96]/20 disabled:cursor-not-allowed disabled:opacity-50"
 	>
 		{#if loading}
 			Creating account...

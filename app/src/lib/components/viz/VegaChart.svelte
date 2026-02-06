@@ -42,7 +42,9 @@
 				const field = interaction.xField || Object.keys(datum)[0];
 				const value = field ? (datum as Record<string, unknown>)[field] : undefined;
 				const metricField = interaction.yField;
-				const metricValue = metricField ? (datum as Record<string, unknown>)[metricField] : undefined;
+				const metricValue = metricField
+					? (datum as Record<string, unknown>)[metricField]
+					: undefined;
 
 				const mouseEvent = event as unknown as MouseEvent;
 				onselect?.({

@@ -9,14 +9,12 @@
 	<title>Sign Up - CiteSeer</title>
 </svelte:head>
 
-<div class="min-h-screen flex items-center justify-center bg-[#050810] px-4">
+<div class="flex min-h-screen items-center justify-center bg-[#050810] px-4">
 	<div class="w-full max-w-md">
-		<div class="text-center mb-8">
+		<div class="mb-8 text-center">
 			<a href="/" class="inline-block">
 				<h1 class="text-3xl font-bold">
-					<span
-						class="bg-gradient-to-r from-[#64ff96] to-[#3dd977] bg-clip-text text-transparent"
-					>
+					<span class="bg-gradient-to-r from-[#64ff96] to-[#3dd977] bg-clip-text text-transparent">
 						CiteSeer
 					</span>
 				</h1>

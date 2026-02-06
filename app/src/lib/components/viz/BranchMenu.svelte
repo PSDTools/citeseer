@@ -53,31 +53,39 @@
 		{/if}
 
 		{#if detail.datum && Object.keys(detail.datum).length > 0}
-			<div class="rounded-lg border border-white/10 bg-white/5 p-2 max-h-32 overflow-y-auto">
-				<div class="text-[10px] text-white/40 uppercase tracking-wide mb-1">Data Point</div>
+			<div class="max-h-32 overflow-y-auto rounded-lg border border-white/10 bg-white/5 p-2">
+				<div class="mb-1 text-[10px] tracking-wide text-white/40 uppercase">Data Point</div>
 				<div class="space-y-0.5">
 					{#each Object.entries(detail.datum) as [key, val]}
-						<div class="text-xs flex justify-between gap-2">
-							<span class="text-white/50 truncate">{key}</span>
-							<span class="text-[#64ff96] font-mono text-right">{val != null ? String(val) : '—'}</span>
+						<div class="flex justify-between gap-2 text-xs">
+							<span class="truncate text-white/50">{key}</span>
+							<span class="text-right font-mono text-[#64ff96]"
+								>{val != null ? String(val) : '—'}</span
+							>
 						</div>
 					{/each}
 				</div>
 			</div>
 		{:else}
-			<div class="text-xs text-white/50">{detail.field}: <span class="text-[#64ff96]">{String(detail.value)}</span></div>
+			<div class="text-xs text-white/50">
+				{detail.field}: <span class="text-[#64ff96]">{String(detail.value)}</span>
+			</div>
 			{#if detail.metricField && detail.metricValue != null}
-				<div class="text-xs text-white/50">{detail.metricField}: <span class="text-white/80">{String(detail.metricValue)}</span></div>
+				<div class="text-xs text-white/50">
+					{detail.metricField}: <span class="text-white/80">{String(detail.metricValue)}</span>
+				</div>
 			{/if}
 		{/if}
 	</div>
 
-	<label class="block text-xs text-white/50 mb-1" for="branch-prompt">Ask a question about this data</label>
+	<label class="mb-1 block text-xs text-white/50" for="branch-prompt"
+		>Ask a question about this data</label
+	>
 	<textarea
 		id="branch-prompt"
 		bind:value={branchPrompt}
 		rows="3"
-		class="w-full rounded-lg border border-white/10 bg-white/5 px-3 py-2 text-sm text-white placeholder-white/40 focus:border-[#64ff96] focus:outline-none focus:ring-1 focus:ring-[#64ff96] resize-none"
+		class="w-full resize-none rounded-lg border border-white/10 bg-white/5 px-3 py-2 text-sm text-white placeholder-white/40 focus:border-[#64ff96] focus:ring-1 focus:ring-[#64ff96] focus:outline-none"
 		placeholder="Ask about this…"
 	></textarea>
 
@@ -85,7 +93,7 @@
 		<button
 			type="button"
 			onclick={onclose}
-			class="rounded-lg border border-white/10 bg-white/5 px-3 py-1.5 text-xs text-white/70 hover:bg-white/10 hover:text-white transition-colors"
+			class="rounded-lg border border-white/10 bg-white/5 px-3 py-1.5 text-xs text-white/70 transition-colors hover:bg-white/10 hover:text-white"
 		>
 			Cancel
 		</button>
@@ -93,7 +101,7 @@
 			type="button"
 			onclick={handleSubmit}
 			disabled={!branchPrompt.trim() || disabled}
-			class="rounded-lg bg-gradient-to-r from-[#64ff96] to-[#3dd977] px-3 py-1.5 text-xs font-semibold text-[#050810] transition-all hover:shadow-lg hover:shadow-[#64ff96]/20 disabled:opacity-50 disabled:cursor-not-allowed"
+			class="rounded-lg bg-gradient-to-r from-[#64ff96] to-[#3dd977] px-3 py-1.5 text-xs font-semibold text-[#050810] transition-all hover:shadow-lg hover:shadow-[#64ff96]/20 disabled:cursor-not-allowed disabled:opacity-50"
 		>
 			Ask
 		</button>

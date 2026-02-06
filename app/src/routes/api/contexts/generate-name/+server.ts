@@ -43,7 +43,9 @@ export const POST: RequestHandler = async ({ request, locals }) => {
 	try {
 		const { GoogleGenerativeAI } = await import('@google/generative-ai');
 		const genAI = new GoogleGenerativeAI(orgSettings.geminiApiKey);
-		const model = genAI.getGenerativeModel({ model: orgSettings.geminiModel || 'gemini-2.0-flash' });
+		const model = genAI.getGenerativeModel({
+			model: orgSettings.geminiModel || 'gemini-2.0-flash'
+		});
 
 		const prompt = `Generate a short, descriptive name (2-4 words max) for a data analysis context that groups these datasets together:
 

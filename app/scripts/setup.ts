@@ -57,13 +57,10 @@ async function waitForPostgres(maxAttempts = 30): Promise<boolean> {
 
 	for (let i = 0; i < maxAttempts; i++) {
 		try {
-			execSync(
-				`docker exec citeseer-db pg_isready -U citeseer`,
-				{ stdio: 'pipe' }
-			);
+			execSync(`docker exec citeseer-db pg_isready -U citeseer`, { stdio: 'pipe' });
 			return true;
 		} catch {
-			await new Promise(r => setTimeout(r, 1000));
+			await new Promise((r) => setTimeout(r, 1000));
 		}
 	}
 	return false;
@@ -100,13 +97,19 @@ NODE_ENV=development
 		info('Docker detected, checking PostgreSQL container...');
 
 		// Check if container is running
-		const containerRunning = run('docker ps --filter name=citeseer-db --format "{{.Names}}"', true).trim();
+		const containerRunning = run(
+			'docker ps --filter name=citeseer-db --format "{{.Names}}"',
+			true
+		).trim();
 
 		if (containerRunning === 'citeseer-db') {
 			log('PostgreSQL container already running');
 		} else {
 			// Check if container exists but stopped
-			const containerExists = run('docker ps -a --filter name=citeseer-db --format "{{.Names}}"', true).trim();
+			const containerExists = run(
+				'docker ps -a --filter name=citeseer-db --format "{{.Names}}"',
+				true
+			).trim();
 
 			if (containerExists === 'citeseer-db') {
 				info('Starting existing PostgreSQL container...');

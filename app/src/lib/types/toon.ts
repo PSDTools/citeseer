@@ -2,9 +2,25 @@
  * TOON format type definitions.
  */
 
-export type PanelType = 'bar' | 'line' | 'stat' | 'table' | 'pie' | 'scatter' | 'gauge' | 'heatmap' | 'histogram' | 'insight';
+export type PanelType =
+	| 'bar'
+	| 'line'
+	| 'stat'
+	| 'table'
+	| 'pie'
+	| 'scatter'
+	| 'gauge'
+	| 'heatmap'
+	| 'histogram'
+	| 'insight';
 
-export type ForecastStrategy = 'auto' | 'linear' | 'drift' | 'moving_average' | 'exp_smoothing' | 'seasonal_naive';
+export type ForecastStrategy =
+	| 'auto'
+	| 'linear'
+	| 'drift'
+	| 'moving_average'
+	| 'exp_smoothing'
+	| 'seasonal_naive';
 
 export interface ForecastSpec {
 	strategy?: ForecastStrategy;

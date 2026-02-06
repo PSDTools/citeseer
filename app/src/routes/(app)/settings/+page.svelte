@@ -60,7 +60,7 @@
 				class="mt-6 space-y-4"
 			>
 				<div>
-					<label for="geminiApiKey" class="block text-sm font-medium text-white/70 mb-1.5">
+					<label for="geminiApiKey" class="mb-1.5 block text-sm font-medium text-white/70">
 						API Key
 					</label>
 					<input
@@ -69,7 +69,7 @@
 						name="geminiApiKey"
 						value={data.settings.geminiApiKey ? '••••••••••••' : ''}
 						placeholder="AIza..."
-						class="block w-full rounded-lg border border-white/10 bg-white/5 px-4 py-2.5 text-white placeholder-white/30 focus:border-[#64ff96] focus:outline-none focus:ring-1 focus:ring-[#64ff96]"
+						class="block w-full rounded-lg border border-white/10 bg-white/5 px-4 py-2.5 text-white placeholder-white/30 focus:border-[#64ff96] focus:ring-1 focus:ring-[#64ff96] focus:outline-none"
 					/>
 					<p class="mt-1.5 text-xs text-white/40">
 						Get your API key from
@@ -85,19 +85,30 @@
 				</div>
 
 				<div>
-					<label for="geminiModel" class="block text-sm font-medium text-white/70 mb-1.5">Model</label>
+					<label for="geminiModel" class="mb-1.5 block text-sm font-medium text-white/70"
+						>Model</label
+					>
 					<select
 						id="geminiModel"
 						name="geminiModel"
-						class="block w-full rounded-lg border border-white/10 bg-white/5 px-4 py-2.5 text-white focus:border-[#64ff96] focus:outline-none focus:ring-1 focus:ring-[#64ff96]"
+						class="block w-full rounded-lg border border-white/10 bg-white/5 px-4 py-2.5 text-white focus:border-[#64ff96] focus:ring-1 focus:ring-[#64ff96] focus:outline-none"
 					>
-						<option value="gemini-2.0-flash" selected={data.settings.geminiModel === 'gemini-2.0-flash'}>
+						<option
+							value="gemini-2.0-flash"
+							selected={data.settings.geminiModel === 'gemini-2.0-flash'}
+						>
 							Gemini 2.0 Flash (Recommended)
 						</option>
-						<option value="gemini-1.5-pro" selected={data.settings.geminiModel === 'gemini-1.5-pro'}>
+						<option
+							value="gemini-1.5-pro"
+							selected={data.settings.geminiModel === 'gemini-1.5-pro'}
+						>
 							Gemini 1.5 Pro
 						</option>
-						<option value="gemini-1.5-flash" selected={data.settings.geminiModel === 'gemini-1.5-flash'}>
+						<option
+							value="gemini-1.5-flash"
+							selected={data.settings.geminiModel === 'gemini-1.5-flash'}
+						>
 							Gemini 1.5 Flash
 						</option>
 					</select>
@@ -107,19 +118,27 @@
 				</div>
 
 				{#if form?.success}
-					<div class="rounded-lg bg-green-500/10 border border-green-500/20 px-4 py-3 text-sm text-green-400">
+					<div
+						class="rounded-lg border border-green-500/20 bg-green-500/10 px-4 py-3 text-sm text-green-400"
+					>
 						Settings saved successfully
 					</div>
 				{/if}
 
 				{#if form?.error}
-					<div class="rounded-lg bg-red-500/10 border border-red-500/20 px-4 py-3 text-sm text-red-400">
+					<div
+						class="rounded-lg border border-red-500/20 bg-red-500/10 px-4 py-3 text-sm text-red-400"
+					>
 						{form.error}
 					</div>
 				{/if}
 
 				{#if testResult}
-					<div class="rounded-lg {testResult.success ? 'bg-green-500/10 border-green-500/20 text-green-400' : 'bg-red-500/10 border-red-500/20 text-red-400'} border px-4 py-3 text-sm">
+					<div
+						class="rounded-lg {testResult.success
+							? 'border-green-500/20 bg-green-500/10 text-green-400'
+							: 'border-red-500/20 bg-red-500/10 text-red-400'} border px-4 py-3 text-sm"
+					>
 						{testResult.message}
 					</div>
 				{/if}
@@ -128,7 +147,7 @@
 					<button
 						type="submit"
 						disabled={loading}
-						class="rounded-lg bg-gradient-to-r from-[#64ff96] to-[#3dd977] px-4 py-2.5 font-semibold text-[#050810] transition-all hover:shadow-lg hover:shadow-[#64ff96]/20 disabled:opacity-50 disabled:cursor-not-allowed"
+						class="rounded-lg bg-gradient-to-r from-[#64ff96] to-[#3dd977] px-4 py-2.5 font-semibold text-[#050810] transition-all hover:shadow-lg hover:shadow-[#64ff96]/20 disabled:cursor-not-allowed disabled:opacity-50"
 					>
 						{#if loading}Saving...{:else}Save Changes{/if}
 					</button>
@@ -137,7 +156,7 @@
 							type="button"
 							onclick={testApiKey}
 							disabled={testLoading}
-							class="rounded-lg border border-white/10 bg-white/5 px-4 py-2.5 text-sm text-white/70 hover:bg-white/10 hover:text-white transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
+							class="rounded-lg border border-white/10 bg-white/5 px-4 py-2.5 text-sm text-white/70 transition-colors hover:bg-white/10 hover:text-white disabled:cursor-not-allowed disabled:opacity-50"
 						>
 							{#if testLoading}Testing...{:else}Test API Key{/if}
 						</button>

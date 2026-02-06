@@ -64,8 +64,8 @@
 				{showAll ? `Showing all ${rows.length} rows` : `Showing ${maxRows} of ${rows.length} rows`}
 			</p>
 			<button
-				onclick={() => showAll = !showAll}
-				class="text-xs text-[#64ff96] hover:text-[#7dffab] transition-colors"
+				onclick={() => (showAll = !showAll)}
+				class="text-xs text-[#64ff96] transition-colors hover:text-[#7dffab]"
 			>
 				{showAll ? 'Show less' : 'Show all'}
 			</button>

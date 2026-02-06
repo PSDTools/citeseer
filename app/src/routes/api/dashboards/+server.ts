@@ -3,7 +3,12 @@ import type { RequestHandler } from './$types';
 import { db, dashboards } from '$lib/server/db';
 import { getUserOrganizations } from '$lib/server/auth';
 import { eq, desc, and } from 'drizzle-orm';
-import type { AnalyticalPlan, PanelSpec, DashboardNodeContext, QueryResult } from '$lib/server/db/schema';
+import type {
+	AnalyticalPlan,
+	PanelSpec,
+	DashboardNodeContext,
+	QueryResult
+} from '$lib/server/db/schema';
 
 // GET - List all dashboards for the org
 export const GET: RequestHandler = async ({ locals }) => {
@@ -47,7 +52,17 @@ export const POST: RequestHandler = async ({ locals, request }) => {
 	const orgId = orgs[0].id;
 
 	const body = await request.json();
-	const { name, question, description, plan, panels, results, contextId, parentDashboardId, nodeContext } = body as {
+	const {
+		name,
+		question,
+		description,
+		plan,
+		panels,
+		results,
+		contextId,
+		parentDashboardId,
+		nodeContext
+	} = body as {
 		name: string;
 		question: string;
 		description?: string;

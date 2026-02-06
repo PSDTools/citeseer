@@ -52,7 +52,7 @@ export class GeminiCompiler {
 								? 'categorical'
 								: 'text';
 				const samples = col.sampleValues?.slice(0, 3).join(', ') || '';
-				
+
 				// Add notes for timestamp columns about their format
 				let notes = '';
 				if (col.isTimestamp && samples) {
@@ -62,7 +62,7 @@ export class GeminiCompiler {
 						notes = 'ISO date format';
 					}
 				}
-				
+
 				lines.push(`| ${col.name} | ${col.dtype} | ${role} | ${samples} | ${notes} |`);
 			}
 
@@ -122,7 +122,8 @@ export class GeminiCompiler {
 				}
 
 				// Add format hint for next retry
-				formatHint = '\n\nIMPORTANT: You MUST respond with a @plan{...} object in TOON format. Do not use JSON or any other format.';
+				formatHint =
+					'\n\nIMPORTANT: You MUST respond with a @plan{...} object in TOON format. Do not use JSON or any other format.';
 			}
 		}
 
@@ -133,14 +134,19 @@ export class GeminiCompiler {
 			feasible: false,
 			reason: `Failed to compile question: ${lastError?.message || 'Unknown error'}`,
 			tables: [],
-			suggestedInvestigations: ['Try rephrasing your question', 'Check if the required data is available']
+			suggestedInvestigations: [
+				'Try rephrasing your question',
+				'Check if the required data is available'
+			]
 		};
 	}
 
 	/**
 	 * Select a forecasting strategy based on time series characteristics.
 	 */
-	async selectForecastStrategy(context: ForecastSelectionContext): Promise<ForecastStrategyDecision | null> {
+	async selectForecastStrategy(
+		context: ForecastSelectionContext
+	): Promise<ForecastStrategyDecision | null> {
 		const prompt = `You are a time series forecasting strategist.
 
 Choose the best forecasting approach for the given series and question.
@@ -198,7 +204,13 @@ Guidelines:
 			if (!jsonMatch) return null;
 
 			const parsed = JSON.parse(jsonMatch[0]) as ForecastStrategyDecision;
-			const allowed = new Set(['linear', 'drift', 'moving_average', 'exp_smoothing', 'seasonal_naive']);
+			const allowed = new Set([
+				'linear',
+				'drift',
+				'moving_average',
+				'exp_smoothing',
+				'seasonal_naive'
+			]);
 			if (!parsed?.strategy || !allowed.has(parsed.strategy)) return null;
 
 			const horizon = Number(parsed.horizon);
@@ -229,7 +241,7 @@ Guidelines:
 		datasets: DatasetProfile[];
 	}): Promise<{ sql: string; explanation: string } | null> {
 		const schemaContext = GeminiCompiler.generateSchemaContext(context.datasets);
-		
+
 		const prompt = `You are a SQL expert. Fix this PostgreSQL query that resulted in an error.
 
 ## Original Question
@@ -358,7 +370,7 @@ Fix the SQL to correct the error. Respond with ONLY a JSON object:
 		datasets: DatasetProfile[];
 	}): Promise<{ explanation: string; suggestions: string[] }> {
 		const schemaContext = GeminiCompiler.generateSchemaContext(context.datasets);
-		
+
 		const prompt = `You are a helpful data analyst assistant. A user asked a question that resulted in an issue.
 
 ## User's Question
@@ -410,7 +422,10 @@ Be helpful and specific. Reference actual column names and values from the schem
 
 		return {
 			explanation: 'The query did not return the expected results.',
-			suggestions: ['Try rephrasing your question', 'Ask about available categories or values first']
+			suggestions: [
+				'Try rephrasing your question',
+				'Ask about available categories or values first'
+			]
 		};
 	}
 
@@ -484,30 +499,34 @@ Respond in this exact JSON format:
 			narrative?: string;
 			recommendations?: string[];
 		}>;
-	}): Promise<{ dashboardSummary: string; panelSummaries: string[]; insightNarratives?: Record<string, string> }> {
+	}): Promise<{
+		dashboardSummary: string;
+		panelSummaries: string[];
+		insightNarratives?: Record<string, string>;
+	}> {
 		// Format panel data for the prompt
-		const hasInsightPanels = context.panels.some(p => p.type === 'insight');
+		const hasInsightPanels = context.panels.some((p) => p.type === 'insight');
 
-		const panelDataSummaries = context.panels.map((panel, i) => {
-			const sampleRows = panel.data.slice(0, 10);
-			const dataPreview = sampleRows.length > 0
-				? JSON.stringify(sampleRows, null, 2)
-				: 'No data';
-			let section = `### Panel ${i + 1}: ${panel.title} (${panel.type})
+		const panelDataSummaries = context.panels
+			.map((panel, i) => {
+				const sampleRows = panel.data.slice(0, 10);
+				const dataPreview = sampleRows.length > 0 ? JSON.stringify(sampleRows, null, 2) : 'No data';
+				let section = `### Panel ${i + 1}: ${panel.title} (${panel.type})
 Columns: ${panel.columns.join(', ')}
 Row count: ${panel.data.length}
 Data sample:
 \`\`\`json
 ${dataPreview}
 \`\`\``;
-			if (panel.type === 'insight' && panel.narrative) {
-				section += `\nDraft narrative: ${panel.narrative}`;
-				if (panel.recommendations?.length) {
-					section += `\nDraft recommendations: ${panel.recommendations.join('; ')}`;
+				if (panel.type === 'insight' && panel.narrative) {
+					section += `\nDraft narrative: ${panel.narrative}`;
+					if (panel.recommendations?.length) {
+						section += `\nDraft recommendations: ${panel.recommendations.join('; ')}`;
+					}
 				}
-			}
-			return section;
-		}).join('\n\n');
+				return section;
+			})
+			.join('\n\n');
 
 		const insightInstructions = hasInsightPanels
 			? `\n3. For each insight panel (type "insight"), write an enriched narrative that incorporates the ACTUAL numbers from the query results. Replace vague language with specific data points. Include the enriched narratives in the "insightNarratives" field keyed by panel index (e.g., "0", "1").`

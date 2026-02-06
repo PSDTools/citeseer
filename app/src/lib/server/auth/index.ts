@@ -95,10 +95,7 @@ export async function login(data: LoginData): Promise<AuthResult> {
 }
 
 // Create a session and set cookie
-export async function createSessionAndCookie(
-	event: RequestEvent,
-	userId: string
-): Promise<void> {
+export async function createSessionAndCookie(event: RequestEvent, userId: string): Promise<void> {
 	const token = generateSessionToken();
 	const session = await createSession(token, userId);
 	setSessionCookie(event, token, session.expiresAt);

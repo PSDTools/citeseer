@@ -5,7 +5,13 @@ import type { AnalyticalPlan as SchemaAnalyticalPlan } from '$lib/server/db/sche
 import { eq, sql, inArray } from 'drizzle-orm';
 import { getUserOrganizations } from '$lib/server/auth';
 import { GeminiCompiler } from '$lib/server/compiler/gemini';
-import type { DatasetProfile, ColumnProfile, AnalyticalPlan, QueryResult, BranchContext } from '$lib/types/toon';
+import type {
+	DatasetProfile,
+	ColumnProfile,
+	AnalyticalPlan,
+	QueryResult,
+	BranchContext
+} from '$lib/types/toon';
 
 export const POST: RequestHandler = async ({ request, locals }) => {
 	if (!locals.user) {
@@ -52,22 +58,13 @@ export const POST: RequestHandler = async ({ request, locals }) => {
 		}
 
 		const ctxDatasetIds = ctxDatasetLinks.map((l) => l.datasetId);
-		targetDatasets = await db
-			.select()
-			.from(datasets)
-			.where(inArray(datasets.id, ctxDatasetIds));
+		targetDatasets = await db.select().from(datasets).where(inArray(datasets.id, ctxDatasetIds));
 	} else if (datasetIds?.length) {
 		// Use specific dataset IDs
-		targetDatasets = await db
-			.select()
-			.from(datasets)
-			.where(inArray(datasets.id, datasetIds));
+		targetDatasets = await db.select().from(datasets).where(inArray(datasets.id, datasetIds));
 	} else {
 		// Use all org datasets (fallback for dashboard)
-		targetDatasets = await db
-			.select()
-			.from(datasets)
-			.where(eq(datasets.orgId, org.id));
+		targetDatasets = await db.select().from(datasets).where(eq(datasets.orgId, org.id));
 	}
 
 	if (targetDatasets.length === 0) {
@@ -125,14 +122,18 @@ export const POST: RequestHandler = async ({ request, locals }) => {
 	 * Execute a SQL query with automatic retry on failure.
 	 * If the query fails, we ask the LLM to fix it and retry.
 	 */
-	async function executeWithRetry(sqlQuery: string, datasetId: string, context: string): Promise<{ result: QueryResult; finalSql: string; wasFixed: boolean; attempts: number }> {
+	async function executeWithRetry(
+		sqlQuery: string,
+		datasetId: string,
+		context: string
+	): Promise<{ result: QueryResult; finalSql: string; wasFixed: boolean; attempts: number }> {
 		let currentSql = sqlQuery;
 		let wasFixed = false;
 		const errors: string[] = [];
 
 		for (let attempt = 0; attempt < MAX_SQL_RETRIES; attempt++) {
 			const result = await executeQuery(currentSql, datasetId);
-			
+
 			if (result.success) {
 				if (attempt > 0) {
 					retryLog.push({ context, attempts: attempt + 1, errors, fixed: true });
@@ -146,7 +147,7 @@ export const POST: RequestHandler = async ({ request, locals }) => {
 			if (attempt < MAX_SQL_RETRIES - 1) {
 				console.log(`SQL error (attempt ${attempt + 1}/${MAX_SQL_RETRIES}): ${result.error}`);
 				console.log(`Asking LLM to fix: ${context}`);
-				
+
 				const fix = await compiler.fixSQL({
 					question,
 					originalSQL: currentSql,
@@ -177,7 +178,11 @@ export const POST: RequestHandler = async ({ request, locals }) => {
 	try {
 		// Execute main SQL if present
 		if (plan.sql) {
-			const { result, finalSql, wasFixed } = await executeWithRetry(plan.sql, targetDatasets[0].id, 'main query');
+			const { result, finalSql, wasFixed } = await executeWithRetry(
+				plan.sql,
+				targetDatasets[0].id,
+				'main query'
+			);
 			results.set(-1, result);
 			if (wasFixed) {
 				plan.sql = finalSql; // Update the plan with fixed SQL
@@ -190,7 +195,11 @@ export const POST: RequestHandler = async ({ request, locals }) => {
 				const panel = plan.viz[i];
 				const panelSql = panel.sql || plan.sql;
 				if (panelSql) {
-					const { result, finalSql, wasFixed } = await executeWithRetry(panelSql, targetDatasets[0].id, `panel ${i}: ${panel.title}`);
+					const { result, finalSql, wasFixed } = await executeWithRetry(
+						panelSql,
+						targetDatasets[0].id,
+						`panel ${i}: ${panel.title}`
+					);
 					results.set(i, result);
 					if (wasFixed && panel.sql) {
 						panel.sql = finalSql; // Update panel with fixed SQL
@@ -202,19 +211,24 @@ export const POST: RequestHandler = async ({ request, locals }) => {
 		const executionMs = Date.now() - startTime;
 
 		// Check if any queries failed or returned no data - get explanation
-		let errorExplanation: { explanation: string; suggestions: string[]; retryInfo?: string } | null = null;
+		let errorExplanation: {
+			explanation: string;
+			suggestions: string[];
+			retryInfo?: string;
+		} | null = null;
 		const resultsArray = Array.from(results.values());
-		const hasError = resultsArray.some(r => !r.success);
-		const hasNoData = resultsArray.every(r => r.success && r.rowCount === 0);
+		const hasError = resultsArray.some((r) => !r.success);
+		const hasNoData = resultsArray.every((r) => r.success && r.rowCount === 0);
 
 		if (hasError || hasNoData) {
-			const failedResult = resultsArray.find(r => !r.success || r.rowCount === 0);
-			
+			const failedResult = resultsArray.find((r) => !r.success || r.rowCount === 0);
+
 			// Build retry info string
-			const failedRetries = retryLog.filter(r => !r.fixed);
-			const retryInfo = failedRetries.length > 0
-				? `Attempted ${failedRetries[0].attempts} time(s) to fix the query automatically, but the issue persists.`
-				: undefined;
+			const failedRetries = retryLog.filter((r) => !r.fixed);
+			const retryInfo =
+				failedRetries.length > 0
+					? `Attempted ${failedRetries[0].attempts} time(s) to fix the query automatically, but the issue persists.`
+					: undefined;
 
 			const explanation = await compiler.explainError({
 				question,
@@ -238,7 +252,7 @@ export const POST: RequestHandler = async ({ request, locals }) => {
 			plan: plan as SchemaAnalyticalPlan,
 			sql: plan.sql,
 			status: hasError ? 'failed' : 'success',
-			error: hasError ? resultsArray.find(r => !r.success)?.error : undefined,
+			error: hasError ? resultsArray.find((r) => !r.success)?.error : undefined,
 			executionMs
 		});
 
@@ -360,4 +374,3 @@ async function executeQuery(sqlQuery: string, datasetId: string): Promise<QueryR
 		};
 	}
 }
-
