@@ -115,8 +115,8 @@ function inferCadence(points: SeriesPoint[], format: XFormat): CadenceInfo {
 	if (format === 'number') {
 		const diffs = [];
 		for (let i = 1; i < points.length; i++) {
-			if (typeof points[i].number === 'number' && typeof points[i - 1].number === 'number') {
-				diffs.push(points[i].number - points[i - 1].number);
+			if (typeof points[i]!.number === 'number' && typeof points[i - 1]!.number === 'number') {
+				diffs.push(points[i]!.number! - points[i - 1]!.number!);
 			}
 		}
 		const step = Math.max(1, Math.round(Math.abs(median(diffs)) || 1));

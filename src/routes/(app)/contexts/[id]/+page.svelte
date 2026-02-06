@@ -12,6 +12,22 @@
 		BranchContext,
 		ChartSelectDetail
 	} from '$lib/types/toon';
+	import {
+		ChevronLeft,
+		Pencil,
+		Trash2,
+		X,
+		Plus,
+		LoaderCircle,
+		ArrowRight,
+		TriangleAlert,
+		Lightbulb,
+		RefreshCw,
+		ShieldCheck,
+		CircleHelp,
+		ChevronRight,
+		CheckCircle
+	} from '@lucide/svelte';
 
 	let { data }: { data: PageData } = $props();
 
@@ -512,9 +528,7 @@
 			data-sveltekit-reload
 			class="mb-3 inline-flex items-center gap-1.5 text-sm text-white/40 transition-colors hover:text-white/70"
 		>
-			<svg class="h-4 w-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-				<path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 19l-7-7 7-7" />
-			</svg>
+			<ChevronLeft class="h-4 w-4" />
 			Home
 		</a>
 		<div class="flex items-start justify-between gap-4">
@@ -531,14 +545,7 @@
 					class="rounded-lg border border-white/10 bg-white/5 p-2 text-white/50 transition-colors hover:bg-white/10 hover:text-white"
 					title="Edit context"
 				>
-					<svg class="h-4 w-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-						<path
-							stroke-linecap="round"
-							stroke-linejoin="round"
-							stroke-width="2"
-							d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z"
-						/>
-					</svg>
+					<Pencil class="h-4 w-4" />
 				</button>
 				<button
 					type="button"
@@ -546,14 +553,7 @@
 					class="rounded-lg border border-red-500/20 bg-red-500/5 p-2 text-red-400/70 transition-colors hover:bg-red-500/10 hover:text-red-400"
 					title="Delete context"
 				>
-					<svg class="h-4 w-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-						<path
-							stroke-linecap="round"
-							stroke-linejoin="round"
-							stroke-width="2"
-							d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16"
-						/>
-					</svg>
+					<Trash2 class="h-4 w-4" />
 				</button>
 			</div>
 		</div>
@@ -573,14 +573,7 @@
 							class="rounded-full p-0.5 text-white/20 opacity-0 transition-all group-hover:opacity-100 hover:bg-red-500/10 hover:text-red-400"
 							title="Remove dataset"
 						>
-							<svg class="h-3 w-3" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-								<path
-									stroke-linecap="round"
-									stroke-linejoin="round"
-									stroke-width="2"
-									d="M6 18L18 6M6 6l12 12"
-								/>
-							</svg>
+							<X class="h-3 w-3" />
 						</button>
 					</span>
 				{/each}
@@ -590,14 +583,7 @@
 				onclick={() => (showAddDatasets = true)}
 				class="inline-flex items-center gap-1 rounded-full border border-dashed border-white/15 px-2.5 py-1 text-xs text-white/40 transition-colors hover:border-[#64ff96]/30 hover:text-[#64ff96]"
 			>
-				<svg class="h-3 w-3" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-					<path
-						stroke-linecap="round"
-						stroke-linejoin="round"
-						stroke-width="2"
-						d="M12 4v16m8-8H4"
-					/>
-				</svg>
+				<Plus class="h-3 w-3" />
 				{#if data.datasets.length === 0}Add datasets{:else}Add{/if}
 			</button>
 		</div>
@@ -645,30 +631,9 @@
 					class="absolute top-1/2 right-2 -translate-y-1/2 rounded-lg bg-gradient-to-r from-[#64ff96] to-[#3dd977] p-2.5 text-[#050810] transition-all hover:shadow-lg hover:shadow-[#64ff96]/20 disabled:cursor-not-allowed disabled:opacity-50"
 				>
 					{#if isLoading}
-						<svg class="h-5 w-5 animate-spin" fill="none" viewBox="0 0 24 24">
-							<circle
-								class="opacity-25"
-								cx="12"
-								cy="12"
-								r="10"
-								stroke="currentColor"
-								stroke-width="4"
-							/>
-							<path
-								class="opacity-75"
-								fill="currentColor"
-								d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"
-							/>
-						</svg>
+						<LoaderCircle class="h-5 w-5 animate-spin" />
 					{:else}
-						<svg class="h-5 w-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-							<path
-								stroke-linecap="round"
-								stroke-linejoin="round"
-								stroke-width="2"
-								d="M14 5l7 7m0 0l-7 7m7-7H3"
-							/>
-						</svg>
+						<ArrowRight class="h-5 w-5" />
 					{/if}
 				</button>
 			</div>
@@ -676,19 +641,7 @@
 	{:else if !data.hasApiKey}
 		<div class="mb-8 rounded-xl border border-amber-500/20 bg-amber-500/5 p-5">
 			<div class="flex items-start gap-3">
-				<svg
-					class="mt-0.5 h-5 w-5 flex-shrink-0 text-amber-400"
-					fill="none"
-					stroke="currentColor"
-					viewBox="0 0 24 24"
-				>
-					<path
-						stroke-linecap="round"
-						stroke-linejoin="round"
-						stroke-width="2"
-						d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z"
-					/>
-				</svg>
+				<TriangleAlert class="mt-0.5 h-5 w-5 flex-shrink-0 text-amber-400" />
 				<div>
 					<p class="mb-1 text-sm font-medium text-amber-400">API Key Required</p>
 					<p class="text-sm text-white/50">
@@ -705,21 +658,7 @@
 		<div class="mb-8 rounded-xl border border-[#64ff96]/20 bg-[#64ff96]/5 p-8">
 			<div class="flex flex-col items-center text-center">
 				<div class="relative mb-4">
-					<svg class="h-10 w-10 animate-spin text-[#64ff96]" fill="none" viewBox="0 0 24 24">
-						<circle
-							class="opacity-25"
-							cx="12"
-							cy="12"
-							r="10"
-							stroke="currentColor"
-							stroke-width="4"
-						/>
-						<path
-							class="opacity-75"
-							fill="currentColor"
-							d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"
-						/>
-					</svg>
+					<LoaderCircle class="h-10 w-10 animate-spin text-[#64ff96]" />
 				</div>
 				<p class="mb-2 font-medium text-white">{loadingSteps[loadingStep]}</p>
 				<div class="mt-3 flex items-center gap-2">
@@ -741,15 +680,12 @@
 			class="mb-6 flex items-center justify-between rounded-lg border border-red-500/20 bg-red-500/10 px-4 py-3 text-sm text-red-400"
 		>
 			<span>{error}</span>
-			<button onclick={() => (error = null)} class="ml-2 text-red-400/70 hover:text-red-400">
-				<svg class="h-4 w-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-					<path
-						stroke-linecap="round"
-						stroke-linejoin="round"
-						stroke-width="2"
-						d="M6 18L18 6M6 6l12 12"
-					/>
-				</svg>
+			<button
+				onclick={() => (error = null)}
+				class="ml-2 text-red-400/70 hover:text-red-400"
+				aria-label="Dismiss error"
+			>
+				<X class="h-4 w-4" />
 			</button>
 		</div>
 	{/if}
@@ -770,31 +706,10 @@
 							class="mt-4 flex items-center gap-2 rounded-lg border border-white/10 bg-white/5 px-4 py-2 text-sm text-white/70 transition-colors hover:bg-white/10 hover:text-white disabled:cursor-not-allowed disabled:opacity-50"
 						>
 							{#if isRealigning}
-								<svg class="h-4 w-4 animate-spin" fill="none" viewBox="0 0 24 24">
-									<circle
-										class="opacity-25"
-										cx="12"
-										cy="12"
-										r="10"
-										stroke="currentColor"
-										stroke-width="4"
-									/>
-									<path
-										class="opacity-75"
-										fill="currentColor"
-										d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"
-									/>
-								</svg>
+								<LoaderCircle class="h-4 w-4 animate-spin" />
 								Thinking...
 							{:else}
-								<svg class="h-4 w-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-									<path
-										stroke-linecap="round"
-										stroke-linejoin="round"
-										stroke-width="2"
-										d="M9.663 17h4.673M12 3v1m6.364 1.636l-.707.707M21 12h-1M4 12H3m3.343-5.657l-.707-.707m2.828 9.9a5 5 0 117.072 0l-.548.547A3.374 3.374 0 0014 18.469V19a2 2 0 11-4 0v-.531c0-.895-.356-1.754-.988-2.386l-.548-.547z"
-									/>
-								</svg>
+								<Lightbulb class="h-4 w-4" />
 								Suggest questions I can ask
 							{/if}
 						</button>
@@ -835,19 +750,7 @@
 							<div
 								class="flex h-8 w-8 flex-shrink-0 items-center justify-center rounded-lg border border-[#64ff96]/20 bg-[#64ff96]/10"
 							>
-								<svg
-									class="h-4 w-4 text-[#64ff96]"
-									fill="none"
-									stroke="currentColor"
-									viewBox="0 0 24 24"
-								>
-									<path
-										stroke-linecap="round"
-										stroke-linejoin="round"
-										stroke-width="2"
-										d="M9 12l2 2 4-4m5.618-4.016A11.955 11.955 0 0112 2.944a11.955 11.955 0 01-8.618 3.04A12.02 12.02 0 003 9c0 5.591 3.824 10.29 9 11.622 5.176-1.332 9-6.03 9-11.622 0-1.042-.133-2.052-.382-3.016z"
-									/>
-								</svg>
+								<ShieldCheck class="h-4 w-4 text-[#64ff96]" />
 							</div>
 							<div>
 								<h3 class="mb-1 text-sm font-medium text-[#64ff96]">Executive Summary</h3>
@@ -910,30 +813,9 @@
 								title="Regenerate this query"
 							>
 								{#if isRegenerating}
-									<svg class="h-3.5 w-3.5 animate-spin" fill="none" viewBox="0 0 24 24">
-										<circle
-											class="opacity-25"
-											cx="12"
-											cy="12"
-											r="10"
-											stroke="currentColor"
-											stroke-width="4"
-										/>
-										<path
-											class="opacity-75"
-											fill="currentColor"
-											d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"
-										/>
-									</svg>
+									<LoaderCircle class="h-3.5 w-3.5 animate-spin" />
 								{:else}
-									<svg class="h-3.5 w-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-										<path
-											stroke-linecap="round"
-											stroke-linejoin="round"
-											stroke-width="2"
-											d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15"
-										/>
-									</svg>
+									<RefreshCw class="h-3.5 w-3.5" />
 								{/if}
 								Regenerate
 							</button>
@@ -945,30 +827,9 @@
 								title="Delete this exploration"
 							>
 								{#if deletingNodeId === activeNodeId}
-									<svg class="h-3.5 w-3.5 animate-spin" fill="none" viewBox="0 0 24 24">
-										<circle
-											class="opacity-25"
-											cx="12"
-											cy="12"
-											r="10"
-											stroke="currentColor"
-											stroke-width="4"
-										/>
-										<path
-											class="opacity-75"
-											fill="currentColor"
-											d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"
-										/>
-									</svg>
+									<LoaderCircle class="h-3.5 w-3.5 animate-spin" />
 								{:else}
-									<svg class="h-3.5 w-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-										<path
-											stroke-linecap="round"
-											stroke-linejoin="round"
-											stroke-width="2"
-											d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16"
-										/>
-									</svg>
+									<Trash2 class="h-3.5 w-3.5" />
 								{/if}
 								Delete
 							</button>
@@ -1000,14 +861,7 @@
 			<div
 				class="mx-auto mb-4 flex h-14 w-14 items-center justify-center rounded-full bg-[#64ff96]/10"
 			>
-				<svg class="h-7 w-7 text-[#64ff96]" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-					<path
-						stroke-linecap="round"
-						stroke-linejoin="round"
-						stroke-width="1.5"
-						d="M8.228 9c.549-1.165 2.03-2 3.772-2 2.21 0 4 1.343 4 3 0 1.4-1.278 2.575-3.006 2.907-.542.104-.994.54-.994 1.093m0 3h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"
-					/>
-				</svg>
+				<CircleHelp class="h-7 w-7 text-[#64ff96]" />
 			</div>
 			<h3 class="text-base font-medium text-white">Ready to analyze</h3>
 			<p class="mt-1 text-sm text-white/50">Ask a question above to start exploring your data</p>
@@ -1031,19 +885,9 @@
 								? 'text-xs'
 								: ''}">{dashboard.question}</span
 						>
-						<svg
+						<ChevronRight
 							class="h-4 w-4 flex-shrink-0 text-white/10 transition-colors group-hover:text-white/30"
-							fill="none"
-							stroke="currentColor"
-							viewBox="0 0 24 24"
-						>
-							<path
-								stroke-linecap="round"
-								stroke-linejoin="round"
-								stroke-width="2"
-								d="M9 5l7 7-7 7"
-							/>
-						</svg>
+						/>
 					</a>
 				{/each}
 			</div>
@@ -1077,19 +921,7 @@
 
 	{#if availableDatasets.length === 0}
 		<div class="py-8 text-center">
-			<svg
-				class="mx-auto mb-3 h-12 w-12 text-white/20"
-				fill="none"
-				stroke="currentColor"
-				viewBox="0 0 24 24"
-			>
-				<path
-					stroke-linecap="round"
-					stroke-linejoin="round"
-					stroke-width="1.5"
-					d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z"
-				/>
-			</svg>
+			<CheckCircle class="mx-auto mb-3 h-12 w-12 text-white/20" />
 			<p class="mb-2 text-white/50">All datasets are already in this context</p>
 			<a href="/datasets" class="text-sm text-[#64ff96] hover:underline">Upload more datasets</a>
 		</div>
@@ -1207,14 +1039,7 @@
 		<div
 			class="flex h-10 w-10 items-center justify-center rounded-full border border-red-500/20 bg-red-500/10"
 		>
-			<svg class="h-5 w-5 text-red-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-				<path
-					stroke-linecap="round"
-					stroke-linejoin="round"
-					stroke-width="2"
-					d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z"
-				/>
-			</svg>
+			<TriangleAlert class="h-5 w-5 text-red-400" />
 		</div>
 		<div>
 			<h2 class="text-lg font-semibold text-white">Delete Context</h2>

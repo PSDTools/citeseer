@@ -76,6 +76,10 @@ async function main() {
 		let envContent = `# Database
 DATABASE_URL=${DEFAULT_DATABASE_URL}
 
+# Better Auth
+BETTER_AUTH_SECRET=${crypto.randomUUID()}${crypto.randomUUID()}
+BETTER_AUTH_URL=http://localhost:5173
+
 # Environment
 NODE_ENV=development
 `;

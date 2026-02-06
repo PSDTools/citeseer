@@ -1,6 +1,7 @@
 import { fail, redirect } from '@sveltejs/kit';
 import type { Actions, PageServerLoad } from './$types';
-import { signup, createSessionAndCookie } from '$lib/server/auth';
+import { auth } from '$lib/auth';
+import { APIError } from 'better-auth/api';
 
 export const load: PageServerLoad = async ({ locals }) => {
 	// Redirect to dashboard if already logged in
@@ -28,16 +29,23 @@ export const actions: Actions = {
 			return fail(400, { error: 'Password must be at least 8 characters' });
 		}
 
-		const result = await signup({ email, password });
+		try {
+			await auth.api.signUpEmail({
+				body: { email, password, name: email.split('@')[0] },
+				headers: event.request.headers
+			});
 
-		if (!result.success) {
-			return fail(400, { error: result.error });
+			// Redirect to onboarding to create first org
+			redirect(302, '/onboarding');
+		} catch (e) {
+			if (e instanceof APIError) {
+				const message =
+					e.body?.message === 'User already exists'
+						? 'Email already registered'
+						: (e.body?.message ?? 'Signup failed');
+				return fail(400, { error: message });
+			}
+			throw e;
 		}
-
-		// Create session and set cookie
-		await createSessionAndCookie(event, result.userId!);
-
-		// Redirect to onboarding to create first org
-		redirect(302, '/onboarding');
 	}
 };

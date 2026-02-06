@@ -3,6 +3,7 @@
 	import VegaChart from './VegaChart.svelte';
 	import StatCard from './StatCard.svelte';
 	import DataTable from './DataTable.svelte';
+	import { Info } from '@lucide/svelte';
 	import {
 		panelToVegaLite,
 		resolvePanelFields,
@@ -99,19 +100,7 @@
 	{#if panel.summary}
 		<div class="mt-3 border-t border-white/5 pt-3">
 			<div class="flex items-start gap-2">
-				<svg
-					class="mt-0.5 h-4 w-4 flex-shrink-0 text-[#64ff96]"
-					fill="none"
-					stroke="currentColor"
-					viewBox="0 0 24 24"
-				>
-					<path
-						stroke-linecap="round"
-						stroke-linejoin="round"
-						stroke-width="2"
-						d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"
-					/>
-				</svg>
+				<Info class="mt-0.5 h-4 w-4 flex-shrink-0 text-[#64ff96]" />
 				<p class="text-sm leading-relaxed text-white/80">{panel.summary}</p>
 			</div>
 		</div>

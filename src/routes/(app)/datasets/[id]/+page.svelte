@@ -2,6 +2,7 @@
 	import type { PageData } from './$types';
 	import type { ColumnSchema } from '$lib/server/db/schema';
 	import Modal from '$lib/components/ui/Modal.svelte';
+	import { ChevronLeft, LoaderCircle, Check, X, TriangleAlert } from '@lucide/svelte';
 
 	let { data }: { data: PageData } = $props();
 
@@ -62,9 +63,7 @@
 			href="/datasets"
 			class="mb-3 inline-flex items-center gap-1.5 text-sm text-white/40 transition-colors hover:text-white/70"
 		>
-			<svg class="h-4 w-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-				<path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 19l-7-7 7-7" />
-			</svg>
+			<ChevronLeft class="h-4 w-4" />
 			Datasets
 		</a>
 		<div class="flex items-start justify-between">
@@ -195,14 +194,7 @@
 				<div
 					class="mb-4 inline-flex h-12 w-12 items-center justify-center rounded-full bg-green-500/20"
 				>
-					<svg class="h-6 w-6 text-green-400" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-						<path
-							stroke-linecap="round"
-							stroke-linejoin="round"
-							stroke-width="2"
-							d="M5 13l4 4L19 7"
-						/>
-					</svg>
+					<Check class="h-6 w-6 text-green-400" />
 				</div>
 				<h3 class="mb-2 text-lg font-semibold text-white">Normalization Complete</h3>
 				<p class="mb-4 text-white/50">{normalizeResult.message}</p>
@@ -222,14 +214,7 @@
 				<div
 					class="mb-4 inline-flex h-12 w-12 items-center justify-center rounded-full bg-red-500/20"
 				>
-					<svg class="h-6 w-6 text-red-400" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-						<path
-							stroke-linecap="round"
-							stroke-linejoin="round"
-							stroke-width="2"
-							d="M6 18L18 6M6 6l12 12"
-						/>
-					</svg>
+					<X class="h-6 w-6 text-red-400" />
 				</div>
 				<h3 class="mb-2 text-lg font-semibold text-white">Error</h3>
 				<p class="mb-4 text-white/50">{normalizeResult.message}</p>
@@ -247,15 +232,7 @@
 	{:else if isNormalizing}
 		<div class="py-4 text-center">
 			<div class="mb-4 inline-flex h-12 w-12 items-center justify-center">
-				<svg class="h-8 w-8 animate-spin text-[#64ff96]" fill="none" viewBox="0 0 24 24">
-					<circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"
-					></circle>
-					<path
-						class="opacity-75"
-						fill="currentColor"
-						d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"
-					></path>
-				</svg>
+				<LoaderCircle class="h-8 w-8 animate-spin text-[#64ff96]" />
 			</div>
 			<h3 class="mb-2 text-lg font-semibold text-white">Analyzing with AI...</h3>
 			<p class="text-sm text-white/50">Detecting date columns and normalizing values</p>
@@ -264,14 +241,7 @@
 		<div
 			class="mb-4 inline-flex h-12 w-12 items-center justify-center rounded-full bg-amber-500/20"
 		>
-			<svg class="h-6 w-6 text-amber-400" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-				<path
-					stroke-linecap="round"
-					stroke-linejoin="round"
-					stroke-width="2"
-					d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z"
-				/>
-			</svg>
+			<TriangleAlert class="h-6 w-6 text-amber-400" />
 		</div>
 		<h3 class="mb-2 text-lg font-semibold text-white">Normalize Date Columns</h3>
 		<p class="mb-4 text-sm text-white/50">

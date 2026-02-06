@@ -23,14 +23,16 @@
 <svelte:window onkeydown={handleKeydown} />
 
 {#if open}
-	<!-- svelte-ignore a11y_no_static_element_interactions -->
 	<div
 		class="fixed inset-0 z-50 flex items-center justify-center bg-black/50 backdrop-blur-sm"
 		onclick={handleBackdropClick}
+		onkeydown={(e) => {
+			if (e.key === 'Escape') onclose();
+		}}
 		role="dialog"
 		aria-modal="true"
+		tabindex="-1"
 	>
-		<!-- svelte-ignore a11y_no_static_element_interactions -->
 		<div
 			class="w-full {maxWidth} mx-4 rounded-xl border border-white/10 bg-[#0a0d14] p-6 shadow-2xl"
 			onclick={(e) => e.stopPropagation()}

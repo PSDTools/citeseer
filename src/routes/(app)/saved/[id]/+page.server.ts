@@ -26,12 +26,7 @@ export const load: PageServerLoad = async ({ params, parent }) => {
 		visited.add(current.parentDashboardId);
 
 		const [parent] = await db
-			.select({
-				id: dashboards.id,
-				name: dashboards.name,
-				question: dashboards.question,
-				parentDashboardId: dashboards.parentDashboardId
-			})
+			.select()
 			.from(dashboards)
 			.where(and(eq(dashboards.id, current.parentDashboardId), eq(dashboards.orgId, org.id)));
 

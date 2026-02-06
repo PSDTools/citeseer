@@ -14,7 +14,10 @@
 		</div>
 		<div class="flex gap-8 max-md:flex-wrap max-md:gap-5">
 			{#each links as link}
-				<a href="#" class="text-[0.95rem] text-white/60 transition-colors hover:text-white/90">
+				<a
+					href="/{link.toLowerCase()}"
+					class="text-[0.95rem] text-white/60 transition-colors hover:text-white/90"
+				>
 					{link}
 				</a>
 			{/each}

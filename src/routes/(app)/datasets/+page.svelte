@@ -2,6 +2,15 @@
 	import { invalidateAll } from '$app/navigation';
 	import FileUploader from '$lib/components/datasets/FileUploader.svelte';
 	import Modal from '$lib/components/ui/Modal.svelte';
+	import {
+		X,
+		Trash2,
+		Database,
+		Check,
+		TriangleAlert,
+		LoaderCircle,
+		CircleAlert
+	} from '@lucide/svelte';
 	import type { PageData } from './$types';
 
 	let { data }: { data: PageData } = $props();
@@ -160,15 +169,12 @@
 			class="mb-6 flex items-center justify-between rounded-lg border border-red-500/20 bg-red-500/10 px-4 py-3 text-sm text-red-400"
 		>
 			<span>{error}</span>
-			<button onclick={() => (error = null)} class="ml-2 text-red-400/70 hover:text-red-400">
-				<svg class="h-4 w-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-					<path
-						stroke-linecap="round"
-						stroke-linejoin="round"
-						stroke-width="2"
-						d="M6 18L18 6M6 6l12 12"
-					/>
-				</svg>
+			<button
+				onclick={() => (error = null)}
+				class="ml-2 text-red-400/70 hover:text-red-400"
+				aria-label="Dismiss error"
+			>
+				<X class="h-4 w-4" />
 			</button>
 		</div>
 	{/if}
@@ -180,15 +186,12 @@
 				: 'border-red-500/20 bg-red-500/10 text-red-400'} flex items-center justify-between border px-4 py-3 text-sm"
 		>
 			<span>{cleanAllResult.message}</span>
-			<button onclick={() => (cleanAllResult = null)} class="ml-2 opacity-70 hover:opacity-100">
-				<svg class="h-4 w-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-					<path
-						stroke-linecap="round"
-						stroke-linejoin="round"
-						stroke-width="2"
-						d="M6 18L18 6M6 6l12 12"
-					/>
-				</svg>
+			<button
+				onclick={() => (cleanAllResult = null)}
+				class="ml-2 opacity-70 hover:opacity-100"
+				aria-label="Dismiss message"
+			>
+				<X class="h-4 w-4" />
 			</button>
 		</div>
 	{/if}
@@ -268,14 +271,7 @@
 										class="rounded-lg p-1.5 text-white/30 transition-colors hover:bg-red-500/10 hover:text-red-400"
 										aria-label="Delete dataset"
 									>
-										<svg class="h-5 w-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-											<path
-												stroke-linecap="round"
-												stroke-linejoin="round"
-												stroke-width="1.5"
-												d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16"
-											/>
-										</svg>
+										<Trash2 class="h-5 w-5" />
 									</button>
 								</td>
 							</tr>
@@ -289,14 +285,7 @@
 			class="mt-8 rounded-xl border border-dashed border-white/15 bg-white/[0.02] p-10 text-center"
 		>
 			<div class="mx-auto mb-4 flex h-14 w-14 items-center justify-center rounded-full bg-white/5">
-				<svg class="h-7 w-7 text-white/30" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-					<path
-						stroke-linecap="round"
-						stroke-linejoin="round"
-						stroke-width="1.5"
-						d="M4 7v10c0 2.21 3.582 4 8 4s8-1.79 8-4V7M4 7c0 2.21 3.582 4 8 4s8-1.79 8-4M4 7c0-2.21 3.582-4 8-4s8 1.79 8 4"
-					/>
-				</svg>
+				<Database class="h-7 w-7 text-white/30" />
 			</div>
 			<h3 class="text-base font-medium text-white">No datasets yet</h3>
 			<p class="mt-1 text-sm text-white/50">Upload a CSV file above to get started</p>
@@ -375,33 +364,9 @@
 				{#each normalizeProgress.results as result}
 					<div class="flex items-center gap-3 rounded-lg bg-white/[0.02] px-3 py-2">
 						{#if result.success}
-							<svg
-								class="h-5 w-5 flex-shrink-0 text-green-400"
-								fill="none"
-								viewBox="0 0 24 24"
-								stroke="currentColor"
-							>
-								<path
-									stroke-linecap="round"
-									stroke-linejoin="round"
-									stroke-width="2"
-									d="M5 13l4 4L19 7"
-								/>
-							</svg>
+							<Check class="h-5 w-5 flex-shrink-0 text-green-400" />
 						{:else}
-							<svg
-								class="h-5 w-5 flex-shrink-0 text-amber-400"
-								fill="none"
-								viewBox="0 0 24 24"
-								stroke="currentColor"
-							>
-								<path
-									stroke-linecap="round"
-									stroke-linejoin="round"
-									stroke-width="2"
-									d="M12 9v2m0 4h.01"
-								/>
-							</svg>
+							<CircleAlert class="h-5 w-5 flex-shrink-0 text-amber-400" />
 						{/if}
 						<div class="min-w-0 flex-1">
 							<p class="truncate text-sm text-white">{result.name}</p>
@@ -423,15 +388,7 @@
 	{:else if isNormalizingAll}
 		<div class="py-4 text-center">
 			<div class="mb-4 inline-flex h-12 w-12 items-center justify-center">
-				<svg class="h-8 w-8 animate-spin text-[#64ff96]" fill="none" viewBox="0 0 24 24">
-					<circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"
-					></circle>
-					<path
-						class="opacity-75"
-						fill="currentColor"
-						d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"
-					></path>
-				</svg>
+				<LoaderCircle class="h-8 w-8 animate-spin text-[#64ff96]" />
 			</div>
 			<h3 class="mb-2 text-lg font-semibold text-white">Normalizing Datasets...</h3>
 			<p class="text-sm text-white/50">
@@ -448,14 +405,7 @@
 		<div
 			class="mb-4 inline-flex h-12 w-12 items-center justify-center rounded-full bg-amber-500/20"
 		>
-			<svg class="h-6 w-6 text-amber-400" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-				<path
-					stroke-linecap="round"
-					stroke-linejoin="round"
-					stroke-width="2"
-					d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z"
-				/>
-			</svg>
+			<TriangleAlert class="h-6 w-6 text-amber-400" />
 		</div>
 		<h3 class="mb-2 text-lg font-semibold text-white">Normalize All Datasets</h3>
 		<p class="mb-4 text-sm text-white/50">

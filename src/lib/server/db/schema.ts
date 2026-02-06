@@ -7,7 +7,9 @@ import {
 	jsonb,
 	bigint,
 	integer,
-	pgEnum
+	boolean,
+	pgEnum,
+	type AnyPgColumn
 } from 'drizzle-orm/pg-core';
 import { relations } from 'drizzle-orm';
 
@@ -15,23 +17,59 @@ import { relations } from 'drizzle-orm';
 export const orgRoleEnum = pgEnum('org_role', ['owner', 'admin', 'member']);
 export const queryStatusEnum = pgEnum('query_status', ['pending', 'success', 'failed', 'refused']);
 
-// Users table
+// Users table (better-auth compatible)
 export const users = pgTable('users', {
 	id: uuid('id').primaryKey().defaultRandom(),
+	name: varchar('name', { length: 255 }).notNull().default(''),
 	email: varchar('email', { length: 255 }).notNull().unique(),
-	passwordHash: text('password_hash').notNull(),
+	emailVerified: boolean('email_verified').notNull().default(false),
+	image: text('image'),
+	passwordHash: text('password_hash'), // legacy, kept for migration
 	createdAt: timestamp('created_at', { withTimezone: true }).notNull().defaultNow(),
 	updatedAt: timestamp('updated_at', { withTimezone: true }).notNull().defaultNow()
 });
 
-// Sessions table (for auth)
+// Sessions table (better-auth compatible)
 export const sessions = pgTable('sessions', {
 	id: text('id').primaryKey(),
 	userId: uuid('user_id')
 		.notNull()
 		.references(() => users.id, { onDelete: 'cascade' }),
+	token: text('token').notNull().unique(),
 	expiresAt: timestamp('expires_at', { withTimezone: true }).notNull(),
-	createdAt: timestamp('created_at', { withTimezone: true }).notNull().defaultNow()
+	ipAddress: text('ip_address'),
+	userAgent: text('user_agent'),
+	createdAt: timestamp('created_at', { withTimezone: true }).notNull().defaultNow(),
+	updatedAt: timestamp('updated_at', { withTimezone: true }).notNull().defaultNow()
+});
+
+// Account table (better-auth)
+export const accounts = pgTable('accounts', {
+	id: text('id').primaryKey(),
+	userId: uuid('user_id')
+		.notNull()
+		.references(() => users.id, { onDelete: 'cascade' }),
+	accountId: text('account_id').notNull(),
+	providerId: text('provider_id').notNull(),
+	accessToken: text('access_token'),
+	refreshToken: text('refresh_token'),
+	accessTokenExpiresAt: timestamp('access_token_expires_at', { withTimezone: true }),
+	refreshTokenExpiresAt: timestamp('refresh_token_expires_at', { withTimezone: true }),
+	scope: text('scope'),
+	idToken: text('id_token'),
+	password: text('password'),
+	createdAt: timestamp('created_at', { withTimezone: true }).notNull().defaultNow(),
+	updatedAt: timestamp('updated_at', { withTimezone: true }).notNull().defaultNow()
+});
+
+// Verification table (better-auth)
+export const verifications = pgTable('verifications', {
+	id: text('id').primaryKey(),
+	identifier: text('identifier').notNull(),
+	value: text('value').notNull(),
+	expiresAt: timestamp('expires_at', { withTimezone: true }).notNull(),
+	createdAt: timestamp('created_at', { withTimezone: true }).notNull().defaultNow(),
+	updatedAt: timestamp('updated_at', { withTimezone: true }).notNull().defaultNow()
 });
 
 // Organizations table
@@ -103,10 +141,10 @@ export const dashboards = pgTable('dashboards', {
 		.notNull()
 		.references(() => organizations.id, { onDelete: 'cascade' }),
 	contextId: uuid('context_id').references(() => contexts.id, { onDelete: 'cascade' }),
-	parentDashboardId: uuid('parent_dashboard_id').references(() => dashboards.id, {
+	parentDashboardId: uuid('parent_dashboard_id').references((): AnyPgColumn => dashboards.id, {
 		onDelete: 'set null'
 	}),
-	rootDashboardId: uuid('root_dashboard_id').references(() => dashboards.id, {
+	rootDashboardId: uuid('root_dashboard_id').references((): AnyPgColumn => dashboards.id, {
 		onDelete: 'set null'
 	}),
 	name: varchar('name', { length: 255 }).notNull(),
@@ -160,6 +198,7 @@ export const settings = pgTable('settings', {
 // Relations
 export const usersRelations = relations(users, ({ many }) => ({
 	sessions: many(sessions),
+	accounts: many(accounts),
 	orgMembers: many(orgMembers),
 	uploadedDatasets: many(datasets),
 	queries: many(queries)
@@ -168,6 +207,13 @@ export const usersRelations = relations(users, ({ many }) => ({
 export const sessionsRelations = relations(sessions, ({ one }) => ({
 	user: one(users, {
 		fields: [sessions.userId],
+		references: [users.id]
+	})
+}));
+
+export const accountsRelations = relations(accounts, ({ one }) => ({
+	user: one(users, {
+		fields: [accounts.userId],
 		references: [users.id]
 	})
 }));
@@ -336,6 +382,7 @@ export interface AnalyticalPlan {
 	viz?: PanelSpec[];
 	suggestedInvestigations?: string[];
 	validationError?: string;
+	executiveSummary?: string;
 }
 
 export type FilterValue = string | number | boolean;

@@ -3,6 +3,7 @@
 	import ChartPanel from '$lib/components/viz/ChartPanel.svelte';
 	import BranchMenu from '$lib/components/viz/BranchMenu.svelte';
 	import Modal from '$lib/components/ui/Modal.svelte';
+	import { ChevronLeft, ChevronRight, Trash2, ShieldCheck } from '@lucide/svelte';
 	import type { PageData } from './$types';
 	import type { BranchContext, ChartSelectDetail } from '$lib/types/toon';
 
@@ -123,14 +124,7 @@
 					href={data.dashboard.contextId ? `/contexts/${data.dashboard.contextId}` : '/contexts'}
 					class="mb-3 inline-flex items-center gap-1.5 text-sm text-white/40 transition-colors hover:text-white/70"
 				>
-					<svg class="h-4 w-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-						<path
-							stroke-linecap="round"
-							stroke-linejoin="round"
-							stroke-width="2"
-							d="M15 19l-7-7 7-7"
-						/>
-					</svg>
+					<ChevronLeft class="h-4 w-4" />
 					Back
 				</a>
 
@@ -141,19 +135,7 @@
 								{crumb.name}
 							</a>
 							{#if idx < data.breadcrumb.length - 1}
-								<svg
-									class="h-3.5 w-3.5 text-white/20"
-									fill="none"
-									stroke="currentColor"
-									viewBox="0 0 24 24"
-								>
-									<path
-										stroke-linecap="round"
-										stroke-linejoin="round"
-										stroke-width="2"
-										d="M9 5l7 7-7 7"
-									/>
-								</svg>
+								<ChevronRight class="h-3.5 w-3.5 text-white/20" />
 							{/if}
 						{/each}
 					</nav>
@@ -196,14 +178,7 @@
 				onclick={() => (showDeleteConfirm = true)}
 				class="flex flex-shrink-0 items-center gap-2 rounded-lg border border-red-500/20 bg-red-500/5 px-3 py-2 text-sm text-red-400 transition-colors hover:border-red-500/30 hover:bg-red-500/10"
 			>
-				<svg class="h-4 w-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-					<path
-						stroke-linecap="round"
-						stroke-linejoin="round"
-						stroke-width="2"
-						d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16"
-					/>
-				</svg>
+				<Trash2 class="h-4 w-4" />
 				Delete
 			</button>
 		</div>
@@ -218,19 +193,7 @@
 					<div
 						class="flex h-8 w-8 flex-shrink-0 items-center justify-center rounded-lg border border-[#64ff96]/20 bg-[#64ff96]/10"
 					>
-						<svg
-							class="h-4 w-4 text-[#64ff96]"
-							fill="none"
-							stroke="currentColor"
-							viewBox="0 0 24 24"
-						>
-							<path
-								stroke-linecap="round"
-								stroke-linejoin="round"
-								stroke-width="2"
-								d="M9 12l2 2 4-4m5.618-4.016A11.955 11.955 0 0112 2.944a11.955 11.955 0 01-8.618 3.04A12.02 12.02 0 003 9c0 5.591 3.824 10.29 9 11.622 5.176-1.332 9-6.03 9-11.622 0-1.042-.133-2.052-.382-3.016z"
-							/>
-						</svg>
+						<ShieldCheck class="h-4 w-4 text-[#64ff96]" />
 					</div>
 					<div>
 						<h3 class="mb-1 text-sm font-medium text-[#64ff96]">Executive Summary</h3>

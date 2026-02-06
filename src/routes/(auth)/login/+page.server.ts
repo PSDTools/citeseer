@@ -1,6 +1,8 @@
 import { fail, redirect } from '@sveltejs/kit';
 import type { Actions, PageServerLoad } from './$types';
-import { login, createSessionAndCookie, getUserOrganizations } from '$lib/server/auth';
+import { auth } from '$lib/auth';
+import { getUserOrganizations } from '$lib/server/auth';
+import { APIError } from 'better-auth/api';
 
 export const load: PageServerLoad = async ({ locals }) => {
 	// Redirect to dashboard if already logged in
@@ -19,24 +21,27 @@ export const actions: Actions = {
 			return fail(400, { error: 'Email and password are required' });
 		}
 
-		const result = await login({ email, password });
+		try {
+			const session = await auth.api.signInEmail({
+				body: { email, password },
+				headers: event.request.headers
+			});
 
-		if (!result.success) {
-			return fail(400, { error: result.error });
+			// Check if user has an organization
+			const orgs = await getUserOrganizations(session.user.id);
+
+			if (orgs.length === 0) {
+				// Redirect to onboarding if no org
+				redirect(302, '/onboarding');
+			}
+
+			// Redirect to dashboard
+			redirect(302, '/dashboard');
+		} catch (e) {
+			if (e instanceof APIError) {
+				return fail(400, { error: 'Invalid email or password' });
+			}
+			throw e;
 		}
-
-		// Create session and set cookie
-		await createSessionAndCookie(event, result.userId!);
-
-		// Check if user has an organization
-		const orgs = await getUserOrganizations(result.userId!);
-
-		if (orgs.length === 0) {
-			// Redirect to onboarding if no org
-			redirect(302, '/onboarding');
-		}
-
-		// Redirect to dashboard
-		redirect(302, '/dashboard');
 	}
 };

@@ -3,6 +3,7 @@
 	import type { LayoutData } from './$types';
 	import type { Snippet } from 'svelte';
 	import logo from '$lib/assets/logo.svg';
+	import { Menu } from '@lucide/svelte';
 
 	interface Props {
 		data: LayoutData;
@@ -25,14 +26,7 @@
 			class="rounded-lg p-2 text-white/70 transition-colors hover:bg-white/5 hover:text-white"
 			aria-label="Open menu"
 		>
-			<svg class="h-6 w-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-				<path
-					stroke-linecap="round"
-					stroke-linejoin="round"
-					stroke-width="1.5"
-					d="M3.75 6.75h16.5M3.75 12h16.5m-16.5 5.25h16.5"
-				/>
-			</svg>
+			<Menu class="h-6 w-6" />
 		</button>
 		<a href="/" class="ml-3 flex items-center gap-2 text-lg font-bold">
 			<img src={logo} alt="CiteSeer logo" class="h-5 w-5" />

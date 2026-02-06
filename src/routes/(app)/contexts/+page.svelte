@@ -1,6 +1,15 @@
 <script lang="ts">
 	import { goto, invalidateAll } from '$app/navigation';
 	import Modal from '$lib/components/ui/Modal.svelte';
+	import {
+		Plus,
+		CloudUpload,
+		ChevronRight,
+		Package,
+		Trash2,
+		TriangleAlert,
+		Zap
+	} from '@lucide/svelte';
 	import type { PageData } from './$types';
 
 	let { data }: { data: PageData } = $props();
@@ -105,14 +114,7 @@
 				onclick={openCreateDialog}
 				class="flex items-center gap-2 rounded-lg bg-gradient-to-r from-[#64ff96] to-[#3dd977] px-4 py-2 text-sm font-semibold text-[#050810] transition-all hover:shadow-lg hover:shadow-[#64ff96]/20"
 			>
-				<svg class="h-4 w-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-					<path
-						stroke-linecap="round"
-						stroke-linejoin="round"
-						stroke-width="2"
-						d="M12 4v16m8-8H4"
-					/>
-				</svg>
+				<Plus class="h-4 w-4" />
 				New Context
 			</button>
 		{/if}
@@ -123,14 +125,7 @@
 			class="rounded-xl border border-dashed border-white/15 bg-white/[0.02] px-6 py-12 text-center"
 		>
 			<div class="mx-auto mb-4 flex h-14 w-14 items-center justify-center rounded-full bg-white/5">
-				<svg class="h-7 w-7 text-white/30" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-					<path
-						stroke-linecap="round"
-						stroke-linejoin="round"
-						stroke-width="1.5"
-						d="M7 16a4 4 0 01-.88-7.903A5 5 0 1115.9 6L16 6a5 5 0 011 9.9M15 13l-3-3m0 0l-3 3m3-3v12"
-					/>
-				</svg>
+				<CloudUpload class="h-7 w-7 text-white/30" />
 			</div>
 			<h3 class="text-base font-medium text-white">Upload data first</h3>
 			<p class="mt-1 text-sm text-white/50">
@@ -141,9 +136,7 @@
 				class="mt-4 inline-flex items-center gap-1.5 text-sm text-[#64ff96] transition-colors hover:text-[#64ff96]/80"
 			>
 				Go to Datasets
-				<svg class="h-3.5 w-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-					<path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5l7 7-7 7" />
-				</svg>
+				<ChevronRight class="h-3.5 w-3.5" />
 			</a>
 		</div>
 	{:else if data.pageContexts.length === 0}
@@ -151,14 +144,7 @@
 			class="rounded-xl border border-dashed border-white/15 bg-white/[0.02] px-6 py-12 text-center"
 		>
 			<div class="mx-auto mb-4 flex h-14 w-14 items-center justify-center rounded-full bg-white/5">
-				<svg class="h-7 w-7 text-white/30" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-					<path
-						stroke-linecap="round"
-						stroke-linejoin="round"
-						stroke-width="1.5"
-						d="M19 11H5m14 0a2 2 0 012 2v6a2 2 0 01-2 2H5a2 2 0 01-2-2v-6a2 2 0 012-2m14 0V9a2 2 0 00-2-2M5 11V9a2 2 0 012-2m0 0V5a2 2 0 012-2h6a2 2 0 012 2v2M7 7h10"
-					/>
-				</svg>
+				<Package class="h-7 w-7 text-white/30" />
 			</div>
 			<h3 class="text-base font-medium text-white">No contexts yet</h3>
 			<p class="mt-1 text-sm text-white/50">
@@ -169,14 +155,7 @@
 				onclick={openCreateDialog}
 				class="mt-4 inline-flex items-center gap-2 rounded-lg bg-gradient-to-r from-[#64ff96] to-[#3dd977] px-4 py-2 text-sm font-semibold text-[#050810] transition-all hover:shadow-lg hover:shadow-[#64ff96]/20"
 			>
-				<svg class="h-4 w-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-					<path
-						stroke-linecap="round"
-						stroke-linejoin="round"
-						stroke-width="2"
-						d="M12 4v16m8-8H4"
-					/>
-				</svg>
+				<Plus class="h-4 w-4" />
 				Create your first context
 			</button>
 		</div>
@@ -210,14 +189,7 @@
 						class="flex-shrink-0 rounded-lg p-1.5 text-white/30 opacity-0 transition-all group-hover:opacity-100 hover:bg-red-500/10 hover:text-red-400"
 						title="Delete context"
 					>
-						<svg class="h-4 w-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-							<path
-								stroke-linecap="round"
-								stroke-linejoin="round"
-								stroke-width="1.5"
-								d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16"
-							/>
-						</svg>
+						<Trash2 class="h-4 w-4" />
 					</button>
 				</div>
 			{/each}
@@ -231,14 +203,7 @@
 		<div
 			class="flex h-10 w-10 items-center justify-center rounded-full border border-red-500/20 bg-red-500/10"
 		>
-			<svg class="h-5 w-5 text-red-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-				<path
-					stroke-linecap="round"
-					stroke-linejoin="round"
-					stroke-width="2"
-					d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z"
-				/>
-			</svg>
+			<TriangleAlert class="h-5 w-5 text-red-400" />
 		</div>
 		<div>
 			<h2 class="text-lg font-semibold text-white">Delete Context</h2>
@@ -287,19 +252,7 @@
 			<div class="mb-1.5 flex items-center gap-2">
 				<label for="context-name" class="text-sm text-white/70">Name</label>
 				<div class="group relative">
-					<svg
-						class="h-4 w-4 cursor-help text-[#64ff96]/60"
-						fill="none"
-						stroke="currentColor"
-						viewBox="0 0 24 24"
-					>
-						<path
-							stroke-linecap="round"
-							stroke-linejoin="round"
-							stroke-width="2"
-							d="M13 10V3L4 14h7v7l9-11h-7z"
-						/>
-					</svg>
+					<Zap class="h-4 w-4 cursor-help text-[#64ff96]/60" />
 					<div
 						class="invisible absolute bottom-full left-1/2 z-10 mb-2 w-56 -translate-x-1/2 rounded-lg border border-white/10 bg-[#1a1f2e] px-3 py-2 text-xs text-white/80 opacity-0 shadow-xl transition-all group-hover:visible group-hover:opacity-100"
 					>
@@ -334,7 +287,7 @@
 		</div>
 
 		<div>
-			<label class="mb-2 block text-sm text-white/70">Datasets</label>
+			<span class="mb-2 block text-sm text-white/70">Datasets</span>
 			<div class="max-h-48 space-y-2 overflow-y-auto">
 				{#each data.pageDatasets as dataset}
 					<label

@@ -170,11 +170,11 @@
 			<h2 class="text-lg font-semibold text-white/70">Organization</h2>
 			<div class="mt-4 space-y-3">
 				<div>
-					<label class="text-sm text-white/40">Name</label>
+					<span class="text-sm text-white/40">Name</span>
 					<p class="text-white">{data.org.name}</p>
 				</div>
 				<div>
-					<label class="text-sm text-white/40">Slug</label>
+					<span class="text-sm text-white/40">Slug</span>
 					<p class="font-mono text-white/70">{data.org.slug}</p>
 				</div>
 			</div>

@@ -294,7 +294,7 @@ export function panelToVegaLite(panel: PanelSpec, result: QueryResult): Visualiz
 				return {
 					...baseSpec,
 					...lineLayer
-				} as VisualizationSpec;
+				} as unknown as VisualizationSpec;
 			}
 
 			const actualLine = {
