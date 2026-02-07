@@ -419,7 +419,10 @@
 		ctx.stroke();
 	}
 
+	let animationFrameId: number;
+
 	function animate() {
+		if (!canvas || !ctx) return;
 		drawNightSky();
 		drawBackgroundStars();
 		updateShootingStars();
@@ -427,7 +430,7 @@
 		updateStars();
 		drawStars();
 		drawFocusIndicator();
-		requestAnimationFrame(animate);
+		animationFrameId = requestAnimationFrame(animate);
 	}
 
 	onMount(() => {
@@ -441,6 +444,7 @@
 		animate();
 
 		return () => {
+			cancelAnimationFrame(animationFrameId);
 			window.removeEventListener('resize', resizeCanvas);
 			document.removeEventListener('mousemove', onMouseMove);
 		};
