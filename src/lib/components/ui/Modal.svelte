@@ -33,6 +33,7 @@
 		aria-modal="true"
 		tabindex="-1"
 	>
+		<!-- svelte-ignore a11y_no_static_element_interactions -->
 		<div
 			class="w-full {maxWidth} mx-4 rounded-xl border border-white/10 bg-[#0a0d14] p-6 shadow-2xl"
 			onclick={(e) => e.stopPropagation()}

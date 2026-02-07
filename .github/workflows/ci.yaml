@@ -36,7 +36,9 @@ jobs:
     runs-on: ubuntu-latest
 
     env:
-      DATABASE_URL: 'file:/tmp/notes.db'
+      DATABASE_URL: 'file:/tmp/ci.db'
+      BETTER_AUTH_SECRET: 'ci-placeholder-secret-not-for-production'
+      BETTER_AUTH_URL: 'http://localhost:5173'
 
     steps:
       - name: 📚 Git checkout
