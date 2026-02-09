@@ -34,9 +34,6 @@ export const actions: Actions = {
 				body: { email, password, name: email.split('@')[0] },
 				headers: event.request.headers
 			});
-
-			// Redirect to onboarding to create first org
-			redirect(302, '/onboarding');
 		} catch (e) {
 			if (e instanceof APIError) {
 				const message =
@@ -47,5 +44,8 @@ export const actions: Actions = {
 			}
 			throw e;
 		}
+
+		// Redirect to onboarding to create first org
+		redirect(302, '/onboarding');
 	}
 };

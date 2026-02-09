@@ -7,7 +7,7 @@ import * as schema from '$lib/server/db/schema';
 import { env } from '$env/dynamic/private';
 
 export const auth = betterAuth({
-	baseURL: env.BETTER_AUTH_URL || 'http://localhost:5173',
+	baseURL: env.BETTER_AUTH_URL,
 	secret: env.BETTER_AUTH_SECRET,
 	database: drizzleAdapter(db, {
 		provider: 'pg',

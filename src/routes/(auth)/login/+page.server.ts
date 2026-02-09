@@ -21,6 +21,8 @@ export const actions: Actions = {
 			return fail(400, { error: 'Email and password are required' });
 		}
 
+		let orgs;
+
 		try {
 			const session = await auth.api.signInEmail({
 				body: { email, password },
@@ -28,20 +30,20 @@ export const actions: Actions = {
 			});
 
 			// Check if user has an organization
-			const orgs = await getUserOrganizations(session.user.id);
-
-			if (orgs.length === 0) {
-				// Redirect to onboarding if no org
-				redirect(302, '/onboarding');
-			}
-
-			// Redirect to dashboard
-			redirect(302, '/dashboard');
+			orgs = await getUserOrganizations(session.user.id);
 		} catch (e) {
 			if (e instanceof APIError) {
 				return fail(400, { error: 'Invalid email or password' });
 			}
 			throw e;
 		}
+
+		if (orgs.length === 0) {
+			// Redirect to onboarding if no org
+			redirect(302, '/onboarding');
+		}
+
+		// Redirect to dashboard
+		redirect(302, '/dashboard');
 	}
 };
