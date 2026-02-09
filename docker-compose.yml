@@ -3,9 +3,9 @@ services:
     image: postgres:16-alpine
     container_name: citeseer-db
     environment:
-      POSTGRES_USER: citeseer
-      POSTGRES_PASSWORD: citeseer
-      POSTGRES_DB: citeseer
+      POSTGRES_USER: siteseer
+      POSTGRES_PASSWORD: siteseer
+      POSTGRES_DB: siteseer
     ports:
       - '5432:5432'
     volumes:

@@ -851,6 +851,22 @@
 						{/if}
 					{/each}
 				</div>
+
+				{#if graphNodes.length > 0}
+					<div class="mt-8">
+						<div class="text-xs text-white/40 mb-2">Exploration Graph ({graphNodes.length} node{graphNodes.length !== 1 ? 's' : ''}) — click a node to view its results</div>
+						<ExplorationGraph
+							nodes={graphNodes}
+							{activeNodeId}
+							onNodeClick={(node) => {
+								if (node.dashboardId) {
+									goto(`/saved/${node.dashboardId}`);
+								}
+							}}
+							height={Math.min(200 + graphNodes.length * 20, 400)}
+						/>
+					</div>
+				{/if}
 			{/if}
 		</div>
 	{/if}
