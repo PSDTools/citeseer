@@ -11,10 +11,12 @@ import {
 	pgEnum,
 	type AnyPgColumn,
 } from 'drizzle-orm/pg-core';
+
 import { relations } from 'drizzle-orm';
 
 // Enums
 export const orgRoleEnum = pgEnum('org_role', ['owner', 'admin', 'member']);
+
 export const queryStatusEnum = pgEnum('query_status', ['pending', 'success', 'failed', 'refused']);
 
 // Users table (better-auth compatible)
@@ -141,10 +143,10 @@ export const dashboards = pgTable('dashboards', {
 		.notNull()
 		.references(() => organizations.id, { onDelete: 'cascade' }),
 	contextId: uuid('context_id').references(() => contexts.id, { onDelete: 'cascade' }),
-	parentDashboardId: uuid('parent_dashboard_id').references((): AnyPgColumn => dashboards.id, {
+	parentDashboardId: uuid('parent_dashboard_id').references(() => dashboards.id, {
 		onDelete: 'set null',
 	}),
-	rootDashboardId: uuid('root_dashboard_id').references((): AnyPgColumn => dashboards.id, {
+	rootDashboardId: uuid('root_dashboard_id').references(() => dashboards.id, {
 		onDelete: 'set null',
 	}),
 	name: varchar('name', { length: 255 }).notNull(),
@@ -205,17 +207,11 @@ export const usersRelations = relations(users, ({ many }) => ({
 }));
 
 export const sessionsRelations = relations(sessions, ({ one }) => ({
-	user: one(users, {
-		fields: [sessions.userId],
-		references: [users.id],
-	}),
+	user: one(users, { fields: [sessions.userId], references: [users.id] }),
 }));
 
 export const accountsRelations = relations(accounts, ({ one }) => ({
-	user: one(users, {
-		fields: [accounts.userId],
-		references: [users.id],
-	}),
+	user: one(users, { fields: [accounts.userId], references: [users.id] }),
 }));
 
 export const organizationsRelations = relations(organizations, ({ many, one }) => ({
@@ -228,60 +224,30 @@ export const organizationsRelations = relations(organizations, ({ many, one }) =
 }));
 
 export const orgMembersRelations = relations(orgMembers, ({ one }) => ({
-	user: one(users, {
-		fields: [orgMembers.userId],
-		references: [users.id],
-	}),
-	organization: one(organizations, {
-		fields: [orgMembers.orgId],
-		references: [organizations.id],
-	}),
+	user: one(users, { fields: [orgMembers.userId], references: [users.id] }),
+	organization: one(organizations, { fields: [orgMembers.orgId], references: [organizations.id] }),
 }));
 
 export const datasetsRelations = relations(datasets, ({ one, many }) => ({
-	organization: one(organizations, {
-		fields: [datasets.orgId],
-		references: [organizations.id],
-	}),
-	uploader: one(users, {
-		fields: [datasets.uploadedBy],
-		references: [users.id],
-	}),
+	organization: one(organizations, { fields: [datasets.orgId], references: [organizations.id] }),
+	uploader: one(users, { fields: [datasets.uploadedBy], references: [users.id] }),
 	rows: many(datasetRows),
 	contextDatasets: many(contextDatasets),
 }));
 
 export const datasetRowsRelations = relations(datasetRows, ({ one }) => ({
-	dataset: one(datasets, {
-		fields: [datasetRows.datasetId],
-		references: [datasets.id],
-	}),
+	dataset: one(datasets, { fields: [datasetRows.datasetId], references: [datasets.id] }),
 }));
 
 export const queriesRelations = relations(queries, ({ one }) => ({
-	organization: one(organizations, {
-		fields: [queries.orgId],
-		references: [organizations.id],
-	}),
-	user: one(users, {
-		fields: [queries.userId],
-		references: [users.id],
-	}),
+	organization: one(organizations, { fields: [queries.orgId], references: [organizations.id] }),
+	user: one(users, { fields: [queries.userId], references: [users.id] }),
 }));
 
 export const dashboardsRelations = relations(dashboards, ({ one, many }) => ({
-	organization: one(organizations, {
-		fields: [dashboards.orgId],
-		references: [organizations.id],
-	}),
-	context: one(contexts, {
-		fields: [dashboards.contextId],
-		references: [contexts.id],
-	}),
-	creator: one(users, {
-		fields: [dashboards.createdBy],
-		references: [users.id],
-	}),
+	organization: one(organizations, { fields: [dashboards.orgId], references: [organizations.id] }),
+	context: one(contexts, { fields: [dashboards.contextId], references: [contexts.id] }),
+	creator: one(users, { fields: [dashboards.createdBy], references: [users.id] }),
 	parent: one(dashboards, {
 		fields: [dashboards.parentDashboardId],
 		references: [dashboards.id],
@@ -291,21 +257,12 @@ export const dashboardsRelations = relations(dashboards, ({ one, many }) => ({
 }));
 
 export const settingsRelations = relations(settings, ({ one }) => ({
-	organization: one(organizations, {
-		fields: [settings.orgId],
-		references: [organizations.id],
-	}),
+	organization: one(organizations, { fields: [settings.orgId], references: [organizations.id] }),
 }));
 
 export const contextsRelations = relations(contexts, ({ one, many }) => ({
-	organization: one(organizations, {
-		fields: [contexts.orgId],
-		references: [organizations.id],
-	}),
-	creator: one(users, {
-		fields: [contexts.createdBy],
-		references: [users.id],
-	}),
+	organization: one(organizations, { fields: [contexts.orgId], references: [organizations.id] }),
+	creator: one(users, { fields: [contexts.createdBy], references: [users.id] }),
 	contextDatasets: many(contextDatasets),
 	dashboards: many(dashboards),
 }));
@@ -315,6 +272,7 @@ export const contextDatasetsRelations = relations(contextDatasets, ({ one }) => 
 		fields: [contextDatasets.contextId],
 		references: [contexts.id],
 	}),
+
 	dataset: one(datasets, {
 		fields: [contextDatasets.datasetId],
 		references: [datasets.id],
@@ -414,3 +372,5 @@ export interface DashboardNodeContext {
 	selectedMark?: SelectedMark;
 	assumptions?: string[];
 }
+
+export * from './auth.schema.ts';

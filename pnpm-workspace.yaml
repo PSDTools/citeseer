@@ -4,6 +4,8 @@ onlyBuiltDependencies:
 engineStrict: true
 
 allowBuilds:
+  '@prisma/client@5.22.0': false
+  better-sqlite3@12.6.2: false
   protobufjs@7.5.4: true
 
 strictDepBuilds: true

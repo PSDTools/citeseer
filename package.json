@@ -21,9 +21,11 @@
 		"db:down": "docker compose down",
 		"db:reset": "docker compose down -v && pnpm setup",
 		"knip": "knip",
-		"merge-checks": "pnpm run lint && pnpm run check && pnpm run knip"
+		"merge-checks": "pnpm run lint && pnpm run check && pnpm run knip",
+		"auth:schema": "npx @better-auth/cli generate --config src/lib/server/auth.ts --output src/lib/server/db/auth.schema.ts --yes"
 	},
 	"devDependencies": {
+		"@better-auth/cli": "^1.4.18",
 		"@opentelemetry/auto-instrumentations-node": "^0.69.0",
 		"@opentelemetry/exporter-trace-otlp-proto": "^0.211.0",
 		"@opentelemetry/sdk-node": "^0.211.0",
