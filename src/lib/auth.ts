@@ -7,11 +7,10 @@ import * as schema from '$lib/server/db/schema';
 import { env } from '$env/dynamic/private';
 
 export const auth = betterAuth({
-	baseURL: env.BETTER_AUTH_URL,
+	baseURL: env.BETTER_AUTH_URL || 'http://localhost:5173',
 	secret: env.BETTER_AUTH_SECRET,
 	database: drizzleAdapter(db, {
 		provider: 'pg',
-		usePlural: true,
 		schema: {
 			...schema,
 			user: schema.users,
@@ -29,10 +28,7 @@ export const auth = betterAuth({
 		updateAge: 60 * 60 * 24 // 1 day
 	},
 	user: {
-		modelName: 'users',
-		fields: {
-			emailVerified: 'email_verified'
-		}
+		modelName: 'users'
 	},
 	advanced: {
 		database: {
