@@ -32,9 +32,6 @@ importers:
       postgres:
         specifier: ^3.4.8
         version: 3.4.8
-      svelte-vega:
-        specifier: ^4.1.0
-        version: 4.1.0(svelte@5.50.0)(vega-embed@7.1.0(vega-lite@6.4.2(vega@6.2.0))(vega@6.2.0))(vega-lite@6.4.2(vega@6.2.0))(vega@6.2.0)
       vega:
         specifier: ^6.2.0
         version: 6.2.0
@@ -1950,14 +1947,6 @@ packages:
       svelte: ^4.0.0 || ^5.0.0-next.0
       typescript: '>=5.0.0'
 
-  svelte-vega@4.1.0:
-    resolution: {integrity: sha512-tWBmYBjAHQYEI2VWFqUEi5gKPleq0e/P4WrMAd7/p8TeFnSoFf6RJUdEP1l16kTK0u1a+QqYgG2M0K0I+9JGKw==}
-    peerDependencies:
-      svelte: ^5.0.0
-      vega: ^6.0.0
-      vega-embed: ^7.0.0
-      vega-lite: ^6.0.0
-
   svelte@5.50.0:
     resolution: {integrity: sha512-FR9kTLmX5i0oyeQ5j/+w8DuagIkQ7MWMuPpPVioW2zx9Dw77q+1ufLzF1IqNtcTXPRnIIio4PlasliVn43OnbQ==}
     engines: {node: '>=18'}
@@ -3654,13 +3643,6 @@ snapshots:
       typescript: 5.9.3
     transitivePeerDependencies:
       - picomatch
-
-  svelte-vega@4.1.0(svelte@5.50.0)(vega-embed@7.1.0(vega-lite@6.4.2(vega@6.2.0))(vega@6.2.0))(vega-lite@6.4.2(vega@6.2.0))(vega@6.2.0):
-    dependencies:
-      svelte: 5.50.0
-      vega: 6.2.0
-      vega-embed: 7.1.0(vega-lite@6.4.2(vega@6.2.0))(vega@6.2.0)
-      vega-lite: 6.4.2(vega@6.2.0)
 
   svelte@5.50.0:
     dependencies:

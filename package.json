@@ -49,7 +49,6 @@
 		"drizzle-orm": "^0.45.1",
 		"papaparse": "^5.5.3",
 		"postgres": "^3.4.8",
-		"svelte-vega": "^4.1.0",
 		"vega": "^6.2.0",
 		"vega-embed": "^7.1.0",
 		"vega-lite": "^6.4.2"
