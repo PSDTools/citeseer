@@ -1,5 +1,5 @@
-import { db, users, organizations, orgMembers } from '$lib/server/db';
-import { eq, and } from 'drizzle-orm';
+import { db, organizations, orgMembers } from '$lib/server/db';
+import { eq } from 'drizzle-orm';
 
 // Get user's organizations
 export async function getUserOrganizations(userId: string) {
@@ -46,21 +46,4 @@ export async function createOrganization(userId: string, name: string) {
 	});
 
 	return org;
-}
-
-// Check if user has access to organization
-export async function checkOrgAccess(
-	userId: string,
-	orgId: string,
-): Promise<{ hasAccess: boolean; role?: string }> {
-	const [membership] = await db
-		.select({ role: orgMembers.role })
-		.from(orgMembers)
-		.where(and(eq(orgMembers.userId, userId), eq(orgMembers.orgId, orgId)));
-
-	if (!membership) {
-		return { hasAccess: false };
-	}
-
-	return { hasAccess: true, role: membership.role };
 }

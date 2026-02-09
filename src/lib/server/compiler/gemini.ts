@@ -10,7 +10,7 @@ import type { ForecastSelectionContext, ForecastStrategyDecision } from '$lib/se
 
 const MAX_RETRIES = 3;
 
-export interface CompilerConfig {
+interface CompilerConfig {
 	apiKey: string;
 	model?: string;
 }

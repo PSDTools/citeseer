@@ -4,32 +4,8 @@
 
 import type { BranchContext, FilterValue } from '$lib/types/toon';
 
-export const TOON_FORMAT_SPEC = `
-## TOON Format Specification
-
-TOON (Text Object Oriented Notation) is a compact, LLM-optimized format:
-
-- Objects: @type{key:value key2:value2}
-- Arrays: [item1,item2,item3]
-- Strings: Unquoted if simple, "quoted" if contains spaces/special chars
-- Booleans: true/false
-- Numbers: Unquoted integers/floats
-- Nested: @outer{inner:@nested{...}}
-`;
-
 function escapeSqlString(value: string): string {
 	return value.replace(/'/g, "''");
-}
-
-function formatFilterCondition(field: string, value: FilterValue): string {
-	const safeField = escapeSqlString(field);
-	if (typeof value === 'number') {
-		return `(data->>'${safeField}')::numeric = ${value}`;
-	}
-	if (typeof value === 'boolean') {
-		return `(data->>'${safeField}')::boolean = ${value ? 'true' : 'false'}`;
-	}
-	return `data->>'${safeField}' = '${escapeSqlString(String(value))}'`;
 }
 
 function buildBranchContextPrompt(branchContext?: BranchContext): string {

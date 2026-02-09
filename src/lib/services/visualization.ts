@@ -5,13 +5,13 @@
 import type { PanelSpec, QueryResult } from '$lib/types/toon';
 import type { VisualizationSpec } from 'vega-embed';
 
-export interface StatCardData {
+interface StatCardData {
 	value: string | number;
 	label: string;
 	unit?: string;
 }
 
-export interface TableData {
+interface TableData {
 	columns: string[];
 	rows: Record<string, unknown>[];
 }

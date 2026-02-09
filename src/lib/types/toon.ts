@@ -73,12 +73,6 @@ export interface DashboardSpec {
 	timeTo?: string;
 }
 
-export interface RefusalResponse {
-	_type: 'refusal';
-	reason: string;
-	suggestions?: string[];
-}
-
 export interface QueryResult {
 	success: boolean;
 	data: Record<string, unknown>[];

@@ -5,14 +5,14 @@
 
 import { GoogleGenAI } from '@google/genai';
 
-export interface DateColumnInfo {
+interface DateColumnInfo {
 	columnName: string;
 	detectedFormat: string;
 	isDate: boolean;
 	isDateTime: boolean;
 }
 
-export interface DateAnalysisResult {
+interface DateAnalysisResult {
 	dateColumns: DateColumnInfo[];
 }
 
@@ -30,7 +30,7 @@ Only include columns that ARE dates. If a column is not a date, do not include i
 Column samples:
 `;
 
-export class DateNormalizer {
+class DateNormalizer {
 	private client: GoogleGenAI;
 	private model: string;
 
