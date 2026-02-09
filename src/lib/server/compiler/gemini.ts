@@ -78,7 +78,7 @@ export class GeminiCompiler {
 	async compileQuestion(
 		question: string,
 		datasets: DatasetProfile[],
-		branchContext?: BranchContext
+		branchContext?: BranchContext,
 	): Promise<AnalyticalPlan> {
 		const schemaContext = GeminiCompiler.generateSchemaContext(datasets);
 		const systemPrompt = getSystemPrompt(schemaContext, branchContext);
@@ -93,13 +93,13 @@ export class GeminiCompiler {
 					contents: [
 						{
 							role: 'user',
-							parts: [{ text: systemPrompt + '\n\nQuestion: ' + question + formatHint }]
-						}
+							parts: [{ text: systemPrompt + '\n\nQuestion: ' + question + formatHint }],
+						},
 					],
 					config: {
 						temperature: 0.3,
-						maxOutputTokens: 4096
-					}
+						maxOutputTokens: 4096,
+					},
 				});
 
 				const text = response.text || '';
@@ -136,8 +136,8 @@ export class GeminiCompiler {
 			tables: [],
 			suggestedInvestigations: [
 				'Try rephrasing your question',
-				'Check if the required data is available'
-			]
+				'Check if the required data is available',
+			],
 		};
 	}
 
@@ -145,7 +145,7 @@ export class GeminiCompiler {
 	 * Select a forecasting strategy based on time series characteristics.
 	 */
 	async selectForecastStrategy(
-		context: ForecastSelectionContext
+		context: ForecastSelectionContext,
 	): Promise<ForecastStrategyDecision | null> {
 		const prompt = `You are a time series forecasting strategist.
 
@@ -196,7 +196,7 @@ Guidelines:
 			const response = await this.client.models.generateContent({
 				model: this.model,
 				contents: [{ role: 'user', parts: [{ text: prompt }] }],
-				config: { temperature: 0.2, maxOutputTokens: 512 }
+				config: { temperature: 0.2, maxOutputTokens: 512 },
 			});
 
 			const text = response.text || '';
@@ -209,7 +209,7 @@ Guidelines:
 				'drift',
 				'moving_average',
 				'exp_smoothing',
-				'seasonal_naive'
+				'seasonal_naive',
 			]);
 			if (!parsed?.strategy || !allowed.has(parsed.strategy)) return null;
 
@@ -222,7 +222,7 @@ Guidelines:
 				window: parsed.window ? Number(parsed.window) : undefined,
 				alpha: parsed.alpha ? Number(parsed.alpha) : undefined,
 				seasonLength: parsed.seasonLength ? Number(parsed.seasonLength) : undefined,
-				confidence: parsed.confidence
+				confidence: parsed.confidence,
 			};
 		} catch (error) {
 			console.error('Failed to select forecast strategy:', error);
@@ -297,7 +297,7 @@ Fix the SQL to correct the error. Respond with ONLY a JSON object:
 			const response = await this.client.models.generateContent({
 				model: this.model,
 				contents: [{ role: 'user', parts: [{ text: prompt }] }],
-				config: { temperature: 0.2, maxOutputTokens: 2048 }
+				config: { temperature: 0.2, maxOutputTokens: 2048 },
 			});
 
 			const text = response.text || '';
@@ -307,7 +307,7 @@ Fix the SQL to correct the error. Respond with ONLY a JSON object:
 				if (parsed.sql && typeof parsed.sql === 'string') {
 					return {
 						sql: parsed.sql,
-						explanation: parsed.explanation || 'SQL corrected'
+						explanation: parsed.explanation || 'SQL corrected',
 					};
 				}
 			}
@@ -331,13 +331,13 @@ Fix the SQL to correct the error. Respond with ONLY a JSON object:
 				contents: [
 					{
 						role: 'user',
-						parts: [{ text: prompt }]
-					}
+						parts: [{ text: prompt }],
+					},
 				],
 				config: {
 					temperature: 0.3,
-					maxOutputTokens: 4096
-				}
+					maxOutputTokens: 4096,
+				},
 			});
 
 			const text = response.text || '';
@@ -354,7 +354,7 @@ Fix the SQL to correct the error. Respond with ONLY a JSON object:
 			return {
 				_type: 'dashboard',
 				title: 'Data Overview',
-				panels: []
+				panels: [],
 			};
 		}
 	}
@@ -403,7 +403,7 @@ Be helpful and specific. Reference actual column names and values from the schem
 			const response = await this.client.models.generateContent({
 				model: this.model,
 				contents: [{ role: 'user', parts: [{ text: prompt }] }],
-				config: { temperature: 0.3, maxOutputTokens: 1024 }
+				config: { temperature: 0.3, maxOutputTokens: 1024 },
 			});
 
 			const text = response.text || '';
@@ -413,7 +413,7 @@ Be helpful and specific. Reference actual column names and values from the schem
 				const parsed = JSON.parse(jsonMatch[0]);
 				return {
 					explanation: parsed.explanation || 'Unable to determine the cause.',
-					suggestions: Array.isArray(parsed.suggestions) ? parsed.suggestions : []
+					suggestions: Array.isArray(parsed.suggestions) ? parsed.suggestions : [],
 				};
 			}
 		} catch (error) {
@@ -424,8 +424,8 @@ Be helpful and specific. Reference actual column names and values from the schem
 			explanation: 'The query did not return the expected results.',
 			suggestions: [
 				'Try rephrasing your question',
-				'Ask about available categories or values first'
-			]
+				'Ask about available categories or values first',
+			],
 		};
 	}
 
@@ -467,7 +467,7 @@ Respond in this exact JSON format:
 			const response = await this.client.models.generateContent({
 				model: this.model,
 				contents: [{ role: 'user', parts: [{ text: prompt }] }],
-				config: { temperature: 0.5, maxOutputTokens: 1024 }
+				config: { temperature: 0.5, maxOutputTokens: 1024 },
 			});
 
 			const text = response.text || '';
@@ -570,7 +570,7 @@ Respond in this exact JSON format:
 			const response = await this.client.models.generateContent({
 				model: this.model,
 				contents: [{ role: 'user', parts: [{ text: prompt }] }],
-				config: { temperature: 0.4, maxOutputTokens: 2048 }
+				config: { temperature: 0.4, maxOutputTokens: 2048 },
 			});
 
 			const text = response.text || '';
@@ -580,7 +580,7 @@ Respond in this exact JSON format:
 				return {
 					dashboardSummary: parsed.dashboardSummary || '',
 					panelSummaries: Array.isArray(parsed.panelSummaries) ? parsed.panelSummaries : [],
-					insightNarratives: parsed.insightNarratives || undefined
+					insightNarratives: parsed.insightNarratives || undefined,
 				};
 			}
 		} catch (error) {
@@ -589,7 +589,7 @@ Respond in this exact JSON format:
 
 		return {
 			dashboardSummary: '',
-			panelSummaries: []
+			panelSummaries: [],
 		};
 	}
 }

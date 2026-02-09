@@ -45,7 +45,7 @@
 											value: row[column] as ChartSelectDetail['value'],
 											datum: row,
 											clientX: event.clientX,
-											clientY: event.clientY
+											clientY: event.clientY,
 										});
 									}}
 								>

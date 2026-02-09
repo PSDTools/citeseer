@@ -24,7 +24,7 @@
 		const result = await vegaEmbed(container, spec, {
 			actions: false,
 			renderer: 'svg',
-			theme: 'dark'
+			theme: 'dark',
 		});
 
 		if (interaction) {
@@ -58,7 +58,7 @@
 					xField: interaction.xField,
 					yField: interaction.yField,
 					clientX: mouseEvent.clientX,
-					clientY: mouseEvent.clientY
+					clientY: mouseEvent.clientY,
 				});
 			});
 		}

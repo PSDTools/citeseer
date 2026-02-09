@@ -54,8 +54,8 @@
 				headers: { 'Content-Type': 'application/json' },
 				body: JSON.stringify({
 					question,
-					datasetIds: selectedDatasetId ? [selectedDatasetId] : undefined
-				})
+					datasetIds: selectedDatasetId ? [selectedDatasetId] : undefined,
+				}),
 			});
 
 			const result = await response.json();
@@ -92,7 +92,7 @@
 
 			const response = await fetch('/api/datasets', {
 				method: 'POST',
-				body: formData
+				body: formData,
 			});
 
 			const result = await response.json();

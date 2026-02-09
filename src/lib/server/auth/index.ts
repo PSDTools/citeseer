@@ -8,7 +8,7 @@ export async function getUserOrganizations(userId: string) {
 			id: organizations.id,
 			name: organizations.name,
 			slug: organizations.slug,
-			role: orgMembers.role
+			role: orgMembers.role,
 		})
 		.from(orgMembers)
 		.innerJoin(organizations, eq(orgMembers.orgId, organizations.id))
@@ -34,7 +34,7 @@ export async function createOrganization(userId: string, name: string) {
 		.insert(organizations)
 		.values({
 			name,
-			slug: finalSlug
+			slug: finalSlug,
 		})
 		.returning();
 
@@ -42,7 +42,7 @@ export async function createOrganization(userId: string, name: string) {
 	await db.insert(orgMembers).values({
 		userId,
 		orgId: org.id,
-		role: 'owner'
+		role: 'owner',
 	});
 
 	return org;
@@ -51,7 +51,7 @@ export async function createOrganization(userId: string, name: string) {
 // Check if user has access to organization
 export async function checkOrgAccess(
 	userId: string,
-	orgId: string
+	orgId: string,
 ): Promise<{ hasAccess: boolean; role?: string }> {
 	const [membership] = await db
 		.select({ role: orgMembers.role })

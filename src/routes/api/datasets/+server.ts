@@ -45,7 +45,7 @@ export const POST: RequestHandler = async ({ request, locals }) => {
 		const result = Papa.parse(text, {
 			header: true,
 			skipEmptyLines: true,
-			dynamicTyping: true
+			dynamicTyping: true,
 		});
 
 		if (result.errors.length > 0) {
@@ -66,7 +66,7 @@ export const POST: RequestHandler = async ({ request, locals }) => {
 			try {
 				const dateNormalizer = new DateNormalizer(
 					orgSettings.geminiApiKey,
-					orgSettings.geminiModel
+					orgSettings.geminiModel,
 				);
 				const columns = Object.keys(rows[0]);
 				const analysis = await dateNormalizer.analyzeDateColumns(rows, columns);
@@ -74,7 +74,7 @@ export const POST: RequestHandler = async ({ request, locals }) => {
 				if (analysis.dateColumns.length > 0) {
 					console.log(
 						`Normalizing ${analysis.dateColumns.length} date columns:`,
-						analysis.dateColumns.map((d) => d.columnName)
+						analysis.dateColumns.map((d) => d.columnName),
 					);
 					normalizedRows = dateNormalizer.normalizeRows(rows, analysis.dateColumns);
 				}
@@ -98,7 +98,7 @@ export const POST: RequestHandler = async ({ request, locals }) => {
 				fileName: file.name,
 				rowCount: normalizedRows.length,
 				schema,
-				uploadedBy: locals.user.id
+				uploadedBy: locals.user.id,
 			})
 			.returning();
 
@@ -109,8 +109,8 @@ export const POST: RequestHandler = async ({ request, locals }) => {
 				batch.map((row, idx) => ({
 					datasetId: dataset.id,
 					data: row,
-					rowIndex: i + idx
-				}))
+					rowIndex: i + idx,
+				})),
 			);
 		}
 
@@ -118,7 +118,7 @@ export const POST: RequestHandler = async ({ request, locals }) => {
 			id: dataset.id,
 			name: dataset.name,
 			rowCount: normalizedRows.length,
-			columns: schema.length
+			columns: schema.length,
 		});
 	} catch (e) {
 		console.error('Error uploading dataset:', e);
@@ -179,8 +179,8 @@ function inferSchema(rows: Record<string, unknown>[]): ColumnSchema[] {
 			sampleValues,
 			...(isNumeric && {
 				minValue: Math.min(...(values as number[])),
-				maxValue: Math.max(...(values as number[]))
-			})
+				maxValue: Math.max(...(values as number[])),
+			}),
 		};
 	});
 }
@@ -192,7 +192,7 @@ function isDateString(value: string): boolean {
 		/^\d{2}\/\d{2}\/\d{4}/, // US date
 		/^\d{2}-\d{2}-\d{4}/, // EU date
 		/^\d{4}\/\d{2}\/\d{2}/, // Alt ISO
-		/^\d{4}-\d{2}$/ // Year-month
+		/^\d{4}-\d{2}$/, // Year-month
 	];
 
 	if (datePatterns.some((p) => p.test(value))) {
@@ -272,14 +272,14 @@ export const PUT: RequestHandler = async ({ request, locals }) => {
 							newData[newKey] = value;
 						}
 						return db.update(datasetRows).set({ data: newData }).where(eq(datasetRows.id, row.id));
-					})
+					}),
 				);
 			}
 
 			// Update schema
 			const updatedSchema = (dataset.schema as ColumnSchema[]).map((col) => ({
 				...col,
-				name: cleanColumnName(col.name)
+				name: cleanColumnName(col.name),
 			}));
 
 			await db.update(datasets).set({ schema: updatedSchema }).where(eq(datasets.id, dataset.id));
@@ -288,7 +288,7 @@ export const PUT: RequestHandler = async ({ request, locals }) => {
 			results.push({
 				datasetId: dataset.id,
 				datasetName: dataset.name,
-				cleaned: columnMapping.size
+				cleaned: columnMapping.size,
 			});
 		}
 
@@ -296,7 +296,7 @@ export const PUT: RequestHandler = async ({ request, locals }) => {
 			success: true,
 			message: `Cleaned column names in ${results.length} dataset(s)`,
 			totalCleaned,
-			results
+			results,
 		});
 	}
 

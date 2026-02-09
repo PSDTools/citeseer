@@ -13,12 +13,12 @@
 
 		try {
 			const response = await fetch('/api/settings/test-key', {
-				method: 'POST'
+				method: 'POST',
 			});
 			const result = await response.json();
 			testResult = {
 				success: response.ok,
-				message: result.message || (response.ok ? 'API key is valid' : 'API key test failed')
+				message: result.message || (response.ok ? 'API key is valid' : 'API key test failed'),
 			};
 		} catch {
 			testResult = { success: false, message: 'Failed to test API key' };

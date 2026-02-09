@@ -16,26 +16,26 @@ export const auth = betterAuth({
 			user: schema.users,
 			session: schema.sessions,
 			account: schema.accounts,
-			verification: schema.verifications
-		}
+			verification: schema.verifications,
+		},
 	}),
 	emailAndPassword: {
 		enabled: true,
-		minPasswordLength: 8
+		minPasswordLength: 8,
 	},
 	session: {
 		expiresIn: 60 * 60 * 24 * 30, // 30 days
-		updateAge: 60 * 60 * 24 // 1 day
+		updateAge: 60 * 60 * 24, // 1 day
 	},
 	user: {
-		modelName: 'users'
+		modelName: 'users',
 	},
 	advanced: {
 		database: {
-			generateId: () => crypto.randomUUID()
-		}
+			generateId: () => crypto.randomUUID(),
+		},
 	},
-	plugins: [sveltekitCookies(getRequestEvent)] // must be last plugin
+	plugins: [sveltekitCookies(getRequestEvent)], // must be last plugin
 });
 
 export type Session = typeof auth.$Infer.Session.session;

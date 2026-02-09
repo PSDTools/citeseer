@@ -79,7 +79,7 @@ export const load: PageServerLoad = async ({ params, parent }) => {
 							success: true,
 							data: rows as Record<string, unknown>[],
 							columns: rows.length > 0 ? Object.keys(rows[0]) : [],
-							rowCount: rows.length
+							rowCount: rows.length,
 						};
 					} catch (e) {
 						results[i] = {
@@ -87,7 +87,7 @@ export const load: PageServerLoad = async ({ params, parent }) => {
 							data: [],
 							columns: [],
 							rowCount: 0,
-							error: e instanceof Error ? e.message : 'Query execution failed'
+							error: e instanceof Error ? e.message : 'Query execution failed',
 						};
 					}
 				}
@@ -98,7 +98,7 @@ export const load: PageServerLoad = async ({ params, parent }) => {
 	return {
 		dashboard,
 		breadcrumb,
-		results
+		results,
 	};
 };
 
@@ -121,5 +121,5 @@ export const actions: Actions = {
 			.where(and(eq(dashboards.id, params.id), eq(dashboards.orgId, org.id)));
 
 		return { success: true };
-	}
+	},
 };

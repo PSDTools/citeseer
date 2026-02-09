@@ -22,7 +22,7 @@ export const GET: RequestHandler = async ({ locals }) => {
 			id: contexts.id,
 			name: contexts.name,
 			description: contexts.description,
-			createdAt: contexts.createdAt
+			createdAt: contexts.createdAt,
 		})
 		.from(contexts)
 		.where(eq(contexts.orgId, orgId))
@@ -37,9 +37,9 @@ export const GET: RequestHandler = async ({ locals }) => {
 				.where(eq(contextDatasets.contextId, ctx.id));
 			return {
 				...ctx,
-				datasetCount: datasetLinks.length
+				datasetCount: datasetLinks.length,
 			};
-		})
+		}),
 	);
 
 	return json({ contexts: contextsWithCounts });
@@ -75,7 +75,7 @@ export const POST: RequestHandler = async ({ locals, request }) => {
 			orgId,
 			name: name.trim(),
 			description: description?.trim(),
-			createdBy: locals.user.id
+			createdBy: locals.user.id,
 		})
 		.returning();
 
@@ -84,8 +84,8 @@ export const POST: RequestHandler = async ({ locals, request }) => {
 		await db.insert(contextDatasets).values(
 			datasetIds.map((datasetId) => ({
 				contextId: context.id,
-				datasetId
-			}))
+				datasetId,
+			})),
 		);
 	}
 

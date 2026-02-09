@@ -10,15 +10,15 @@ export default /** @satisfies {import('@sveltejs/kit').Config} */ ({
 
 		experimental: {
 			instrumentation: {
-				server: true
+				server: true,
 			},
 			tracing: {
-				server: true
-			}
-		}
+				server: true,
+			},
+		},
 	},
 
 	compilerOptions: {
-		runes: true
-	}
+		runes: true,
+	},
 });

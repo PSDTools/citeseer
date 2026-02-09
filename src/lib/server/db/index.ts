@@ -25,7 +25,7 @@ function getDb(): PostgresJsDatabase<typeof schema> {
 	const client = postgres(connectionString, {
 		max: 10,
 		idle_timeout: 20,
-		connect_timeout: 10
+		connect_timeout: 10,
 	});
 
 	// Create drizzle instance with schema for relations
@@ -37,7 +37,7 @@ function getDb(): PostgresJsDatabase<typeof schema> {
 export const db = new Proxy({} as PostgresJsDatabase<typeof schema>, {
 	get(_target, prop) {
 		return getDb()[prop as keyof PostgresJsDatabase<typeof schema>];
-	}
+	},
 });
 
 // Export schema for convenience

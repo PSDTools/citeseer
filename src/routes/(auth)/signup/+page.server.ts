@@ -32,7 +32,7 @@ export const actions: Actions = {
 		try {
 			await auth.api.signUpEmail({
 				body: { email, password, name: email.split('@')[0] },
-				headers: event.request.headers
+				headers: event.request.headers,
 			});
 		} catch (e) {
 			if (e instanceof APIError) {
@@ -47,5 +47,5 @@ export const actions: Actions = {
 
 		// Redirect to onboarding to create first org
 		redirect(302, '/onboarding');
-	}
+	},
 };

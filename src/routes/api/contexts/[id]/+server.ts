@@ -32,8 +32,8 @@ export const GET: RequestHandler = async ({ locals, params }) => {
 			dataset: {
 				id: datasets.id,
 				name: datasets.name,
-				rowCount: datasets.rowCount
-			}
+				rowCount: datasets.rowCount,
+			},
 		})
 		.from(contextDatasets)
 		.innerJoin(datasets, eq(contextDatasets.datasetId, datasets.id))
@@ -41,7 +41,7 @@ export const GET: RequestHandler = async ({ locals, params }) => {
 
 	return json({
 		context,
-		datasets: datasetLinks.map((l) => l.dataset)
+		datasets: datasetLinks.map((l) => l.dataset),
 	});
 };
 
@@ -90,7 +90,7 @@ export const PATCH: RequestHandler = async ({ locals, params, request }) => {
 		.update(contexts)
 		.set({
 			...(name && { name: name.trim() }),
-			...(description !== undefined && { description: description?.trim() || null })
+			...(description !== undefined && { description: description?.trim() || null }),
 		})
 		.where(and(eq(contexts.id, params.id), eq(contexts.orgId, orgId)))
 		.returning();

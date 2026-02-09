@@ -44,7 +44,7 @@ export class DateNormalizer {
 	 */
 	async analyzeDateColumns(
 		rows: Record<string, unknown>[],
-		columns: string[]
+		columns: string[],
 	): Promise<DateAnalysisResult> {
 		const sampleSize = Math.min(5, rows.length);
 		const sampleRows = rows.slice(0, sampleSize);
@@ -67,13 +67,13 @@ export class DateNormalizer {
 				contents: [
 					{
 						role: 'user',
-						parts: [{ text: DATE_ANALYSIS_PROMPT + columnSamples.join('\n') }]
-					}
+						parts: [{ text: DATE_ANALYSIS_PROMPT + columnSamples.join('\n') }],
+					},
 				],
 				config: {
 					temperature: 0.1,
-					maxOutputTokens: 1024
-				}
+					maxOutputTokens: 1024,
+				},
 			});
 
 			const text = response.text || '[]';
@@ -96,7 +96,7 @@ export class DateNormalizer {
 	 */
 	normalizeRows(
 		rows: Record<string, unknown>[],
-		dateColumns: DateColumnInfo[]
+		dateColumns: DateColumnInfo[],
 	): Record<string, unknown>[] {
 		if (dateColumns.length === 0) return rows;
 
@@ -177,7 +177,7 @@ export class DateNormalizer {
 			{
 				pattern: /^(\d{1,2})\/(\d{1,2})\/(\d{4})$/,
 				transform: (m: RegExpMatchArray) =>
-					`${m[3]}-${m[1].padStart(2, '0')}-${m[2].padStart(2, '0')}`
+					`${m[3]}-${m[1].padStart(2, '0')}-${m[2].padStart(2, '0')}`,
 			},
 			// DD/MM/YYYY (if day > 12)
 			{
@@ -188,19 +188,19 @@ export class DateNormalizer {
 						return `${m[3]}-${m[2].padStart(2, '0')}-${m[1].padStart(2, '0')}`;
 					}
 					return null;
-				}
+				},
 			},
 			// DD-MM-YYYY
 			{
 				pattern: /^(\d{1,2})-(\d{1,2})-(\d{4})$/,
 				transform: (m: RegExpMatchArray) =>
-					`${m[3]}-${m[2].padStart(2, '0')}-${m[1].padStart(2, '0')}`
+					`${m[3]}-${m[2].padStart(2, '0')}-${m[1].padStart(2, '0')}`,
 			},
 			// YYYY/MM/DD
 			{
 				pattern: /^(\d{4})\/(\d{1,2})\/(\d{1,2})$/,
 				transform: (m: RegExpMatchArray) =>
-					`${m[1]}-${m[2].padStart(2, '0')}-${m[3].padStart(2, '0')}`
+					`${m[1]}-${m[2].padStart(2, '0')}-${m[3].padStart(2, '0')}`,
 			},
 			// Month name formats: "Jan 15, 2024" or "15 Jan 2024"
 			{
@@ -209,7 +209,7 @@ export class DateNormalizer {
 					const month = this.monthToNumber(m[1]);
 					if (month) return `${m[3]}-${month}-${m[2].padStart(2, '0')}`;
 					return null;
-				}
+				},
 			},
 			{
 				pattern: /^(\d{1,2})\s+([A-Za-z]{3,9})\s+(\d{4})$/,
@@ -217,18 +217,18 @@ export class DateNormalizer {
 					const month = this.monthToNumber(m[2]);
 					if (month) return `${m[3]}-${month}-${m[1].padStart(2, '0')}`;
 					return null;
-				}
+				},
 			},
 			// YYYY-MM (year-month only) - keep as is
 			{
 				pattern: /^(\d{4})-(\d{1,2})$/,
-				transform: (m: RegExpMatchArray) => `${m[1]}-${m[2].padStart(2, '0')}`
+				transform: (m: RegExpMatchArray) => `${m[1]}-${m[2].padStart(2, '0')}`,
 			},
 			// MM/YYYY - convert to YYYY-MM
 			{
 				pattern: /^(\d{1,2})\/(\d{4})$/,
-				transform: (m: RegExpMatchArray) => `${m[2]}-${m[1].padStart(2, '0')}`
-			}
+				transform: (m: RegExpMatchArray) => `${m[2]}-${m[1].padStart(2, '0')}`,
+			},
 		];
 
 		for (const { pattern, transform } of formats) {
@@ -274,7 +274,7 @@ export class DateNormalizer {
 			nov: '11',
 			november: '11',
 			dec: '12',
-			december: '12'
+			december: '12',
 		};
 		return months[month.toLowerCase()] || null;
 	}

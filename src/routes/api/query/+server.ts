@@ -10,7 +10,7 @@ import type {
 	ColumnProfile,
 	AnalyticalPlan,
 	QueryResult,
-	BranchContext
+	BranchContext,
 } from '$lib/types/toon';
 
 export const POST: RequestHandler = async ({ request, locals }) => {
@@ -76,13 +76,13 @@ export const POST: RequestHandler = async ({ request, locals }) => {
 		id: d.id,
 		name: d.name,
 		rowCount: d.rowCount,
-		columns: d.schema as ColumnProfile[]
+		columns: d.schema as ColumnProfile[],
 	}));
 
 	// Compile question
 	const compiler = new GeminiCompiler({
 		apiKey: orgSettings.geminiApiKey,
-		model: orgSettings.geminiModel
+		model: orgSettings.geminiModel,
 	});
 
 	const startTime = Date.now();
@@ -102,12 +102,12 @@ export const POST: RequestHandler = async ({ request, locals }) => {
 			plan: plan as SchemaAnalyticalPlan,
 			status: 'refused',
 			error: plan.reason,
-			executionMs: compilationMs
+			executionMs: compilationMs,
 		});
 
 		return json({
 			plan,
-			results: null
+			results: null,
 		});
 	}
 
@@ -125,7 +125,7 @@ export const POST: RequestHandler = async ({ request, locals }) => {
 	async function executeWithRetry(
 		sqlQuery: string,
 		datasetId: string,
-		context: string
+		context: string,
 	): Promise<{ result: QueryResult; finalSql: string; wasFixed: boolean; attempts: number }> {
 		let currentSql = sqlQuery;
 		let wasFixed = false;
@@ -152,7 +152,7 @@ export const POST: RequestHandler = async ({ request, locals }) => {
 					question,
 					originalSQL: currentSql,
 					error: result.error || 'Unknown error',
-					datasets: profiles
+					datasets: profiles,
 				});
 
 				if (fix) {
@@ -181,7 +181,7 @@ export const POST: RequestHandler = async ({ request, locals }) => {
 			const { result, finalSql, wasFixed } = await executeWithRetry(
 				plan.sql,
 				targetDatasets[0].id,
-				'main query'
+				'main query',
 			);
 			results.set(-1, result);
 			if (wasFixed) {
@@ -198,7 +198,7 @@ export const POST: RequestHandler = async ({ request, locals }) => {
 					const { result, finalSql, wasFixed } = await executeWithRetry(
 						panelSql,
 						targetDatasets[0].id,
-						`panel ${i}: ${panel.title}`
+						`panel ${i}: ${panel.title}`,
 					);
 					results.set(i, result);
 					if (wasFixed && panel.sql) {
@@ -235,12 +235,12 @@ export const POST: RequestHandler = async ({ request, locals }) => {
 				sql: plan.sql || '',
 				error: failedResult?.error,
 				rowCount: failedResult?.rowCount,
-				datasets: profiles
+				datasets: profiles,
 			});
 
 			errorExplanation = {
 				...explanation,
-				retryInfo
+				retryInfo,
 			};
 		}
 
@@ -253,7 +253,7 @@ export const POST: RequestHandler = async ({ request, locals }) => {
 			sql: plan.sql,
 			status: hasError ? 'failed' : 'success',
 			error: hasError ? resultsArray.find((r) => !r.success)?.error : undefined,
-			executionMs
+			executionMs,
 		});
 
 		// Generate executive summaries if we have successful results
@@ -264,13 +264,13 @@ export const POST: RequestHandler = async ({ request, locals }) => {
 					title: panel.title,
 					type: panel.type,
 					data: result?.data || [],
-					columns: result?.columns || []
+					columns: result?.columns || [],
 				};
 			});
 
 			const summaries = await compiler.generateExecutiveSummary({
 				question,
-				panels: panelData
+				panels: panelData,
 			});
 
 			// Add summaries to plan
@@ -287,7 +287,7 @@ export const POST: RequestHandler = async ({ request, locals }) => {
 		return json({
 			plan,
 			results: Object.fromEntries(results),
-			errorExplanation
+			errorExplanation,
 		});
 	} catch (e) {
 		const errorMessage = e instanceof Error ? e.message : 'Query execution failed';
@@ -297,7 +297,7 @@ export const POST: RequestHandler = async ({ request, locals }) => {
 			question,
 			sql: plan.sql || '',
 			error: errorMessage,
-			datasets: profiles
+			datasets: profiles,
 		});
 
 		// Store failed query
@@ -309,16 +309,16 @@ export const POST: RequestHandler = async ({ request, locals }) => {
 			sql: plan.sql,
 			status: 'failed',
 			error: errorMessage,
-			executionMs: Date.now() - startTime
+			executionMs: Date.now() - startTime,
 		});
 
 		return json({
 			plan: {
 				...plan,
-				validationError: errorMessage
+				validationError: errorMessage,
 			},
 			results: null,
-			errorExplanation
+			errorExplanation,
 		});
 	}
 };
@@ -336,7 +336,7 @@ async function executeQuery(sqlQuery: string, datasetId: string): Promise<QueryR
 				data: [],
 				columns: [],
 				rowCount: 0,
-				error: `Query contains forbidden keyword: ${keyword}`
+				error: `Query contains forbidden keyword: ${keyword}`,
 			};
 		}
 	}
@@ -361,7 +361,7 @@ async function executeQuery(sqlQuery: string, datasetId: string): Promise<QueryR
 			data: rows as Record<string, unknown>[],
 			columns,
 			rowCount: rows.length,
-			executionMs: Date.now() - startTime
+			executionMs: Date.now() - startTime,
 		};
 	} catch (e) {
 		return {
@@ -370,7 +370,7 @@ async function executeQuery(sqlQuery: string, datasetId: string): Promise<QueryR
 			columns: [],
 			rowCount: 0,
 			error: e instanceof Error ? e.message : 'Query failed',
-			executionMs: Date.now() - startTime
+			executionMs: Date.now() - startTime,
 		};
 	}
 }

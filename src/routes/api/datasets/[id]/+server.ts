@@ -112,7 +112,7 @@ export const POST: RequestHandler = async ({ params, locals, request }) => {
 
 	// Check if column names need cleaning (have pipes or extra spaces)
 	const needsCleaning = originalColumns.some(
-		(c) => c.includes('|') || c.startsWith(' ') || c.endsWith(' ')
+		(c) => c.includes('|') || c.startsWith(' ') || c.endsWith(' '),
 	);
 
 	if (needsCleaning || body.action === 'clean-columns') {
@@ -146,8 +146,8 @@ export const POST: RequestHandler = async ({ params, locals, request }) => {
 						db
 							.update(datasetRows)
 							.set({ data: rowData[i + idx] })
-							.where(eq(datasetRows.id, row.id))
-					)
+							.where(eq(datasetRows.id, row.id)),
+					),
 				);
 			}
 
@@ -155,7 +155,7 @@ export const POST: RequestHandler = async ({ params, locals, request }) => {
 			const updatedSchema = (dataset.schema as ColumnSchema[]).map((col) => ({
 				...col,
 				name: cleanColumnName(col.name),
-				sampleValues: col.sampleValues
+				sampleValues: col.sampleValues,
 			}));
 
 			await db.update(datasets).set({ schema: updatedSchema }).where(eq(datasets.id, params.id));
@@ -169,8 +169,8 @@ export const POST: RequestHandler = async ({ params, locals, request }) => {
 					cleaned: columnMapping.size,
 					columns: Array.from(columnMapping.entries()).map(([old, newName]) => ({
 						old,
-						new: newName
-					}))
+						new: newName,
+					})),
 				});
 			}
 		}
@@ -197,7 +197,7 @@ export const POST: RequestHandler = async ({ params, locals, request }) => {
 			success: true,
 			message: 'No date columns detected',
 			normalized: 0,
-			dateColumns: []
+			dateColumns: [],
 		});
 	}
 
@@ -213,15 +213,15 @@ export const POST: RequestHandler = async ({ params, locals, request }) => {
 				db
 					.update(datasetRows)
 					.set({ data: normalizedData[i + idx] })
-					.where(eq(datasetRows.id, row.id))
-			)
+					.where(eq(datasetRows.id, row.id)),
+			),
 		);
 	}
 
 	// Build a map for quick lookup of date column info (using normalized names)
 	const normalizeColName = (name: string) => name.replace(/\|/g, '').trim().toLowerCase();
 	const dateColumnMap = new Map(
-		analysis.dateColumns.map((d) => [normalizeColName(d.columnName), d])
+		analysis.dateColumns.map((d) => [normalizeColName(d.columnName), d]),
 	);
 
 	// Update schema to reflect date columns AND update sample values with normalized data
@@ -239,7 +239,7 @@ export const POST: RequestHandler = async ({ params, locals, request }) => {
 				...col,
 				dtype: 'timestamp',
 				isTimestamp: true,
-				sampleValues: newSamples
+				sampleValues: newSamples,
 			};
 		}
 		return col;
@@ -253,7 +253,7 @@ export const POST: RequestHandler = async ({ params, locals, request }) => {
 		normalized: rows.length,
 		dateColumns: analysis.dateColumns.map((d) => ({
 			name: d.columnName,
-			format: d.detectedFormat
-		}))
+			format: d.detectedFormat,
+		})),
 	});
 };

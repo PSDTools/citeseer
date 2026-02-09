@@ -17,7 +17,7 @@ export const load: PageServerLoad = async ({ parent }) => {
 			id: contexts.id,
 			name: contexts.name,
 			description: contexts.description,
-			createdAt: contexts.createdAt
+			createdAt: contexts.createdAt,
 		})
 		.from(contexts)
 		.where(eq(contexts.orgId, org.id))
@@ -39,9 +39,9 @@ export const load: PageServerLoad = async ({ parent }) => {
 			return {
 				...ctx,
 				datasetCount: datasetCount.count,
-				questionCount: questionCount.count
+				questionCount: questionCount.count,
 			};
-		})
+		}),
 	);
 
 	// Check if org has API key configured
@@ -55,7 +55,7 @@ export const load: PageServerLoad = async ({ parent }) => {
 		.select({
 			id: datasets.id,
 			name: datasets.name,
-			rowCount: datasets.rowCount
+			rowCount: datasets.rowCount,
 		})
 		.from(datasets)
 		.where(eq(datasets.orgId, org.id));
@@ -65,6 +65,6 @@ export const load: PageServerLoad = async ({ parent }) => {
 		totalContexts: orgContexts.length,
 		contexts: contextsWithStats,
 		allDatasets,
-		hasApiKey: !!orgSettings?.geminiApiKey
+		hasApiKey: !!orgSettings?.geminiApiKey,
 	};
 };

@@ -23,8 +23,8 @@ export const load: PageServerLoad = async ({ params, parent }) => {
 				id: datasets.id,
 				name: datasets.name,
 				rowCount: datasets.rowCount,
-				schema: datasets.schema
-			}
+				schema: datasets.schema,
+			},
 		})
 		.from(contextDatasets)
 		.innerJoin(datasets, eq(contextDatasets.datasetId, datasets.id))
@@ -40,7 +40,7 @@ export const load: PageServerLoad = async ({ params, parent }) => {
 			results: dashboards.results,
 			parentDashboardId: dashboards.parentDashboardId,
 			nodeContext: dashboards.nodeContext,
-			createdAt: dashboards.createdAt
+			createdAt: dashboards.createdAt,
 		})
 		.from(dashboards)
 		.where(eq(dashboards.contextId, params.id))
@@ -51,7 +51,7 @@ export const load: PageServerLoad = async ({ params, parent }) => {
 		.select({
 			id: datasets.id,
 			name: datasets.name,
-			rowCount: datasets.rowCount
+			rowCount: datasets.rowCount,
 		})
 		.from(datasets)
 		.where(eq(datasets.orgId, org.id));
@@ -67,6 +67,6 @@ export const load: PageServerLoad = async ({ params, parent }) => {
 		datasets: datasetLinks.map((l) => l.dataset),
 		dashboards: contextDashboards,
 		allDatasets,
-		hasApiKey: !!orgSettings?.geminiApiKey
+		hasApiKey: !!orgSettings?.geminiApiKey,
 	};
 };

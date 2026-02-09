@@ -9,7 +9,7 @@ export const load: PageServerLoad = async ({ locals }) => {
 		return {
 			user: null,
 			datasets: [],
-			hasApiKey: false
+			hasApiKey: false,
 		};
 	}
 
@@ -19,7 +19,7 @@ export const load: PageServerLoad = async ({ locals }) => {
 		return {
 			user: locals.user,
 			datasets: [],
-			hasApiKey: false
+			hasApiKey: false,
 		};
 	}
 
@@ -30,7 +30,7 @@ export const load: PageServerLoad = async ({ locals }) => {
 		.select({
 			id: datasets.id,
 			name: datasets.name,
-			rowCount: datasets.rowCount
+			rowCount: datasets.rowCount,
 		})
 		.from(datasets)
 		.where(eq(datasets.orgId, org.id));
@@ -44,6 +44,6 @@ export const load: PageServerLoad = async ({ locals }) => {
 	return {
 		user: locals.user,
 		datasets: userDatasets,
-		hasApiKey: !!orgSettings?.geminiApiKey
+		hasApiKey: !!orgSettings?.geminiApiKey,
 	};
 };

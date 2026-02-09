@@ -9,7 +9,7 @@ import {
 	integer,
 	boolean,
 	pgEnum,
-	type AnyPgColumn
+	type AnyPgColumn,
 } from 'drizzle-orm/pg-core';
 import { relations } from 'drizzle-orm';
 
@@ -26,7 +26,7 @@ export const users = pgTable('users', {
 	image: text('image'),
 	passwordHash: text('password_hash'), // legacy, kept for migration
 	createdAt: timestamp('created_at', { withTimezone: true }).notNull().defaultNow(),
-	updatedAt: timestamp('updated_at', { withTimezone: true }).notNull().defaultNow()
+	updatedAt: timestamp('updated_at', { withTimezone: true }).notNull().defaultNow(),
 });
 
 // Sessions table (better-auth compatible)
@@ -40,7 +40,7 @@ export const sessions = pgTable('sessions', {
 	ipAddress: text('ip_address'),
 	userAgent: text('user_agent'),
 	createdAt: timestamp('created_at', { withTimezone: true }).notNull().defaultNow(),
-	updatedAt: timestamp('updated_at', { withTimezone: true }).notNull().defaultNow()
+	updatedAt: timestamp('updated_at', { withTimezone: true }).notNull().defaultNow(),
 });
 
 // Account table (better-auth)
@@ -59,7 +59,7 @@ export const accounts = pgTable('accounts', {
 	idToken: text('id_token'),
 	password: text('password'),
 	createdAt: timestamp('created_at', { withTimezone: true }).notNull().defaultNow(),
-	updatedAt: timestamp('updated_at', { withTimezone: true }).notNull().defaultNow()
+	updatedAt: timestamp('updated_at', { withTimezone: true }).notNull().defaultNow(),
 });
 
 // Verification table (better-auth)
@@ -69,7 +69,7 @@ export const verifications = pgTable('verifications', {
 	value: text('value').notNull(),
 	expiresAt: timestamp('expires_at', { withTimezone: true }).notNull(),
 	createdAt: timestamp('created_at', { withTimezone: true }).notNull().defaultNow(),
-	updatedAt: timestamp('updated_at', { withTimezone: true }).notNull().defaultNow()
+	updatedAt: timestamp('updated_at', { withTimezone: true }).notNull().defaultNow(),
 });
 
 // Organizations table
@@ -78,7 +78,7 @@ export const organizations = pgTable('organizations', {
 	name: varchar('name', { length: 255 }).notNull(),
 	slug: varchar('slug', { length: 100 }).notNull().unique(),
 	createdAt: timestamp('created_at', { withTimezone: true }).notNull().defaultNow(),
-	updatedAt: timestamp('updated_at', { withTimezone: true }).notNull().defaultNow()
+	updatedAt: timestamp('updated_at', { withTimezone: true }).notNull().defaultNow(),
 });
 
 // Organization members table
@@ -91,7 +91,7 @@ export const orgMembers = pgTable('org_members', {
 		.notNull()
 		.references(() => organizations.id, { onDelete: 'cascade' }),
 	role: orgRoleEnum('role').notNull().default('member'),
-	createdAt: timestamp('created_at', { withTimezone: true }).notNull().defaultNow()
+	createdAt: timestamp('created_at', { withTimezone: true }).notNull().defaultNow(),
 });
 
 // Datasets table
@@ -105,7 +105,7 @@ export const datasets = pgTable('datasets', {
 	rowCount: integer('row_count').notNull().default(0),
 	schema: jsonb('schema').$type<ColumnSchema[]>().notNull(),
 	createdAt: timestamp('created_at', { withTimezone: true }).notNull().defaultNow(),
-	uploadedBy: uuid('uploaded_by').references(() => users.id, { onDelete: 'set null' })
+	uploadedBy: uuid('uploaded_by').references(() => users.id, { onDelete: 'set null' }),
 });
 
 // Dataset rows table - stores actual CSV data
@@ -115,7 +115,7 @@ export const datasetRows = pgTable('dataset_rows', {
 		.notNull()
 		.references(() => datasets.id, { onDelete: 'cascade' }),
 	data: jsonb('data').$type<Record<string, unknown>>().notNull(),
-	rowIndex: integer('row_index').notNull()
+	rowIndex: integer('row_index').notNull(),
 });
 
 // Queries table - stores query history
@@ -131,7 +131,7 @@ export const queries = pgTable('queries', {
 	status: queryStatusEnum('status').notNull().default('pending'),
 	error: text('error'),
 	createdAt: timestamp('created_at', { withTimezone: true }).notNull().defaultNow(),
-	executionMs: integer('execution_ms')
+	executionMs: integer('execution_ms'),
 });
 
 // Dashboards table - saved query results / lines of reasoning (per-context)
@@ -142,10 +142,10 @@ export const dashboards = pgTable('dashboards', {
 		.references(() => organizations.id, { onDelete: 'cascade' }),
 	contextId: uuid('context_id').references(() => contexts.id, { onDelete: 'cascade' }),
 	parentDashboardId: uuid('parent_dashboard_id').references((): AnyPgColumn => dashboards.id, {
-		onDelete: 'set null'
+		onDelete: 'set null',
 	}),
 	rootDashboardId: uuid('root_dashboard_id').references((): AnyPgColumn => dashboards.id, {
-		onDelete: 'set null'
+		onDelete: 'set null',
 	}),
 	name: varchar('name', { length: 255 }).notNull(),
 	question: text('question').notNull(),
@@ -156,7 +156,7 @@ export const dashboards = pgTable('dashboards', {
 	nodeContext: jsonb('node_context').$type<DashboardNodeContext>(),
 	createdAt: timestamp('created_at', { withTimezone: true }).notNull().defaultNow(),
 	updatedAt: timestamp('updated_at', { withTimezone: true }).notNull().defaultNow(),
-	createdBy: uuid('created_by').references(() => users.id, { onDelete: 'set null' })
+	createdBy: uuid('created_by').references(() => users.id, { onDelete: 'set null' }),
 });
 
 // Contexts table - groups of datasets for AI analysis
@@ -168,7 +168,7 @@ export const contexts = pgTable('contexts', {
 	name: varchar('name', { length: 255 }).notNull(),
 	description: text('description'),
 	createdAt: timestamp('created_at', { withTimezone: true }).notNull().defaultNow(),
-	createdBy: uuid('created_by').references(() => users.id, { onDelete: 'set null' })
+	createdBy: uuid('created_by').references(() => users.id, { onDelete: 'set null' }),
 });
 
 // Junction table for contexts <-> datasets (many-to-many)
@@ -180,7 +180,7 @@ export const contextDatasets = pgTable('context_datasets', {
 	datasetId: uuid('dataset_id')
 		.notNull()
 		.references(() => datasets.id, { onDelete: 'cascade' }),
-	addedAt: timestamp('added_at', { withTimezone: true }).notNull().defaultNow()
+	addedAt: timestamp('added_at', { withTimezone: true }).notNull().defaultNow(),
 });
 
 // Settings table - per-org settings including API keys
@@ -192,7 +192,7 @@ export const settings = pgTable('settings', {
 		.unique(),
 	geminiApiKey: text('gemini_api_key'), // Should be encrypted in production
 	geminiModel: varchar('gemini_model', { length: 100 }).notNull().default('gemini-2.0-flash'),
-	updatedAt: timestamp('updated_at', { withTimezone: true }).notNull().defaultNow()
+	updatedAt: timestamp('updated_at', { withTimezone: true }).notNull().defaultNow(),
 });
 
 // Relations
@@ -201,21 +201,21 @@ export const usersRelations = relations(users, ({ many }) => ({
 	accounts: many(accounts),
 	orgMembers: many(orgMembers),
 	uploadedDatasets: many(datasets),
-	queries: many(queries)
+	queries: many(queries),
 }));
 
 export const sessionsRelations = relations(sessions, ({ one }) => ({
 	user: one(users, {
 		fields: [sessions.userId],
-		references: [users.id]
-	})
+		references: [users.id],
+	}),
 }));
 
 export const accountsRelations = relations(accounts, ({ one }) => ({
 	user: one(users, {
 		fields: [accounts.userId],
-		references: [users.id]
-	})
+		references: [users.id],
+	}),
 }));
 
 export const organizationsRelations = relations(organizations, ({ many, one }) => ({
@@ -224,101 +224,101 @@ export const organizationsRelations = relations(organizations, ({ many, one }) =
 	contexts: many(contexts),
 	queries: many(queries),
 	dashboards: many(dashboards),
-	settings: one(settings)
+	settings: one(settings),
 }));
 
 export const orgMembersRelations = relations(orgMembers, ({ one }) => ({
 	user: one(users, {
 		fields: [orgMembers.userId],
-		references: [users.id]
+		references: [users.id],
 	}),
 	organization: one(organizations, {
 		fields: [orgMembers.orgId],
-		references: [organizations.id]
-	})
+		references: [organizations.id],
+	}),
 }));
 
 export const datasetsRelations = relations(datasets, ({ one, many }) => ({
 	organization: one(organizations, {
 		fields: [datasets.orgId],
-		references: [organizations.id]
+		references: [organizations.id],
 	}),
 	uploader: one(users, {
 		fields: [datasets.uploadedBy],
-		references: [users.id]
+		references: [users.id],
 	}),
 	rows: many(datasetRows),
-	contextDatasets: many(contextDatasets)
+	contextDatasets: many(contextDatasets),
 }));
 
 export const datasetRowsRelations = relations(datasetRows, ({ one }) => ({
 	dataset: one(datasets, {
 		fields: [datasetRows.datasetId],
-		references: [datasets.id]
-	})
+		references: [datasets.id],
+	}),
 }));
 
 export const queriesRelations = relations(queries, ({ one }) => ({
 	organization: one(organizations, {
 		fields: [queries.orgId],
-		references: [organizations.id]
+		references: [organizations.id],
 	}),
 	user: one(users, {
 		fields: [queries.userId],
-		references: [users.id]
-	})
+		references: [users.id],
+	}),
 }));
 
 export const dashboardsRelations = relations(dashboards, ({ one, many }) => ({
 	organization: one(organizations, {
 		fields: [dashboards.orgId],
-		references: [organizations.id]
+		references: [organizations.id],
 	}),
 	context: one(contexts, {
 		fields: [dashboards.contextId],
-		references: [contexts.id]
+		references: [contexts.id],
 	}),
 	creator: one(users, {
 		fields: [dashboards.createdBy],
-		references: [users.id]
+		references: [users.id],
 	}),
 	parent: one(dashboards, {
 		fields: [dashboards.parentDashboardId],
 		references: [dashboards.id],
-		relationName: 'dashboard_parent'
+		relationName: 'dashboard_parent',
 	}),
-	children: many(dashboards, { relationName: 'dashboard_parent' })
+	children: many(dashboards, { relationName: 'dashboard_parent' }),
 }));
 
 export const settingsRelations = relations(settings, ({ one }) => ({
 	organization: one(organizations, {
 		fields: [settings.orgId],
-		references: [organizations.id]
-	})
+		references: [organizations.id],
+	}),
 }));
 
 export const contextsRelations = relations(contexts, ({ one, many }) => ({
 	organization: one(organizations, {
 		fields: [contexts.orgId],
-		references: [organizations.id]
+		references: [organizations.id],
 	}),
 	creator: one(users, {
 		fields: [contexts.createdBy],
-		references: [users.id]
+		references: [users.id],
 	}),
 	contextDatasets: many(contextDatasets),
-	dashboards: many(dashboards)
+	dashboards: many(dashboards),
 }));
 
 export const contextDatasetsRelations = relations(contextDatasets, ({ one }) => ({
 	context: one(contexts, {
 		fields: [contextDatasets.contextId],
-		references: [contexts.id]
+		references: [contexts.id],
 	}),
 	dataset: one(datasets, {
 		fields: [contextDatasets.datasetId],
-		references: [datasets.id]
-	})
+		references: [datasets.id],
+	}),
 }));
 
 // Type definitions for JSONB columns

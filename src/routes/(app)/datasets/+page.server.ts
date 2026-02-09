@@ -13,7 +13,7 @@ export const load: PageServerLoad = async ({ parent }) => {
 			fileName: datasets.fileName,
 			rowCount: datasets.rowCount,
 			schema: datasets.schema,
-			createdAt: datasets.createdAt
+			createdAt: datasets.createdAt,
 		})
 		.from(datasets)
 		.where(eq(datasets.orgId, org.id))
@@ -22,7 +22,7 @@ export const load: PageServerLoad = async ({ parent }) => {
 	return {
 		datasets: orgDatasets.map((d) => ({
 			...d,
-			columnCount: (d.schema as ColumnSchema[]).length
-		}))
+			columnCount: (d.schema as ColumnSchema[]).length,
+		})),
 	};
 };

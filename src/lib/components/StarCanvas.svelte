@@ -67,7 +67,7 @@
 		{ name: 'port_congestion_level', label: 'Port Congestion', unit: 'index' },
 		{ name: 'delay_probability', label: 'Delay Probability', unit: '%' },
 		{ name: 'supplier_reliability_score', label: 'Supplier Reliability', unit: 'score' },
-		{ name: 'risk_classification', label: 'Risk Level', unit: '' }
+		{ name: 'risk_classification', label: 'Risk Level', unit: '' },
 	];
 
 	function generateSupplyChainData() {
@@ -89,7 +89,7 @@
 				risk_classification: risks[Math.floor(Math.random() * risks.length)],
 				iot_temperature: (Math.random() * 40 - 10).toFixed(2),
 				cargo_condition_status: Math.random() > 0.5 ? 'Good' : 'Critical',
-				route_risk_level: (Math.random() * 10).toFixed(2)
+				route_risk_level: (Math.random() * 10).toFixed(2),
 			});
 		}
 
@@ -107,7 +107,7 @@
 			'rgba(255, 255, 255, 0.8)',
 			'rgba(255, 255, 255, 0.6)',
 			'rgba(220, 220, 255, 0.7)',
-			'rgba(255, 230, 200, 0.6)'
+			'rgba(255, 230, 200, 0.6)',
 		];
 		return colors[Math.floor(Math.random() * colors.length)];
 	}
@@ -120,7 +120,7 @@
 				x: Math.random() * canvas.width,
 				y: Math.random() * heroHeight * 0.85,
 				r: Math.random() * 1.2 + 0.2,
-				alpha: Math.random() * 0.5 + 0.15
+				alpha: Math.random() * 0.5 + 0.15,
 			});
 		}
 		backgroundStars = newStars;
@@ -143,7 +143,7 @@
 				left: Math.max(0, rect.left - pad),
 				top: Math.max(0, rect.top - pad),
 				right: Math.min(canvas.width, rect.right + pad),
-				bottom: Math.min(heroHeight, rect.bottom + pad)
+				bottom: Math.min(heroHeight, rect.bottom + pad),
 			};
 		}
 
@@ -222,7 +222,7 @@
 					targetOpacity: 0,
 					expandProgress: 0,
 					isRevealed: false,
-					proximityFactor: 0
+					proximityFactor: 0,
 				});
 			}
 		}
@@ -241,7 +241,7 @@
 		const rect = heroSection.getBoundingClientRect();
 		mouse = {
 			x: e.clientX - rect.left,
-			y: e.clientY - rect.top
+			y: e.clientY - rect.top,
 		};
 	}
 
@@ -257,7 +257,7 @@
 
 		shootingStars = [
 			...shootingStars,
-			{ x, y, vx, vy, life, age: 0, len: 80 + Math.random() * 140 }
+			{ x, y, vx, vy, life, age: 0, len: 80 + Math.random() * 140 },
 		];
 	}
 
@@ -266,7 +266,7 @@
 		shootingStars = shootingStars
 			.map((s) => ({ ...s, x: s.x + s.vx, y: s.y + s.vy, age: s.age + 1 }))
 			.filter(
-				(s) => s.age <= s.life && s.x > -200 && s.x < canvas.width + 200 && s.y < heroHeight + 200
+				(s) => s.age <= s.life && s.x > -200 && s.x < canvas.width + 200 && s.y < heroHeight + 200,
 			);
 
 		shootingStarTimer += 1;
@@ -284,7 +284,7 @@
 			200,
 			canvas.width * 0.3,
 			canvas.height * 0.4,
-			1000
+			1000,
 		);
 		gradient.addColorStop(0, '#0b1324');
 		gradient.addColorStop(1, '#050810');
@@ -358,7 +358,7 @@
 				targetOpacity,
 				currentOpacity,
 				twinklePhase: star.twinklePhase + star.twinkleSpeed,
-				isRevealed: targetOpacity > 0
+				isRevealed: targetOpacity > 0,
 			};
 		});
 	}
@@ -383,7 +383,7 @@
 				radius * 0.2,
 				star.x,
 				star.y,
-				glowRadius
+				glowRadius,
 			);
 			grad.addColorStop(0, star.color);
 			grad.addColorStop(0.25, star.color);

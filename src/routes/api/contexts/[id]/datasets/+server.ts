@@ -50,13 +50,13 @@ export const POST: RequestHandler = async ({ locals, params, request }) => {
 			.select()
 			.from(contextDatasets)
 			.where(
-				and(eq(contextDatasets.contextId, params.id), eq(contextDatasets.datasetId, datasetId))
+				and(eq(contextDatasets.contextId, params.id), eq(contextDatasets.datasetId, datasetId)),
 			);
 
 		if (!existing) {
 			await db.insert(contextDatasets).values({
 				contextId: params.id,
-				datasetId
+				datasetId,
 			});
 		}
 	}

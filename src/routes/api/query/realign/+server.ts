@@ -56,12 +56,12 @@ export const POST: RequestHandler = async ({ request, locals }) => {
 		id: d.id,
 		name: d.name,
 		rowCount: d.rowCount,
-		columns: d.schema as ColumnProfile[]
+		columns: d.schema as ColumnProfile[],
 	}));
 
 	const compiler = new GeminiCompiler({
 		apiKey: orgSettings.geminiApiKey,
-		model: orgSettings.geminiModel
+		model: orgSettings.geminiModel,
 	});
 
 	const result = await compiler.realignQuestion({ question, reason, datasets: profiles });

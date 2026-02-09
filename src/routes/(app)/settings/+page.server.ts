@@ -12,8 +12,8 @@ export const load: PageServerLoad = async ({ parent }) => {
 	return {
 		settings: {
 			geminiApiKey: orgSettings?.geminiApiKey ? true : false, // Don't expose actual key
-			geminiModel: orgSettings?.geminiModel || 'gemini-2.0-flash'
-		}
+			geminiModel: orgSettings?.geminiModel || 'gemini-2.0-flash',
+		},
 	};
 };
 
@@ -47,14 +47,14 @@ export const actions: Actions = {
 					.set({
 						...(isPlaceholder ? {} : { geminiApiKey: geminiApiKey || null }),
 						geminiModel: geminiModel || 'gemini-2.0-flash',
-						updatedAt: new Date()
+						updatedAt: new Date(),
 					})
 					.where(eq(settings.orgId, org.id));
 			} else {
 				await db.insert(settings).values({
 					orgId: org.id,
 					geminiApiKey: isPlaceholder ? null : geminiApiKey || null,
-					geminiModel: geminiModel || 'gemini-2.0-flash'
+					geminiModel: geminiModel || 'gemini-2.0-flash',
 				});
 			}
 
@@ -63,5 +63,5 @@ export const actions: Actions = {
 			console.error('Error updating settings:', error);
 			return fail(500, { error: 'Failed to save settings' });
 		}
-	}
+	},
 };

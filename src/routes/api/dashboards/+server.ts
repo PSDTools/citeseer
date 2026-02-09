@@ -7,7 +7,7 @@ import type {
 	AnalyticalPlan,
 	PanelSpec,
 	DashboardNodeContext,
-	QueryResult
+	QueryResult,
 } from '$lib/server/db/schema';
 
 // GET - List all dashboards for the org
@@ -29,7 +29,7 @@ export const GET: RequestHandler = async ({ locals }) => {
 			name: dashboards.name,
 			question: dashboards.question,
 			description: dashboards.description,
-			createdAt: dashboards.createdAt
+			createdAt: dashboards.createdAt,
 		})
 		.from(dashboards)
 		.where(eq(dashboards.orgId, orgId))
@@ -61,7 +61,7 @@ export const POST: RequestHandler = async ({ locals, request }) => {
 		results,
 		contextId,
 		parentDashboardId,
-		nodeContext
+		nodeContext,
 	} = body as {
 		name: string;
 		question: string;
@@ -107,7 +107,7 @@ export const POST: RequestHandler = async ({ locals, request }) => {
 			panels,
 			results,
 			nodeContext,
-			createdBy: locals.user.id
+			createdBy: locals.user.id,
 		})
 		.returning();
 

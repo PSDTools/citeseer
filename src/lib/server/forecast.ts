@@ -245,7 +245,7 @@ function correlation(a: number[], b: number[]): number {
 
 function detectSeasonality(
 	points: SeriesPoint[],
-	cadence: CadenceInfo
+	cadence: CadenceInfo,
 ): { seasonLength?: number; strength?: number } {
 	const n = points.length;
 	let seasonLength: number | undefined;
@@ -313,7 +313,7 @@ function expSmoothingForecast(points: SeriesPoint[], horizon: number, alpha: num
 function computeResidualStd(
 	points: SeriesPoint[],
 	strategy: ForecastStrategy,
-	options: { window?: number; alpha?: number; seasonLength?: number }
+	options: { window?: number; alpha?: number; seasonLength?: number },
 ): number {
 	const residuals: number[] = [];
 	const n = points.length;
@@ -370,7 +370,7 @@ function computeResidualStd(
 function seasonalNaiveForecast(
 	points: SeriesPoint[],
 	horizon: number,
-	seasonLength: number
+	seasonLength: number,
 ): number[] {
 	const n = points.length;
 	const forecasts: number[] = [];
@@ -428,7 +428,7 @@ function resolveForecastSpec(panel: PanelSpec): ForecastSpec | undefined {
 function sortRowsByX(
 	rows: Record<string, unknown>[],
 	xField: string,
-	format: XFormat
+	format: XFormat,
 ): Record<string, unknown>[] {
 	if (format === 'string') return rows;
 	return [...rows].sort((a, b) => {
@@ -462,7 +462,7 @@ export async function applyForecastToResult(options: {
 		yearmonth: 0,
 		date: 0,
 		number: 0,
-		string: 0
+		string: 0,
 	};
 
 	result.data.forEach((row, index) => {
@@ -476,7 +476,7 @@ export async function applyForecastToResult(options: {
 			y,
 			sortKey: parsed.sortKey,
 			date: parsed.date,
-			number: parsed.number
+			number: parsed.number,
 		});
 	});
 
@@ -508,7 +508,7 @@ export async function applyForecastToResult(options: {
 		'drift',
 		'moving_average',
 		'exp_smoothing',
-		'seasonal_naive'
+		'seasonal_naive',
 	];
 	let strategy: ForecastStrategy = resolveForecastSpec(panel)?.strategy || 'auto';
 	if (!allowedStrategies.includes(strategy)) {
@@ -535,9 +535,9 @@ export async function applyForecastToResult(options: {
 				min: stats.min,
 				max: stats.max,
 				seasonLength: seasonality.seasonLength,
-				seasonStrength: seasonality.strength
+				seasonStrength: seasonality.strength,
 			},
-			sampleTail: points.slice(-12).map((p) => ({ x: p.x, y: p.y }))
+			sampleTail: points.slice(-12).map((p) => ({ x: p.x, y: p.y })),
 		});
 	}
 
@@ -597,7 +597,7 @@ export async function applyForecastToResult(options: {
 				forecastValues = movingAverageForecast(
 					points,
 					horizon,
-					window ?? Math.min(6, points.length)
+					window ?? Math.min(6, points.length),
 				);
 			} else {
 				forecastValues = seasonalNaiveForecast(points, horizon, seasonLength);
@@ -618,7 +618,7 @@ export async function applyForecastToResult(options: {
 		...row,
 		[seriesField]: 'Actual',
 		[LOWER_FIELD]: null,
-		[UPPER_FIELD]: null
+		[UPPER_FIELD]: null,
 	}));
 
 	// Bridge row: duplicate last actual point as a Forecast point so the lines connect
@@ -627,7 +627,7 @@ export async function applyForecastToResult(options: {
 		[yField]: lastPoint.y,
 		[seriesField]: 'Forecast',
 		[LOWER_FIELD]: null,
-		[UPPER_FIELD]: null
+		[UPPER_FIELD]: null,
 	};
 
 	const forecastRows: Record<string, unknown>[] = [bridgeRow];
@@ -648,7 +648,7 @@ export async function applyForecastToResult(options: {
 			[yField]: forecastValues[i - 1],
 			[seriesField]: 'Forecast',
 			[LOWER_FIELD]: forecastValues[i - 1] - interval,
-			[UPPER_FIELD]: forecastValues[i - 1] + interval
+			[UPPER_FIELD]: forecastValues[i - 1] + interval,
 		});
 	}
 
@@ -662,7 +662,7 @@ export async function applyForecastToResult(options: {
 		? {
 				...decision,
 				confidence: decision.confidence ?? resolvedConfidence,
-				intervalPct
+				intervalPct,
 			}
 		: {
 				strategy,
@@ -671,7 +671,7 @@ export async function applyForecastToResult(options: {
 				alpha,
 				seasonLength,
 				confidence: resolvedConfidence,
-				intervalPct
+				intervalPct,
 			};
 
 	return {
@@ -679,8 +679,8 @@ export async function applyForecastToResult(options: {
 			...result,
 			data: combined,
 			columns: withIntervals,
-			rowCount: combined.length
+			rowCount: combined.length,
 		},
-		decision: finalDecision
+		decision: finalDecision,
 	};
 }

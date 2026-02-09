@@ -24,6 +24,6 @@ export const load: PageServerLoad = async ({ params, parent }) => {
 
 	return {
 		dataset,
-		sampleRows: rows.map((r) => r.data)
+		sampleRows: rows.map((r) => r.data),
 	};
 };

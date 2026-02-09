@@ -26,7 +26,7 @@ export const load: LayoutServerLoad = async ({ locals }) => {
 		.select({
 			id: datasets.id,
 			name: datasets.name,
-			rowCount: datasets.rowCount
+			rowCount: datasets.rowCount,
 		})
 		.from(datasets)
 		.where(eq(datasets.orgId, currentOrg.id));
@@ -35,7 +35,7 @@ export const load: LayoutServerLoad = async ({ locals }) => {
 	const orgContexts = await db
 		.select({
 			id: contexts.id,
-			name: contexts.name
+			name: contexts.name,
 		})
 		.from(contexts)
 		.where(eq(contexts.orgId, currentOrg.id))
@@ -47,16 +47,16 @@ export const load: LayoutServerLoad = async ({ locals }) => {
 			const ctxDashboards = await db
 				.select({
 					id: dashboards.id,
-					name: dashboards.name
+					name: dashboards.name,
 				})
 				.from(dashboards)
 				.where(eq(dashboards.contextId, ctx.id))
 				.orderBy(desc(dashboards.createdAt));
 			return {
 				...ctx,
-				dashboards: ctxDashboards
+				dashboards: ctxDashboards,
 			};
-		})
+		}),
 	);
 
 	return {
@@ -65,9 +65,9 @@ export const load: LayoutServerLoad = async ({ locals }) => {
 			id: currentOrg.id,
 			name: currentOrg.name,
 			slug: currentOrg.slug,
-			role: currentOrg.role
+			role: currentOrg.role,
 		},
 		datasets: orgDatasets,
-		contexts: contextsWithDashboards
+		contexts: contextsWithDashboards,
 	};
 };

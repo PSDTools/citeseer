@@ -10,7 +10,7 @@ register('import-in-the-middle/hook.mjs', import.meta.url, registerOptions);
 const sdk = new NodeSDK({
 	serviceName: 'test-sveltekit-tracing',
 	traceExporter: new OTLPTraceExporter(),
-	instrumentations: [getNodeAutoInstrumentations()]
+	instrumentations: [getNodeAutoInstrumentations()],
 });
 
 sdk.start();

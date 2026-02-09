@@ -24,7 +24,7 @@
 			const response = await fetch(`/api/datasets/${data.dataset.id}`, {
 				method: 'POST',
 				headers: { 'Content-Type': 'application/json' },
-				body: JSON.stringify({ action: 'normalize-dates' })
+				body: JSON.stringify({ action: 'normalize-dates' }),
 			});
 
 			const result = await response.json();
@@ -32,7 +32,7 @@
 			if (!response.ok) {
 				normalizeResult = {
 					success: false,
-					message: result.message || 'Failed to normalize dates'
+					message: result.message || 'Failed to normalize dates',
 				};
 			} else {
 				normalizeResult = result;
@@ -45,7 +45,7 @@
 		} catch (e) {
 			normalizeResult = {
 				success: false,
-				message: e instanceof Error ? e.message : 'An error occurred'
+				message: e instanceof Error ? e.message : 'An error occurred',
 			};
 		} finally {
 			isNormalizing = false;

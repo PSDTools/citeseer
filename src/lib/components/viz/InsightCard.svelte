@@ -13,7 +13,7 @@
 	const confidenceColors = {
 		high: 'bg-green-500/20 text-green-400 border-green-500/30',
 		medium: 'bg-amber-500/20 text-amber-400 border-amber-500/30',
-		low: 'bg-red-500/20 text-red-400 border-red-500/30'
+		low: 'bg-red-500/20 text-red-400 border-red-500/30',
 	};
 </script>
 

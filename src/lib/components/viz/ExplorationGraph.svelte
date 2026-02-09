@@ -34,7 +34,7 @@
 		activeNodeId = null,
 		onNodeClick = () => {},
 		width = 400,
-		height = 200
+		height = 200,
 	}: {
 		nodes: GraphNode[];
 		activeNodeId: string | null;
@@ -136,7 +136,7 @@
 					d3
 						.forceLink<D3Node, D3Link>(d3Links)
 						.id((node) => node.id)
-						.distance(80)
+						.distance(80),
 				)
 				.force('charge', d3.forceManyBody().strength(-200))
 				.force('center', d3.forceCenter(nextWidth / 2, params.height / 2))
@@ -176,7 +176,7 @@
 							if (!event.active && simulation) simulation.alphaTarget(0);
 							draggedNode.fx = null;
 							draggedNode.fy = null;
-						})
+						}),
 				)
 				.on('click', (event, clickedNode) => {
 					event.stopPropagation();
@@ -188,7 +188,7 @@
 				.attr('r', 12)
 				.attr('fill', (nodeDatum) => (nodeDatum.id === params.activeNodeId ? '#64ff96' : '#1a1f2e'))
 				.attr('stroke', (nodeDatum) =>
-					nodeDatum.id === params.activeNodeId ? '#64ff96' : 'rgba(100, 255, 150, 0.5)'
+					nodeDatum.id === params.activeNodeId ? '#64ff96' : 'rgba(100, 255, 150, 0.5)',
 				)
 				.attr('stroke-width', 2);
 
@@ -197,7 +197,7 @@
 				.attr('dy', 28)
 				.attr('text-anchor', 'middle')
 				.attr('fill', (nodeDatum) =>
-					nodeDatum.id === params.activeNodeId ? '#64ff96' : 'rgba(255, 255, 255, 0.7)'
+					nodeDatum.id === params.activeNodeId ? '#64ff96' : 'rgba(255, 255, 255, 0.7)',
 				)
 				.attr('font-size', '10px')
 				.attr('pointer-events', 'none')

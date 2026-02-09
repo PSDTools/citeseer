@@ -22,7 +22,7 @@ const COLORS = {
 	background: '#050810',
 	text: '#ffffff',
 	textMuted: 'rgba(255, 255, 255, 0.6)',
-	gridColor: 'rgba(255, 255, 255, 0.1)'
+	gridColor: 'rgba(255, 255, 255, 0.1)',
 };
 
 /**
@@ -51,7 +51,7 @@ function findMatchingColumn(expected: string, columns: string[]): string | undef
 function findSeriesField(
 	columns: string[],
 	data: Record<string, unknown>[],
-	allowGeneric: boolean
+	allowGeneric: boolean,
 ): string | undefined {
 	const candidates = allowGeneric
 		? ['__series', 'forecast_series', 'series', 'scenario', 'type']
@@ -68,7 +68,7 @@ function findSeriesField(
 
 export function resolvePanelFields(
 	panel: PanelSpec,
-	result: QueryResult
+	result: QueryResult,
 ): { xField?: string; yField?: string; columns: string[] } {
 	if (!result.success || result.data.length === 0) {
 		return { columns: result.columns || [] };
@@ -92,7 +92,7 @@ const INTERNAL_COLUMNS = new Set([
 	'__series',
 	'forecast_series',
 	'forecast_lower',
-	'forecast_upper'
+	'forecast_upper',
 ]);
 
 function tooltipColumns(columns: string[], seriesField?: string): { field: string }[] {
@@ -119,7 +119,7 @@ export function panelToVegaLite(panel: PanelSpec, result: QueryResult): Visualiz
 			text: panel.title,
 			color: COLORS.text,
 			fontSize: 14,
-			fontWeight: 600
+			fontWeight: 600,
 		},
 		background: 'transparent',
 		config: {
@@ -129,15 +129,15 @@ export function panelToVegaLite(panel: PanelSpec, result: QueryResult): Visualiz
 				titleColor: COLORS.text,
 				gridColor: COLORS.gridColor,
 				domainColor: COLORS.gridColor,
-				tickColor: COLORS.gridColor
+				tickColor: COLORS.gridColor,
 			},
 			legend: {
 				labelColor: COLORS.textMuted,
-				titleColor: COLORS.text
-			}
+				titleColor: COLORS.text,
+			},
 		},
 		width: 'container' as const,
-		height: 250
+		height: 250,
 	};
 
 	switch (panel.type) {
@@ -155,17 +155,17 @@ export function panelToVegaLite(panel: PanelSpec, result: QueryResult): Visualiz
 				mark: {
 					type: 'bar',
 					color: COLORS.primary,
-					cornerRadiusEnd: 4
+					cornerRadiusEnd: 4,
 				},
 				encoding: {
 					x: {
 						field: xField,
 						type: 'nominal',
-						axis: { labelAngle: -45 }
+						axis: { labelAngle: -45 },
 					},
 					y: {
 						field: yField,
-						type: 'quantitative'
+						type: 'quantitative',
 					},
 					...(hasSeries
 						? {
@@ -176,18 +176,18 @@ export function panelToVegaLite(panel: PanelSpec, result: QueryResult): Visualiz
 										? {
 												scale: {
 													domain: ['Actual', 'Forecast'],
-													range: [COLORS.primary, '#fbbf24']
-												}
+													range: [COLORS.primary, '#fbbf24'],
+												},
 											}
-										: {})
+										: {}),
 								},
-								xOffset: { field: seriesField as string }
+								xOffset: { field: seriesField as string },
 							}
 						: {}),
 					tooltip: hasForecastSeries
 						? tooltipColumns(result.columns, seriesField)
-						: result.columns.map((col) => ({ field: col }))
-				}
+						: result.columns.map((col) => ({ field: col })),
+				},
 			} as VisualizationSpec;
 		}
 
@@ -215,7 +215,7 @@ export function panelToVegaLite(panel: PanelSpec, result: QueryResult): Visualiz
 			// Build x encoding based on date type
 			const xEncoding: Record<string, unknown> = {
 				field: xField,
-				axis: { labelAngle: -45 }
+				axis: { labelAngle: -45 },
 			};
 
 			if (isYearMonth && isValidDate) {
@@ -233,7 +233,7 @@ export function panelToVegaLite(panel: PanelSpec, result: QueryResult): Visualiz
 			const lineMark: Record<string, unknown> = {
 				type: 'line',
 				strokeWidth: 2,
-				point: { size: 60 }
+				point: { size: 60 },
 			};
 
 			if (!hasSeries) {
@@ -249,10 +249,10 @@ export function panelToVegaLite(panel: PanelSpec, result: QueryResult): Visualiz
 							? {
 									scale: {
 										domain: ['Actual', 'Forecast'],
-										range: [COLORS.primary, '#fbbf24']
-									}
+										range: [COLORS.primary, '#fbbf24'],
+									},
 								}
-							: {})
+							: {}),
 					}
 				: undefined;
 
@@ -264,9 +264,9 @@ export function panelToVegaLite(panel: PanelSpec, result: QueryResult): Visualiz
 							domain: ['Actual', 'Forecast'],
 							range: [
 								[1, 0],
-								[6, 4]
-							]
-						}
+								[6, 4],
+							],
+						},
 					}
 				: undefined;
 
@@ -274,11 +274,11 @@ export function panelToVegaLite(panel: PanelSpec, result: QueryResult): Visualiz
 				x: xEncoding,
 				y: {
 					field: yField,
-					type: 'quantitative'
+					type: 'quantitative',
 				},
 				tooltip: hasForecastSeries
 					? tooltipColumns(result.columns, seriesField)
-					: result.columns.map((col) => ({ field: col }))
+					: result.columns.map((col) => ({ field: col })),
 			};
 
 			if (!hasForecastSeries) {
@@ -287,13 +287,13 @@ export function panelToVegaLite(panel: PanelSpec, result: QueryResult): Visualiz
 					encoding: {
 						...baseLineEncoding,
 						...(seriesEncoding ? { color: seriesEncoding } : {}),
-						...(dashEncoding ? { strokeDash: dashEncoding } : {})
-					}
+						...(dashEncoding ? { strokeDash: dashEncoding } : {}),
+					},
 				};
 
 				return {
 					...baseSpec,
-					...lineLayer
+					...lineLayer,
 				} as unknown as VisualizationSpec;
 			}
 
@@ -302,14 +302,14 @@ export function panelToVegaLite(panel: PanelSpec, result: QueryResult): Visualiz
 					type: 'line',
 					color: COLORS.primary,
 					strokeWidth: 2.5,
-					point: { size: 60, color: COLORS.primary }
+					point: { size: 60, color: COLORS.primary },
 				},
 				transform: [
 					{
-						filter: `datum["${seriesField}"] == 'Actual'`
-					}
+						filter: `datum["${seriesField}"] == 'Actual'`,
+					},
 				],
-				encoding: baseLineEncoding
+				encoding: baseLineEncoding,
 			};
 
 			const forecastLine = {
@@ -318,14 +318,14 @@ export function panelToVegaLite(panel: PanelSpec, result: QueryResult): Visualiz
 					color: '#fbbf24',
 					strokeWidth: 2,
 					strokeDash: [6, 4],
-					point: { size: 50, filled: false, stroke: '#fbbf24' }
+					point: { size: 50, filled: false, stroke: '#fbbf24' },
 				},
 				transform: [
 					{
-						filter: `datum["${seriesField}"] == 'Forecast'`
-					}
+						filter: `datum["${seriesField}"] == 'Forecast'`,
+					},
 				],
-				encoding: baseLineEncoding
+				encoding: baseLineEncoding,
 			};
 
 			const layers = [];
@@ -334,30 +334,30 @@ export function panelToVegaLite(panel: PanelSpec, result: QueryResult): Visualiz
 					mark: {
 						type: 'area',
 						color: '#fbbf24',
-						opacity: 0.18
+						opacity: 0.18,
 					},
 					transform: [
 						{
-							filter: `datum["${seriesField}"] == 'Forecast'`
-						}
+							filter: `datum["${seriesField}"] == 'Forecast'`,
+						},
 					],
 					encoding: {
 						x: xEncoding,
 						y: {
 							field: lowerField as string,
-							type: 'quantitative'
+							type: 'quantitative',
 						},
 						y2: {
-							field: upperField as string
-						}
-					}
+							field: upperField as string,
+						},
+					},
 				});
 			}
 			layers.push(actualLine, forecastLine);
 
 			return {
 				...baseSpec,
-				layer: layers
+				layer: layers,
 			} as VisualizationSpec;
 		}
 
@@ -368,15 +368,15 @@ export function panelToVegaLite(panel: PanelSpec, result: QueryResult): Visualiz
 				encoding: {
 					theta: {
 						field: yField,
-						type: 'quantitative'
+						type: 'quantitative',
 					},
 					color: {
 						field: xField,
 						type: 'nominal',
-						scale: { scheme: 'greens' }
+						scale: { scheme: 'greens' },
 					},
-					tooltip: result.columns.map((col) => ({ field: col }))
-				}
+					tooltip: result.columns.map((col) => ({ field: col })),
+				},
 			} as VisualizationSpec;
 
 		case 'scatter':
@@ -386,20 +386,20 @@ export function panelToVegaLite(panel: PanelSpec, result: QueryResult): Visualiz
 					type: 'circle',
 					color: COLORS.primary,
 					opacity: 0.7,
-					size: 60
+					size: 60,
 				},
 				encoding: {
 					x: {
 						field: xField,
 						type: 'quantitative',
-						axis: { labelAngle: -45 }
+						axis: { labelAngle: -45 },
 					},
 					y: {
 						field: yField,
-						type: 'quantitative'
+						type: 'quantitative',
 					},
-					tooltip: result.columns.map((col) => ({ field: col }))
-				}
+					tooltip: result.columns.map((col) => ({ field: col })),
+				},
 			} as VisualizationSpec;
 
 		default:
@@ -419,7 +419,7 @@ export function extractStatData(panel: PanelSpec, result: QueryResult): StatCard
 	return {
 		value: typeof value === 'number' ? value.toLocaleString() : String(value ?? 'N/A'),
 		label: panel.title,
-		unit: panel.unit
+		unit: panel.unit,
 	};
 }
 
@@ -435,6 +435,6 @@ export function extractTableData(panel: PanelSpec, result: QueryResult): TableDa
 
 	return {
 		columns,
-		rows: result.data
+		rows: result.data,
 	};
 }

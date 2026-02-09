@@ -36,7 +36,7 @@ function run(cmd: string, silent = false): string {
 		return execSync(cmd, {
 			cwd: ROOT,
 			encoding: 'utf-8',
-			stdio: silent ? 'pipe' : 'inherit'
+			stdio: silent ? 'pipe' : 'inherit',
 		});
 	} catch (e) {
 		return '';
@@ -103,7 +103,7 @@ NODE_ENV=development
 		// Check if container is running
 		const containerRunning = run(
 			'docker ps --filter name=citeseer-db --format "{{.Names}}"',
-			true
+			true,
 		).trim();
 
 		if (containerRunning === 'citeseer-db') {
@@ -112,7 +112,7 @@ NODE_ENV=development
 			// Check if container exists but stopped
 			const containerExists = run(
 				'docker ps -a --filter name=citeseer-db --format "{{.Names}}"',
-				true
+				true,
 			).trim();
 
 			if (containerExists === 'citeseer-db') {

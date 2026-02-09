@@ -26,7 +26,7 @@ export const actions: Actions = {
 		try {
 			const session = await auth.api.signInEmail({
 				body: { email, password },
-				headers: event.request.headers
+				headers: event.request.headers,
 			});
 
 			// Check if user has an organization
@@ -45,5 +45,5 @@ export const actions: Actions = {
 
 		// Redirect to dashboard
 		redirect(302, '/dashboard');
-	}
+	},
 };

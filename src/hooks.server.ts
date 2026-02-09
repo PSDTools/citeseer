@@ -6,7 +6,7 @@ import { building } from '$app/environment';
 export const handle: Handle = async ({ event, resolve }) => {
 	if (!building) {
 		const session = await auth.api.getSession({
-			headers: event.request.headers
+			headers: event.request.headers,
 		});
 
 		if (session) {

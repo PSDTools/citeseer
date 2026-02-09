@@ -63,7 +63,7 @@ export const PATCH: RequestHandler = async ({ params, locals, request }) => {
 	};
 
 	const updateData: Record<string, unknown> = {
-		updatedAt: new Date()
+		updatedAt: new Date(),
 	};
 
 	if (name !== undefined) updateData.name = name;

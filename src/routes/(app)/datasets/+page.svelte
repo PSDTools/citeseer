@@ -9,7 +9,7 @@
 		Check,
 		TriangleAlert,
 		LoaderCircle,
-		CircleAlert
+		CircleAlert,
 	} from '@lucide/svelte';
 	import type { PageData } from './$types';
 
@@ -45,7 +45,7 @@
 
 			const response = await fetch('/api/datasets', {
 				method: 'POST',
-				body: formData
+				body: formData,
 			});
 
 			if (!response.ok) {
@@ -67,7 +67,7 @@
 
 		try {
 			const response = await fetch(`/api/datasets/${deleteTarget.id}`, {
-				method: 'DELETE'
+				method: 'DELETE',
 			});
 
 			if (!response.ok) {
@@ -91,13 +91,13 @@
 			const response = await fetch('/api/datasets', {
 				method: 'PUT',
 				headers: { 'Content-Type': 'application/json' },
-				body: JSON.stringify({ action: 'clean-all-columns' })
+				body: JSON.stringify({ action: 'clean-all-columns' }),
 			});
 
 			const result = await response.json();
 			cleanAllResult = {
 				success: response.ok,
-				message: result.message || (response.ok ? 'Cleaned successfully' : 'Failed to clean')
+				message: result.message || (response.ok ? 'Cleaned successfully' : 'Failed to clean'),
 			};
 
 			if (response.ok) {
@@ -106,7 +106,7 @@
 		} catch (e) {
 			cleanAllResult = {
 				success: false,
-				message: e instanceof Error ? e.message : 'Error'
+				message: e instanceof Error ? e.message : 'Error',
 			};
 		} finally {
 			isCleaningAll = false;
@@ -125,7 +125,7 @@
 				const response = await fetch(`/api/datasets/${dataset.id}`, {
 					method: 'POST',
 					headers: { 'Content-Type': 'application/json' },
-					body: JSON.stringify({ action: 'normalize-dates' })
+					body: JSON.stringify({ action: 'normalize-dates' }),
 				});
 
 				const result = await response.json();
@@ -134,8 +134,8 @@
 					{
 						name: dataset.name,
 						success: response.ok,
-						message: result.message || (response.ok ? 'Success' : 'Failed')
-					}
+						message: result.message || (response.ok ? 'Success' : 'Failed'),
+					},
 				];
 			} catch (e) {
 				normalizeProgress.results = [
@@ -143,8 +143,8 @@
 					{
 						name: dataset.name,
 						success: false,
-						message: e instanceof Error ? e.message : 'Error'
-					}
+						message: e instanceof Error ? e.message : 'Error',
+					},
 				];
 			}
 		}

@@ -4,20 +4,20 @@
 			number: 1,
 			title: 'Connect Your Data',
 			description:
-				'Integrate with your ERP, WMS, TMS, and IoT sensors. CiteSeer unifies your data automatically.'
+				'Integrate with your ERP, WMS, TMS, and IoT sensors. CiteSeer unifies your data automatically.',
 		},
 		{
 			number: 2,
 			title: 'Ask Questions Naturally',
 			description:
-				'"Why are shipments delayed from Asia?" or "Which suppliers have the highest risk this quarter?"'
+				'"Why are shipments delayed from Asia?" or "Which suppliers have the highest risk this quarter?"',
 		},
 		{
 			number: 3,
 			title: 'Get Dynamic Dashboards',
 			description:
-				'Answers come with auto-generated visualizations. Share insights or dive deeper with follow-up questions.'
-		}
+				'Answers come with auto-generated visualizations. Share insights or dive deeper with follow-up questions.',
+		},
 	];
 </script>
 

@@ -10,7 +10,7 @@
 		Plus,
 		Database,
 		Settings,
-		LogOut
+		LogOut,
 	} from '@lucide/svelte';
 
 	interface Dataset {
@@ -120,7 +120,7 @@
 					type="button"
 					onclick={() => (contextsExpanded = !contextsExpanded)}
 					class="flex w-full items-center gap-3 rounded-lg px-3 py-2 text-sm font-medium transition-colors {isActive(
-						'/contexts'
+						'/contexts',
 					)
 						? 'bg-[#64ff96]/10 text-[#64ff96]'
 						: 'text-white/70 hover:bg-white/5 hover:text-white'}"
@@ -162,7 +162,7 @@
 											href="/contexts/{context.id}"
 											onclick={() => onclose?.()}
 											class="flex flex-1 items-center gap-2 rounded-lg px-2 py-1.5 text-sm transition-colors {isContextActive(
-												context.id
+												context.id,
 											)
 												? 'bg-[#64ff96]/10 text-[#64ff96]'
 												: 'text-white/60 hover:bg-white/5 hover:text-white/80'}"
@@ -177,7 +177,7 @@
 													href="/saved/{dashboard.id}"
 													onclick={() => onclose?.()}
 													class="flex items-center gap-2 rounded-lg px-2 py-1.5 text-xs transition-colors {isDashboardActive(
-														dashboard.id
+														dashboard.id,
 													)
 														? 'bg-[#64ff96]/10 text-[#64ff96]'
 														: 'text-white/40 hover:bg-white/5 hover:text-white/60'}"
@@ -209,7 +209,7 @@
 					type="button"
 					onclick={() => (datasetsExpanded = !datasetsExpanded)}
 					class="flex w-full items-center gap-3 rounded-lg px-3 py-2 text-sm font-medium transition-colors {isActive(
-						'/datasets'
+						'/datasets',
 					)
 						? 'bg-[#64ff96]/10 text-[#64ff96]'
 						: 'text-white/70 hover:bg-white/5 hover:text-white'}"
@@ -232,7 +232,7 @@
 									href="/datasets/{dataset.id}"
 									onclick={() => onclose?.()}
 									class="flex items-center gap-2 rounded-lg px-3 py-2 text-sm transition-colors {isDatasetActive(
-										dataset.id
+										dataset.id,
 									)
 										? 'bg-[#64ff96]/10 text-[#64ff96]'
 										: 'text-white/50 hover:bg-white/5 hover:text-white/80'}"
@@ -259,7 +259,7 @@
 				href="/settings"
 				onclick={() => onclose?.()}
 				class="mt-2 flex items-center gap-3 rounded-lg px-3 py-2 text-sm font-medium transition-colors {isActive(
-					'/settings'
+					'/settings',
 				)
 					? 'bg-[#64ff96]/10 text-[#64ff96]'
 					: 'text-white/70 hover:bg-white/5 hover:text-white'}"

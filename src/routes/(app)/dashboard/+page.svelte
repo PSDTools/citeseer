@@ -25,7 +25,7 @@
 				const genResponse = await fetch('/api/contexts/generate-name', {
 					method: 'POST',
 					headers: { 'Content-Type': 'application/json' },
-					body: JSON.stringify({ datasetIds: Array.from(selectedDatasets) })
+					body: JSON.stringify({ datasetIds: Array.from(selectedDatasets) }),
 				});
 
 				if (genResponse.ok) {
@@ -42,8 +42,8 @@
 				body: JSON.stringify({
 					name: contextName,
 					description: description.trim() || undefined,
-					datasetIds: Array.from(selectedDatasets)
-				})
+					datasetIds: Array.from(selectedDatasets),
+				}),
 			});
 
 			if (!response.ok) {

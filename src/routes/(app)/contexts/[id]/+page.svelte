@@ -10,7 +10,7 @@
 		AnalyticalPlan,
 		QueryResult,
 		BranchContext,
-		ChartSelectDetail
+		ChartSelectDetail,
 	} from '$lib/types/toon';
 	import {
 		ChevronLeft,
@@ -26,7 +26,7 @@
 		ShieldCheck,
 		CircleHelp,
 		ChevronRight,
-		CheckCircle
+		CheckCircle,
 	} from '@lucide/svelte';
 
 	let { data }: { data: PageData } = $props();
@@ -77,7 +77,7 @@
 		'Analyzing your question...',
 		'Building SQL query...',
 		'Executing against your data...',
-		'Generating visualizations...'
+		'Generating visualizations...',
 	];
 
 	// Initialize graph from saved dashboards on mount
@@ -94,7 +94,7 @@
 				filters: d.nodeContext?.filters,
 				timestamp: new Date(d.createdAt).getTime(),
 				plan: d.plan!,
-				results: d.results!
+				results: d.results!,
 			}));
 
 		if (nodes.length > 0) {
@@ -190,8 +190,8 @@
 				body: JSON.stringify({
 					question: submittedQuestion,
 					contextId: data.context.id,
-					branchContext
-				})
+					branchContext,
+				}),
 			});
 
 			const result = await response.json();
@@ -217,8 +217,8 @@
 						results: result.results,
 						contextId: data.context.id,
 						parentDashboardId: isFollowup ? currentDashboardId : undefined,
-						nodeContext: branchContext || undefined
-					})
+						nodeContext: branchContext || undefined,
+					}),
 				});
 
 				const saveResult = await saveResponse.json();
@@ -232,7 +232,7 @@
 					filters: branchContext?.filters,
 					timestamp: Date.now(),
 					plan: result.plan,
-					results: result.results
+					results: result.results,
 				};
 
 				if (isFollowup) {
@@ -263,8 +263,8 @@
 				body: JSON.stringify({
 					question: lastQuestion,
 					reason: currentPlan.reason || 'Unable to answer',
-					contextId: data.context.id
-				})
+					contextId: data.context.id,
+				}),
 			});
 
 			const result = await response.json();
@@ -325,8 +325,8 @@
 				value: detail.value!,
 				metricField: detail.metricField,
 				metricValue: detail.metricValue,
-				datum: detail.datum
-			}
+				datum: detail.datum,
+			},
 		};
 
 		closeBranchMenu();
@@ -395,8 +395,8 @@
 				body: JSON.stringify({
 					question: node.question,
 					contextId: data.context.id,
-					branchContext: node.filters ? { filters: node.filters } : undefined
-				})
+					branchContext: node.filters ? { filters: node.filters } : undefined,
+				}),
 			});
 
 			const result = await response.json();
@@ -412,13 +412,13 @@
 					body: JSON.stringify({
 						plan: result.plan,
 						panels: result.plan.viz || [],
-						results: result.results
-					})
+						results: result.results,
+					}),
 				});
 			}
 
 			graphNodes = graphNodes.map((n) =>
-				n.id === nodeId ? { ...n, plan: result.plan, results: result.results } : n
+				n.id === nodeId ? { ...n, plan: result.plan, results: result.results } : n,
 			);
 
 			if (activeNodeId === nodeId) {
@@ -436,7 +436,7 @@
 		await fetch(`/api/contexts/${data.context.id}/datasets`, {
 			method: 'DELETE',
 			headers: { 'Content-Type': 'application/json' },
-			body: JSON.stringify({ datasetId })
+			body: JSON.stringify({ datasetId }),
 		});
 		invalidateAll();
 	}
@@ -447,7 +447,7 @@
 		await fetch(`/api/contexts/${data.context.id}/datasets`, {
 			method: 'POST',
 			headers: { 'Content-Type': 'application/json' },
-			body: JSON.stringify({ datasetIds: Array.from(selectedDatasets) })
+			body: JSON.stringify({ datasetIds: Array.from(selectedDatasets) }),
 		});
 
 		selectedDatasets = new Set();
@@ -474,8 +474,8 @@
 				headers: { 'Content-Type': 'application/json' },
 				body: JSON.stringify({
 					name: editName.trim(),
-					description: editDescription.trim() || null
-				})
+					description: editDescription.trim() || null,
+				}),
 			});
 
 			if (!response.ok) {
@@ -497,7 +497,7 @@
 
 		try {
 			const response = await fetch(`/api/contexts/${data.context.id}`, {
-				method: 'DELETE'
+				method: 'DELETE',
 			});
 
 			if (!response.ok) {
@@ -512,7 +512,7 @@
 	}
 
 	const availableDatasets = $derived(
-		data.allDatasets.filter((d) => !data.datasets.some((cd) => cd.id === d.id))
+		data.allDatasets.filter((d) => !data.datasets.some((cd) => cd.id === d.id)),
 	);
 </script>
 
@@ -603,7 +603,7 @@
 				{#if currentNodeContext?.selectedMark}
 					<span class="rounded-full border border-white/10 bg-white/5 px-2.5 py-0.5 text-white/70">
 						{currentNodeContext.selectedMark.field} = {String(
-							currentNodeContext.selectedMark.value
+							currentNodeContext.selectedMark.value,
 						)}
 					</span>
 				{/if}
@@ -854,7 +854,10 @@
 
 				{#if graphNodes.length > 0}
 					<div class="mt-8">
-						<div class="text-xs text-white/40 mb-2">Exploration Graph ({graphNodes.length} node{graphNodes.length !== 1 ? 's' : ''}) — click a node to view its results</div>
+						<div class="mb-2 text-xs text-white/40">
+							Exploration Graph ({graphNodes.length} node{graphNodes.length !== 1 ? 's' : ''}) —
+							click a node to view its results
+						</div>
 						<ExplorationGraph
 							nodes={graphNodes}
 							{activeNodeId}

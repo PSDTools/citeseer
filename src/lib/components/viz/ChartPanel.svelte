@@ -9,7 +9,7 @@
 		resolvePanelFields,
 		resolveStatField,
 		extractStatData,
-		extractTableData
+		extractTableData,
 	} from '$lib/services/visualization';
 	import type { PanelSpec, QueryResult, ChartSelectDetail } from '$lib/types/toon';
 
@@ -52,7 +52,7 @@
 						value: rawValue as ChartSelectDetail['value'],
 						datum: result.data[0],
 						clientX: event.clientX,
-						clientY: event.clientY
+						clientY: event.clientY,
 					});
 				}}
 			>
@@ -84,7 +84,7 @@
 							panelIndex,
 							panelTitle: panel.title,
 							xField: fields.xField,
-							yField: fields.yField
+							yField: fields.yField,
 						}
 					: undefined}
 				onselect={(detail) => dispatch('select', detail)}

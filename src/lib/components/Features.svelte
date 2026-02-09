@@ -4,20 +4,20 @@
 			icon: '💬',
 			title: "Ask, Don't Query",
 			description:
-				'No SQL. No dashboards to configure. Just ask questions in plain English and get instant answers from your data.'
+				'No SQL. No dashboards to configure. Just ask questions in plain English and get instant answers from your data.',
 		},
 		{
 			icon: '⚡',
 			title: 'Real-Time Insights',
 			description:
-				'Connect to live data streams. See changes as they happen across your entire supply chain network.'
+				'Connect to live data streams. See changes as they happen across your entire supply chain network.',
 		},
 		{
 			icon: '🔍',
 			title: 'AI-Powered Why',
 			description:
-				"Don't just see what happened—understand why. CiteSeer automatically surfaces root causes and correlations."
-		}
+				"Don't just see what happened—understand why. CiteSeer automatically surfaces root causes and correlations.",
+		},
 	];
 </script>
 

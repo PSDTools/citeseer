@@ -20,7 +20,7 @@
 		isDeleting = true;
 		try {
 			const response = await fetch(`/api/dashboards/${data.dashboard.id}`, {
-				method: 'DELETE'
+				method: 'DELETE',
 			});
 
 			if (response.ok) {
@@ -48,7 +48,7 @@
 		return then.toLocaleDateString('en-US', {
 			month: 'short',
 			day: 'numeric',
-			year: then.getFullYear() !== now.getFullYear() ? 'numeric' : undefined
+			year: then.getFullYear() !== now.getFullYear() ? 'numeric' : undefined,
 		});
 	}
 
@@ -91,8 +91,8 @@
 				value: detail.value!,
 				metricField: detail.metricField,
 				metricValue: detail.metricValue,
-				datum: detail.datum
-			}
+				datum: detail.datum,
+			},
 		};
 
 		if (typeof sessionStorage !== 'undefined') {
@@ -101,8 +101,8 @@
 				JSON.stringify({
 					contextId: data.dashboard.contextId,
 					question: prompt,
-					branchContext
-				})
+					branchContext,
+				}),
 			);
 		}
 
@@ -167,7 +167,7 @@
 							class="rounded-full border border-white/10 bg-white/5 px-2.5 py-0.5 text-white/60"
 						>
 							Selected: {data.dashboard.nodeContext.selectedMark.field} = {String(
-								data.dashboard.nodeContext.selectedMark.value
+								data.dashboard.nodeContext.selectedMark.value,
 							)}
 						</span>
 					{/if}

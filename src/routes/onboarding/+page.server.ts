@@ -43,7 +43,7 @@ export const actions: Actions = {
 				await db.insert(settings).values({
 					orgId: org.id,
 					geminiApiKey,
-					geminiModel: 'gemini-2.0-flash'
+					geminiModel: 'gemini-2.0-flash',
 				});
 			}
 
@@ -56,5 +56,5 @@ export const actions: Actions = {
 			console.error('Error creating organization:', error);
 			return fail(500, { error: 'Failed to create workspace. Please try again.' });
 		}
-	}
+	},
 };
