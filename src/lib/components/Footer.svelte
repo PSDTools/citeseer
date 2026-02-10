@@ -9,7 +9,7 @@
 		<div class="max-w-[300px]">
 			<span class="mb-3 block text-2xl font-semibold text-white/90">CiteSeer</span>
 			<p class="text-[0.95rem] leading-relaxed text-white/50">
-				Question-driven analytics for modern supply chains.
+				Question-driven analytics for your data.
 			</p>
 		</div>
 		<div class="flex gap-8 max-md:flex-wrap max-md:gap-5">

@@ -2,10 +2,12 @@ import { json, error } from '@sveltejs/kit';
 import type { RequestHandler } from './$types';
 import { db, datasets, datasetRows, settings } from '$lib/server/db';
 import type { ColumnSchema } from '$lib/server/db/schema';
-import Papa from 'papaparse';
+import { parseFile, isSupportedFile, isSqliteFile, deriveName } from '$lib/server/parsers';
 import { getUserOrganizations } from '$lib/server/auth';
 import { DateNormalizer } from '$lib/server/compiler/date-normalizer';
 import { eq } from 'drizzle-orm';
+import { writeFile, mkdir } from 'node:fs/promises';
+import { join } from 'node:path';
 
 const MAX_FILE_SIZE = 50 * 1024 * 1024; // 50MB
 const BATCH_SIZE = 1000; // Insert rows in batches
@@ -29,8 +31,8 @@ export const POST: RequestHandler = async ({ request, locals }) => {
 		error(400, 'No file provided');
 	}
 
-	if (!file.name.endsWith('.csv')) {
-		error(400, 'Only CSV files are supported');
+	if (!isSupportedFile(file.name)) {
+		error(400, 'Unsupported file format');
 	}
 
 	if (file.size > MAX_FILE_SIZE) {
@@ -38,23 +40,43 @@ export const POST: RequestHandler = async ({ request, locals }) => {
 	}
 
 	try {
-		// Read file content
-		const text = await file.text();
+		const name = deriveName(file.name);
 
-		// Parse CSV
-		const result = Papa.parse(text, {
-			header: true,
-			skipEmptyLines: true,
-			dynamicTyping: true,
-		});
+		// SQLite files: save to disk as-is
+		if (isSqliteFile(file.name)) {
+			const uploadsDir = join(process.cwd(), 'uploads');
+			await mkdir(uploadsDir, { recursive: true });
 
-		if (result.errors.length > 0) {
-			error(400, `CSV parsing error: ${result.errors[0].message}`);
+			// Create dataset record first to get the ID
+			const [dataset] = await db
+				.insert(datasets)
+				.values({
+					orgId: org.id,
+					name,
+					fileName: file.name,
+					rowCount: 0,
+					schema: [],
+					uploadedBy: locals.user.id
+				})
+				.returning();
+
+			// Save file using dataset ID
+			const filePath = join(uploadsDir, `${dataset.id}.sqlite`);
+			const buffer = await file.arrayBuffer();
+			await writeFile(filePath, Buffer.from(buffer));
+
+			return json({
+				id: dataset.id,
+				name: dataset.name,
+				rowCount: 0,
+				columns: 0
+			});
 		}
 
-		const rows = result.data as Record<string, unknown>[];
+		// All other formats: parse into rows
+		const { rows } = await parseFile(file);
 		if (rows.length === 0) {
-			error(400, 'CSV file is empty');
+			error(400, 'File contains no data');
 		}
 
 		// Get API key for LLM-assisted date detection
@@ -85,9 +107,6 @@ export const POST: RequestHandler = async ({ request, locals }) => {
 
 		// Infer schema from data
 		const schema = inferSchema(normalizedRows);
-
-		// Generate dataset name from filename
-		const name = file.name.replace(/\.csv$/i, '').replace(/[_-]/g, ' ');
 
 		// Insert dataset
 		const [dataset] = await db

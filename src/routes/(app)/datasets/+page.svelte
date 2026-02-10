@@ -288,7 +288,7 @@
 				<Database class="h-7 w-7 text-white/30" />
 			</div>
 			<h3 class="text-base font-medium text-white">No datasets yet</h3>
-			<p class="mt-1 text-sm text-white/50">Upload a CSV file above to get started</p>
+			<p class="mt-1 text-sm text-white/50">Upload a file above to get started</p>
 		</div>
 	{/if}
 </div>

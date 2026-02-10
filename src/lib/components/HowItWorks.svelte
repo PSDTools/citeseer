@@ -2,15 +2,15 @@
 	const steps = [
 		{
 			number: 1,
-			title: 'Connect Your Data',
+			title: 'Upload Your Data',
 			description:
-				'Integrate with your ERP, WMS, TMS, and IoT sensors. CiteSeer unifies your data automatically.',
+				'Upload CSV, Excel, JSON, or SQLite files. CiteSeer reads your data and builds a schema automatically.',
 		},
 		{
 			number: 2,
 			title: 'Ask Questions Naturally',
 			description:
-				'"Why are shipments delayed from Asia?" or "Which suppliers have the highest risk this quarter?"',
+				'"Why did revenue drop last month?" or "Which regions are growing the fastest?"'
 		},
 		{
 			number: 3,

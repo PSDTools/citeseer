@@ -168,7 +168,7 @@
 						class="flex items-center gap-2 rounded-lg border border-white/20 bg-white/5 px-4 py-3 text-white/70 transition-colors hover:bg-white/10 hover:text-white"
 					>
 						<Plus class="h-5 w-5" />
-						Upload CSV
+						Upload Data
 					</button>
 				</div>
 			</div>
@@ -186,7 +186,7 @@
 					{/if}
 					<input
 						type="file"
-						accept=".csv"
+						accept=".csv,.tsv,.json,.xlsx,.xls,.db,.sqlite"
 						onchange={handleFileSelect}
 						class="block w-full text-sm text-white/60 file:mr-4 file:cursor-pointer file:rounded-lg file:border-0 file:bg-[#64ff96]/10 file:px-4 file:py-2 file:text-sm file:font-semibold file:text-[#64ff96] hover:file:bg-[#64ff96]/20"
 					/>
@@ -285,7 +285,7 @@
 				Ready to see what your data is telling you?
 			</h2>
 			<p class="mb-10 text-lg text-white/60">
-				Join supply chain teams who've moved beyond static dashboards.
+				Move beyond static dashboards. Ask questions, get answers.
 			</p>
 			<form
 				onsubmit={handleEmailSubmit}

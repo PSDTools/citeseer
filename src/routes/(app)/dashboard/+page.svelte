@@ -118,7 +118,7 @@
 				</div>
 				<h3 class="text-base font-medium text-white">Get started</h3>
 				<p class="mt-2 text-sm text-white/50">
-					Upload a CSV, create a context, and start asking questions with AI.
+					Upload a dataset, create a context, and start asking questions with AI.
 				</p>
 				<a
 					href="/datasets"
@@ -148,7 +148,7 @@
 						href="/datasets"
 						class="mt-3 inline-flex items-center gap-1.5 text-sm text-[#64ff96] transition-colors hover:text-[#64ff96]/80"
 					>
-						Upload a CSV
+						Upload a dataset
 						<ChevronRight class="h-3.5 w-3.5" />
 					</a>
 				</div>

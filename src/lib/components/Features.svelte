@@ -7,10 +7,10 @@
 				'No SQL. No dashboards to configure. Just ask questions in plain English and get instant answers from your data.',
 		},
 		{
-			icon: '⚡',
-			title: 'Real-Time Insights',
+			icon: '📁',
+			title: 'Any Format, Any Data',
 			description:
-				'Connect to live data streams. See changes as they happen across your entire supply chain network.',
+				'Upload spreadsheets, databases, or raw exports. CiteSeer handles CSV, Excel, JSON, TSV, and SQLite out of the box.'
 		},
 		{
 			icon: '🔍',
@@ -27,7 +27,7 @@
 >
 	<div class="mb-16 text-center">
 		<h2 class="mb-4 text-[2.5rem] font-semibold text-white/95 max-md:text-[2rem]">Why CiteSeer</h2>
-		<p class="text-lg text-white/60">Transform how your team interacts with supply chain data</p>
+		<p class="text-lg text-white/60">Transform how your team interacts with data</p>
 	</div>
 
 	<div

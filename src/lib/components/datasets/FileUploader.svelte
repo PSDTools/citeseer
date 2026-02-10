@@ -19,12 +19,14 @@
 		dragOver = false;
 	}
 
+	const supportedExtensions = ['.csv', '.tsv', '.json', '.xlsx', '.xls', '.db', '.sqlite'];
+
 	function handleDrop(e: DragEvent) {
 		e.preventDefault();
 		dragOver = false;
 
 		const file = e.dataTransfer?.files[0];
-		if (file && file.name.endsWith('.csv')) {
+		if (file && supportedExtensions.some((ext) => file.name.toLowerCase().endsWith(ext))) {
 			onUpload(file);
 		}
 	}
@@ -53,7 +55,7 @@
 	<input
 		bind:this={fileInput}
 		type="file"
-		accept=".csv"
+		accept=".csv,.tsv,.json,.xlsx,.xls,.db,.sqlite"
 		onchange={handleFileSelect}
 		class="hidden"
 	/>
@@ -69,11 +71,12 @@
 		</div>
 		<p class="text-lg font-medium text-white">
 			{#if dragOver}
-				Drop your CSV file here
+				Drop your data file here
 			{:else}
-				Drag & drop a CSV file here
+				Drag & drop a data file here
 			{/if}
 		</p>
 		<p class="mt-1 text-sm text-white/50">or click to browse</p>
+		<p class="mt-2 text-xs text-white/30">CSV, TSV, JSON, Excel, SQLite</p>
 	{/if}
 </div>
