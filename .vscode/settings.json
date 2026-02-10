@@ -1,5 +1,12 @@
 {
 	"files.associations": {
 		"*.css": "tailwindcss"
+	},
+	"typescript.tsserver.experimental.enableProjectDiagnostics": true,
+	"editor.codeActionsOnSave": {
+		"source.addMissingImports.ts": "explicit",
+		"source.fixAll.eslint": "explicit",
+		"source.organizeImports": "explicit",
+		"source.removeUnusedImports": "explicit"
 	}
 }
