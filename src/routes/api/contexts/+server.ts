@@ -3,8 +3,8 @@ import type { RequestHandler } from './$types';
 import { db, contexts, contextDatasets, datasets } from '$lib/server/db';
 import { getUserOrganizations } from '$lib/server/auth';
 import { eq, desc, and } from 'drizzle-orm';
-import { recordLiveWorkspaceContext } from '$lib/server/demo/config';
 import { isDemoActive, isDemoBuild, getDataMode } from '$lib/server/demo/runtime';
+import { mirrorLiveWorkspaceToDemo } from '$lib/server/demo/mirror';
 
 // GET - List all contexts for the org
 export const GET: RequestHandler = async ({ locals }) => {
@@ -68,7 +68,7 @@ export const POST: RequestHandler = async ({ locals, request }) => {
 		description?: string;
 		datasetIds?: string[];
 	};
-	const shouldCaptureLiveToDemoFile = isDemoBuild && !isDemoActive();
+	const shouldMirrorLiveToDemoFile = isDemoBuild && !isDemoActive();
 
 	if (!name?.trim()) {
 		error(400, 'Name is required');
@@ -95,14 +95,8 @@ export const POST: RequestHandler = async ({ locals, request }) => {
 		);
 	}
 
-	if (shouldCaptureLiveToDemoFile) {
-		await recordLiveWorkspaceContext({
-			id: context.id,
-			name: context.name,
-			description: context.description,
-			datasetIds: datasetIds || [],
-			createdAt: context.createdAt.toISOString(),
-		});
+	if (shouldMirrorLiveToDemoFile) {
+		await mirrorLiveWorkspaceToDemo(orgId);
 	}
 
 	return json({ context }, { status: 201 });

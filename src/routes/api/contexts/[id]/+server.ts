@@ -3,7 +3,8 @@ import type { RequestHandler } from './$types';
 import { db, contexts, contextDatasets, datasets } from '$lib/server/db';
 import { getUserOrganizations } from '$lib/server/auth';
 import { eq, and } from 'drizzle-orm';
-import { getDataMode } from '$lib/server/demo/runtime';
+import { getDataMode, isDemoActive, isDemoBuild } from '$lib/server/demo/runtime';
+import { mirrorLiveWorkspaceToDemo } from '$lib/server/demo/mirror';
 
 // GET - Get a single context with its datasets
 export const GET: RequestHandler = async ({ locals, params }) => {
@@ -60,6 +61,7 @@ export const DELETE: RequestHandler = async ({ locals, params }) => {
 
 	const orgId = orgs[0].id;
 	const dataMode = getDataMode();
+	const shouldMirrorLiveToDemoFile = isDemoBuild && !isDemoActive();
 
 	const [deleted] = await db
 		.delete(contexts)
@@ -68,6 +70,10 @@ export const DELETE: RequestHandler = async ({ locals, params }) => {
 
 	if (!deleted) {
 		error(404, 'Context not found');
+	}
+
+	if (shouldMirrorLiveToDemoFile) {
+		await mirrorLiveWorkspaceToDemo(orgId);
 	}
 
 	return json({ success: true });
@@ -86,6 +92,7 @@ export const PATCH: RequestHandler = async ({ locals, params, request }) => {
 
 	const orgId = orgs[0].id;
 	const dataMode = getDataMode();
+	const shouldMirrorLiveToDemoFile = isDemoBuild && !isDemoActive();
 
 	const body = await request.json();
 	const { name, description } = body as { name?: string; description?: string };
@@ -101,6 +108,10 @@ export const PATCH: RequestHandler = async ({ locals, params, request }) => {
 
 	if (!updated) {
 		error(404, 'Context not found');
+	}
+
+	if (shouldMirrorLiveToDemoFile) {
+		await mirrorLiveWorkspaceToDemo(orgId);
 	}
 
 	return json({ context: updated });

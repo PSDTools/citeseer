@@ -4,7 +4,8 @@ import { db, dashboards } from '$lib/server/db';
 import { getUserOrganizations } from '$lib/server/auth';
 import { eq, and } from 'drizzle-orm';
 import type { AnalyticalPlan, PanelSpec, QueryResult } from '$lib/server/db/schema';
-import { getDataMode } from '$lib/server/demo/runtime';
+import { getDataMode, isDemoActive, isDemoBuild } from '$lib/server/demo/runtime';
+import { mirrorLiveWorkspaceToDemo } from '$lib/server/demo/mirror';
 
 // GET - Get a single dashboard
 export const GET: RequestHandler = async ({ locals, params }) => {
@@ -47,6 +48,7 @@ export const PATCH: RequestHandler = async ({ params, locals, request }) => {
 
 	const orgId = orgs[0].id;
 	const dataMode = getDataMode();
+	const shouldMirrorLiveToDemoFile = isDemoBuild && !isDemoActive();
 
 	// Verify dashboard exists and belongs to org
 	const [existing] = await db
@@ -85,6 +87,10 @@ export const PATCH: RequestHandler = async ({ params, locals, request }) => {
 		.where(eq(dashboards.id, params.id))
 		.returning();
 
+	if (shouldMirrorLiveToDemoFile) {
+		await mirrorLiveWorkspaceToDemo(orgId);
+	}
+
 	return json({ dashboard });
 };
 
@@ -101,6 +107,7 @@ export const DELETE: RequestHandler = async ({ locals, params }) => {
 
 	const orgId = orgs[0].id;
 	const dataMode = getDataMode();
+	const shouldMirrorLiveToDemoFile = isDemoBuild && !isDemoActive();
 
 	const [deleted] = await db
 		.delete(dashboards)
@@ -111,6 +118,10 @@ export const DELETE: RequestHandler = async ({ locals, params }) => {
 
 	if (!deleted) {
 		error(404, 'Dashboard not found');
+	}
+
+	if (shouldMirrorLiveToDemoFile) {
+		await mirrorLiveWorkspaceToDemo(orgId);
 	}
 
 	return json({ success: true });

@@ -1,8 +1,10 @@
-import { readFile, writeFile } from 'node:fs/promises';
+import { readFile, rename, writeFile } from 'node:fs/promises';
 import { join } from 'node:path';
 import type { AnalyticalPlan, QueryResult } from '$lib/types/toon';
 
 const DEMO_CONFIG_PATH = join(process.cwd(), 'data', 'demo.json');
+const DEMO_CONFIG_BACKUP_PATH = join(process.cwd(), 'data', 'demo.json.bak');
+const DEMO_CONFIG_TMP_PATH = join(process.cwd(), 'data', 'demo.json.tmp');
 
 export interface DemoQueryResponse {
 	plan: AnalyticalPlan;
@@ -36,7 +38,7 @@ interface DemoPattern {
 	response: DemoResponse;
 }
 
-interface DemoWorkspaceData {
+export interface DemoWorkspaceData {
 	contexts: Array<{
 		id: string;
 		name: string;
@@ -378,15 +380,21 @@ async function loadDemoConfig(): Promise<DemoConfig> {
 }
 
 async function readRawConfig(): Promise<RawDemoConfig> {
-	let parsed: RawDemoConfig;
+	let parsed: RawDemoConfig | null = null;
 	try {
 		const file = await readFile(DEMO_CONFIG_PATH, 'utf8');
 		parsed = JSON.parse(file) as RawDemoConfig;
 	} catch (err) {
-		const message = err instanceof Error ? err.message : 'unknown error';
-		throw new Error(`Failed to read demo config at ${DEMO_CONFIG_PATH}: ${message}`);
+		try {
+			const backupFile = await readFile(DEMO_CONFIG_BACKUP_PATH, 'utf8');
+			parsed = JSON.parse(backupFile) as RawDemoConfig;
+			await atomicWriteConfig(parsed);
+		} catch {
+			parsed = null;
+		}
 	}
 
+	parsed = ensureRawConfigDefaults(parsed);
 	validateRawConfig(parsed);
 	return parsed;
 }
@@ -479,11 +487,86 @@ async function mutateDemoConfig(
 	mutationQueue = mutationQueue.then(async () => {
 		const config = await readRawConfig();
 		await mutator(config);
-		await writeFile(DEMO_CONFIG_PATH, `${JSON.stringify(config, null, 2)}\n`, 'utf8');
+		await atomicWriteConfig(config);
 		demoConfigPromise = null;
 	});
 
 	return mutationQueue;
+}
+
+export async function replaceWorkspaceSnapshot(workspace: DemoWorkspaceData): Promise<void> {
+	await mutateDemoConfig(async (config) => {
+		config.workspace = {
+			contexts: workspace.contexts,
+			dashboards: workspace.dashboards,
+			updatedAt: workspace.updatedAt || new Date().toISOString(),
+		};
+	});
+}
+
+async function atomicWriteConfig(config: RawDemoConfig): Promise<void> {
+	const serialized = `${JSON.stringify(config, null, 2)}\n`;
+	await writeFile(DEMO_CONFIG_TMP_PATH, serialized, 'utf8');
+	await rename(DEMO_CONFIG_TMP_PATH, DEMO_CONFIG_PATH);
+	await writeFile(DEMO_CONFIG_BACKUP_PATH, serialized, 'utf8');
+}
+
+function ensureRawConfigDefaults(config: RawDemoConfig | null): RawDemoConfig {
+	if (config && typeof config === 'object') {
+		return {
+			dataset:
+				config.dataset && config.dataset.name && config.dataset.fileName && config.dataset.table
+					? config.dataset
+					: {
+							name: 'Demo Dataset',
+							fileName: 'demo.csv',
+							table: 'demo_data',
+						},
+			patterns: Array.isArray(config.patterns) ? config.patterns : [],
+			defaultResponse:
+				config.defaultResponse?.query &&
+				config.defaultResponse?.realign &&
+				config.defaultResponse?.contextName
+					? config.defaultResponse
+					: buildDefaultResponse(),
+			workspace:
+				config.workspace &&
+				Array.isArray(config.workspace.contexts) &&
+				Array.isArray(config.workspace.dashboards)
+					? config.workspace
+					: { contexts: [], dashboards: [], updatedAt: new Date().toISOString() },
+		};
+	}
+
+	return {
+		dataset: {
+			name: 'Demo Dataset',
+			fileName: 'demo.csv',
+			table: 'demo_data',
+		},
+		patterns: [],
+		defaultResponse: buildDefaultResponse(),
+		workspace: { contexts: [], dashboards: [], updatedAt: new Date().toISOString() },
+	};
+}
+
+function buildDefaultResponse(): RawDemoConfig['defaultResponse'] {
+	return {
+		query: {
+			plan: {
+				_type: 'plan',
+				q: 'default',
+				feasible: false,
+				reason: 'No demo response matched.',
+				tables: [],
+				suggestedInvestigations: ['Ask a question to capture a live demo response'],
+			},
+			results: {},
+			errorExplanation: null,
+		},
+		realign: { suggestions: [] },
+		contextName: { name: 'New Context' },
+	};
 }
 
 function serializeResponse(response: DemoResponse): DemoResponse {

@@ -9,8 +9,12 @@ import type {
 	DashboardNodeContext,
 	QueryResult,
 } from '$lib/server/db/schema';
-import { recordLiveWorkspaceDashboard } from '$lib/server/demo/config';
 import { isDemoActive, isDemoBuild, getDataMode } from '$lib/server/demo/runtime';
+import { mirrorLiveWorkspaceToDemo } from '$lib/server/demo/mirror';
+
+const DEMO_SIMULATED_MIN_MS = 1_200;
+const DEMO_SIMULATED_JITTER_MS = 1_200;
+const DASHBOARD_MATCH_THRESHOLD = 0.52;
 
 // GET - List all dashboards for the org
 export const GET: RequestHandler = async ({ locals }) => {
@@ -77,10 +81,29 @@ export const POST: RequestHandler = async ({ locals, request }) => {
 		parentDashboardId?: string;
 		nodeContext?: DashboardNodeContext;
 	};
-	const shouldCaptureLiveToDemoFile = isDemoBuild && !isDemoActive();
+	const shouldMirrorLiveToDemoFile = isDemoBuild && !isDemoActive();
 
 	if (!name || !question || !panels) {
 		error(400, 'Name, question, and panels are required');
+	}
+
+	if (isDemoActive()) {
+		// Keep demo UX realistic and avoid duplicate dashboards for similar prompts.
+		const simulatedDelay =
+			DEMO_SIMULATED_MIN_MS + Math.floor(Math.random() * DEMO_SIMULATED_JITTER_MS);
+		await new Promise((resolve) => setTimeout(resolve, simulatedDelay));
+
+		const baseFilter = and(eq(dashboards.orgId, orgId), eq(dashboards.mode, dataMode));
+		const contextFilter = contextId
+			? and(baseFilter, eq(dashboards.contextId, contextId))
+			: baseFilter;
+
+		const existingDashboards = await db.select().from(dashboards).where(contextFilter);
+
+		const bestMatch = findMostSimilarDashboard(question, existingDashboards);
+		if (bestMatch && bestMatch.score >= DASHBOARD_MATCH_THRESHOLD) {
+			return json({ dashboard: bestMatch.dashboard, reused: true, similarity: bestMatch.score });
+		}
 	}
 
 	if (contextId) {
@@ -135,22 +158,51 @@ export const POST: RequestHandler = async ({ locals, request }) => {
 		})
 		.returning();
 
-	if (shouldCaptureLiveToDemoFile) {
-		await recordLiveWorkspaceDashboard({
-			id: dashboard.id,
-			name: dashboard.name,
-			question: dashboard.question,
-			description: dashboard.description,
-			contextId: dashboard.contextId,
-			parentDashboardId: dashboard.parentDashboardId,
-			rootDashboardId: dashboard.rootDashboardId,
-			plan: dashboard.plan || undefined,
-			panels: dashboard.panels,
-			results: dashboard.results || undefined,
-			nodeContext: dashboard.nodeContext,
-			createdAt: dashboard.createdAt.toISOString(),
-		});
+	if (shouldMirrorLiveToDemoFile) {
+		await mirrorLiveWorkspaceToDemo(orgId);
 	}
 
 	return json({ dashboard }, { status: 201 });
 };
+
+function findMostSimilarDashboard(
+	question: string,
+	existing: Array<typeof dashboards.$inferSelect>,
+): { dashboard: typeof dashboards.$inferSelect; score: number } | null {
+	const normalized = normalizeText(question);
+	let best: { dashboard: typeof dashboards.$inferSelect; score: number } | null = null;
+
+	for (const dashboard of existing) {
+		const score = similarity(normalized, normalizeText(dashboard.question || ''));
+		if (!best || score > best.score) {
+			best = { dashboard, score };
+		}
+	}
+
+	return best;
+}
+
+function normalizeText(value: string): string {
+	return value
+		.toLowerCase()
+		.replace(/[^a-z0-9\s]/g, ' ')
+		.replace(/\s+/g, ' ')
+		.trim();
+}
+
+function similarity(a: string, b: string): number {
+	if (!a || !b) return 0;
+	if (a === b) return 1;
+
+	const aTokens = new Set(a.split(' ').filter(Boolean));
+	const bTokens = new Set(b.split(' ').filter(Boolean));
+	if (aTokens.size === 0 || bTokens.size === 0) return 0;
+
+	const intersection = [...aTokens].filter((token) => bTokens.has(token)).length;
+	const union = new Set([...aTokens, ...bTokens]).size;
+	const jaccard = union > 0 ? intersection / union : 0;
+	const overlap = intersection / Math.min(aTokens.size, bTokens.size);
+	const containsBoost = a.includes(b) || b.includes(a) ? 0.12 : 0;
+
+	return Math.min(1, overlap * 0.55 + jaccard * 0.45 + containsBoost);
+}

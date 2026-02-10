@@ -3,7 +3,8 @@ import type { RequestHandler } from './$types';
 import { db, contexts, contextDatasets, datasets } from '$lib/server/db';
 import { getUserOrganizations } from '$lib/server/auth';
 import { eq, and } from 'drizzle-orm';
-import { getDataMode } from '$lib/server/demo/runtime';
+import { getDataMode, isDemoActive, isDemoBuild } from '$lib/server/demo/runtime';
+import { mirrorLiveWorkspaceToDemo } from '$lib/server/demo/mirror';
 
 // POST - Add datasets to a context
 export const POST: RequestHandler = async ({ locals, params, request }) => {
@@ -18,6 +19,7 @@ export const POST: RequestHandler = async ({ locals, params, request }) => {
 
 	const orgId = orgs[0].id;
 	const dataMode = getDataMode();
+	const shouldMirrorLiveToDemoFile = isDemoBuild && !isDemoActive();
 
 	// Verify context belongs to org
 	const [context] = await db
@@ -63,6 +65,10 @@ export const POST: RequestHandler = async ({ locals, params, request }) => {
 		}
 	}
 
+	if (shouldMirrorLiveToDemoFile) {
+		await mirrorLiveWorkspaceToDemo(orgId);
+	}
+
 	return json({ success: true });
 };
 
@@ -79,6 +85,7 @@ export const DELETE: RequestHandler = async ({ locals, params, request }) => {
 
 	const orgId = orgs[0].id;
 	const dataMode = getDataMode();
+	const shouldMirrorLiveToDemoFile = isDemoBuild && !isDemoActive();
 
 	// Verify context belongs to org
 	const [context] = await db
@@ -100,6 +107,10 @@ export const DELETE: RequestHandler = async ({ locals, params, request }) => {
 	await db
 		.delete(contextDatasets)
 		.where(and(eq(contextDatasets.contextId, params.id), eq(contextDatasets.datasetId, datasetId)));
+
+	if (shouldMirrorLiveToDemoFile) {
+		await mirrorLiveWorkspaceToDemo(orgId);
+	}
 
 	return json({ success: true });
 };
