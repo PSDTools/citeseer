@@ -20,7 +20,7 @@ export function deriveName(filename: string): string {
 }
 
 export async function parseFile(
-	file: File
+	file: File,
 ): Promise<{ rows: Record<string, unknown>[]; derivedName: string }> {
 	const name = file.name.toLowerCase();
 	const derivedName = deriveName(file.name);
@@ -46,7 +46,7 @@ async function parseCsv(file: File): Promise<Record<string, unknown>[]> {
 	const result = Papa.parse(text, {
 		header: true,
 		skipEmptyLines: true,
-		dynamicTyping: true
+		dynamicTyping: true,
 	});
 
 	if (result.errors.length > 0) {
@@ -62,7 +62,7 @@ async function parseTsv(file: File): Promise<Record<string, unknown>[]> {
 		header: true,
 		skipEmptyLines: true,
 		dynamicTyping: true,
-		delimiter: '\t'
+		delimiter: '\t',
 	});
 
 	if (result.errors.length > 0) {
@@ -86,7 +86,12 @@ async function parseJson(file: File): Promise<Record<string, unknown>[]> {
 		return parsed as Record<string, unknown>[];
 	}
 
-	if (parsed && typeof parsed === 'object' && 'data' in parsed && Array.isArray((parsed as { data: unknown }).data)) {
+	if (
+		parsed &&
+		typeof parsed === 'object' &&
+		'data' in parsed &&
+		Array.isArray((parsed as { data: unknown }).data)
+	) {
 		return (parsed as { data: Record<string, unknown>[] }).data;
 	}
 

@@ -56,7 +56,7 @@ export const POST: RequestHandler = async ({ request, locals }) => {
 					fileName: file.name,
 					rowCount: 0,
 					schema: [],
-					uploadedBy: locals.user.id
+					uploadedBy: locals.user.id,
 				})
 				.returning();
 
@@ -69,7 +69,7 @@ export const POST: RequestHandler = async ({ request, locals }) => {
 				id: dataset.id,
 				name: dataset.name,
 				rowCount: 0,
-				columns: 0
+				columns: 0,
 			});
 		}
 

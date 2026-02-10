@@ -9,8 +9,7 @@
 		{
 			number: 2,
 			title: 'Ask Questions Naturally',
-			description:
-				'"Why did revenue drop last month?" or "Which regions are growing the fastest?"'
+			description: '"Why did revenue drop last month?" or "Which regions are growing the fastest?"',
 		},
 		{
 			number: 3,

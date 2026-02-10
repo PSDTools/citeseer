@@ -10,7 +10,7 @@
 			icon: '📁',
 			title: 'Any Format, Any Data',
 			description:
-				'Upload spreadsheets, databases, or raw exports. CiteSeer handles CSV, Excel, JSON, TSV, and SQLite out of the box.'
+				'Upload spreadsheets, databases, or raw exports. CiteSeer handles CSV, Excel, JSON, TSV, and SQLite out of the box.',
 		},
 		{
 			icon: '🔍',
