@@ -1,5 +1,6 @@
 <script lang="ts">
-	import { LoaderCircle, CloudUpload } from '@lucide/svelte';
+	import { CloudUpload } from '@lucide/svelte';
+	import LogoSpinner from '$lib/components/ui/LogoSpinner.svelte';
 
 	interface Props {
 		onUpload: (file: File) => void;
@@ -62,7 +63,7 @@
 
 	{#if uploading}
 		<div class="mx-auto mb-4 flex h-16 w-16 items-center justify-center">
-			<LoaderCircle class="h-12 w-12 animate-spin text-[#64ff96]" />
+			<LogoSpinner class="h-12 w-12" />
 		</div>
 		<p class="text-lg font-medium text-white">Uploading...</p>
 	{:else}

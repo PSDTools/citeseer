@@ -5,9 +5,12 @@ import type { ColumnSchema } from '$lib/server/db/schema';
 import { parseFile, isSupportedFile, isSqliteFile, deriveName } from '$lib/server/parsers';
 import { getUserOrganizations } from '$lib/server/auth';
 import { DateNormalizer } from '$lib/server/compiler/date-normalizer';
-import { eq } from 'drizzle-orm';
+import { and, eq } from 'drizzle-orm';
 import { writeFile, mkdir } from 'node:fs/promises';
 import { join } from 'node:path';
+import { isDemoActive } from '$lib/server/demo/runtime';
+import { getDemoDatasetMetadata, getDemoRows } from '$lib/server/demo/db';
+import { resolveLlmConfig } from '$lib/server/llm/config';
 
 const MAX_FILE_SIZE = 50 * 1024 * 1024; // 50MB
 const BATCH_SIZE = 1000; // Insert rows in batches
@@ -23,6 +26,7 @@ export const POST: RequestHandler = async ({ request, locals }) => {
 		error(400, 'No organization found');
 	}
 	const org = orgs[0];
+	const demoActive = isDemoActive();
 
 	const formData = await request.formData();
 	const file = formData.get('file') as File | null;
@@ -31,15 +35,63 @@ export const POST: RequestHandler = async ({ request, locals }) => {
 		error(400, 'No file provided');
 	}
 
-	if (!isSupportedFile(file.name)) {
+	if (!demoActive && !isSupportedFile(file.name)) {
 		error(400, 'Unsupported file format');
 	}
 
-	if (file.size > MAX_FILE_SIZE) {
+	if (!demoActive && file.size > MAX_FILE_SIZE) {
 		error(400, 'File too large (max 50MB)');
 	}
 
 	try {
+		if (demoActive) {
+			const metadata = await getDemoDatasetMetadata();
+			const [existing] = await db
+				.select()
+				.from(datasets)
+				.where(and(eq(datasets.orgId, org.id), eq(datasets.fileName, metadata.fileName)));
+
+			if (existing) {
+				return json({
+					id: existing.id,
+					name: existing.name,
+					rowCount: existing.rowCount,
+					columns: (existing.schema as ColumnSchema[]).length,
+				});
+			}
+
+			const [dataset] = await db
+				.insert(datasets)
+				.values({
+					orgId: org.id,
+					name: metadata.name,
+					fileName: metadata.fileName,
+					rowCount: metadata.rowCount,
+					schema: metadata.schema,
+					uploadedBy: locals.user.id,
+				})
+				.returning();
+
+			const demoRows = await getDemoRows();
+			for (let i = 0; i < demoRows.length; i += BATCH_SIZE) {
+				const batch = demoRows.slice(i, i + BATCH_SIZE);
+				await db.insert(datasetRows).values(
+					batch.map((row, idx) => ({
+						datasetId: dataset.id,
+						data: row,
+						rowIndex: i + idx,
+					})),
+				);
+			}
+
+			return json({
+				id: dataset.id,
+				name: dataset.name,
+				rowCount: dataset.rowCount,
+				columns: metadata.schema.length,
+			});
+		}
+
 		const name = deriveName(file.name);
 
 		// SQLite files: save to disk as-is
@@ -84,12 +136,10 @@ export const POST: RequestHandler = async ({ request, locals }) => {
 
 		// Normalize date columns if API key is available
 		let normalizedRows = rows;
-		if (orgSettings?.geminiApiKey) {
+		const llmConfig = resolveLlmConfig(orgSettings);
+		if (llmConfig) {
 			try {
-				const dateNormalizer = new DateNormalizer(
-					orgSettings.geminiApiKey,
-					orgSettings.geminiModel,
-				);
+				const dateNormalizer = new DateNormalizer(llmConfig);
 				const columns = Object.keys(rows[0]);
 				const analysis = await dateNormalizer.analyzeDateColumns(rows, columns);
 
@@ -226,11 +276,6 @@ function isDateString(value: string): boolean {
 	return false;
 }
 
-/**
- * PUT endpoint - Clean all datasets (remove pipes from column names in JSONB data)
- */
-import { sql } from 'drizzle-orm';
-
 export const PUT: RequestHandler = async ({ request, locals }) => {
 	if (!locals.user) {
 		error(401, 'Unauthorized');
@@ -279,9 +324,9 @@ export const PUT: RequestHandler = async ({ request, locals }) => {
 			console.log(`Cleaning ${dataset.name}:`, Array.from(columnMapping.entries()));
 
 			// Update all rows - rename JSONB keys
-			const BATCH_SIZE = 100;
-			for (let i = 0; i < rows.length; i += BATCH_SIZE) {
-				const batch = rows.slice(i, i + BATCH_SIZE);
+			const CLEAN_BATCH_SIZE = 100;
+			for (let i = 0; i < rows.length; i += CLEAN_BATCH_SIZE) {
+				const batch = rows.slice(i, i + CLEAN_BATCH_SIZE);
 				await Promise.all(
 					batch.map((row) => {
 						const oldData = row.data as Record<string, unknown>;

@@ -2,15 +2,8 @@
 	import { invalidateAll } from '$app/navigation';
 	import FileUploader from '$lib/components/datasets/FileUploader.svelte';
 	import Modal from '$lib/components/ui/Modal.svelte';
-	import {
-		X,
-		Trash2,
-		Database,
-		Check,
-		TriangleAlert,
-		LoaderCircle,
-		CircleAlert,
-	} from '@lucide/svelte';
+	import LogoSpinner from '$lib/components/ui/LogoSpinner.svelte';
+	import { X, Trash2, Database, Check, TriangleAlert, CircleAlert } from '@lucide/svelte';
 	import type { PageData } from './$types';
 
 	let { data }: { data: PageData } = $props();
@@ -388,7 +381,7 @@
 	{:else if isNormalizingAll}
 		<div class="py-4 text-center">
 			<div class="mb-4 inline-flex h-12 w-12 items-center justify-center">
-				<LoaderCircle class="h-8 w-8 animate-spin text-[#64ff96]" />
+				<LogoSpinner class="h-8 w-8" />
 			</div>
 			<h3 class="mb-2 text-lg font-semibold text-white">Normalizing Datasets...</h3>
 			<p class="text-sm text-white/50">

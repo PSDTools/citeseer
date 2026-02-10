@@ -49,6 +49,9 @@ export interface PanelSpec {
 	confidence?: 'high' | 'medium' | 'low';
 	recommendations?: string[];
 	forecast?: ForecastSpec;
+	color?: string;
+	colorPalette?: string[];
+	colorMap?: Record<string, string>;
 }
 
 export interface AnalyticalPlan {

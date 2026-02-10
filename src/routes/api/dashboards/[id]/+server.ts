@@ -4,6 +4,7 @@ import { db, dashboards } from '$lib/server/db';
 import { getUserOrganizations } from '$lib/server/auth';
 import { eq, and } from 'drizzle-orm';
 import type { AnalyticalPlan, PanelSpec, QueryResult } from '$lib/server/db/schema';
+import { getDataMode } from '$lib/server/demo/runtime';
 
 // GET - Get a single dashboard
 export const GET: RequestHandler = async ({ locals, params }) => {
@@ -17,11 +18,14 @@ export const GET: RequestHandler = async ({ locals, params }) => {
 	}
 
 	const orgId = orgs[0].id;
+	const dataMode = getDataMode();
 
 	const [dashboard] = await db
 		.select()
 		.from(dashboards)
-		.where(and(eq(dashboards.id, params.id), eq(dashboards.orgId, orgId)));
+		.where(
+			and(eq(dashboards.id, params.id), eq(dashboards.orgId, orgId), eq(dashboards.mode, dataMode)),
+		);
 
 	if (!dashboard) {
 		error(404, 'Dashboard not found');
@@ -42,12 +46,15 @@ export const PATCH: RequestHandler = async ({ params, locals, request }) => {
 	}
 
 	const orgId = orgs[0].id;
+	const dataMode = getDataMode();
 
 	// Verify dashboard exists and belongs to org
 	const [existing] = await db
 		.select({ id: dashboards.id })
 		.from(dashboards)
-		.where(and(eq(dashboards.id, params.id), eq(dashboards.orgId, orgId)));
+		.where(
+			and(eq(dashboards.id, params.id), eq(dashboards.orgId, orgId), eq(dashboards.mode, dataMode)),
+		);
 
 	if (!existing) {
 		error(404, 'Dashboard not found');
@@ -93,10 +100,13 @@ export const DELETE: RequestHandler = async ({ locals, params }) => {
 	}
 
 	const orgId = orgs[0].id;
+	const dataMode = getDataMode();
 
 	const [deleted] = await db
 		.delete(dashboards)
-		.where(and(eq(dashboards.id, params.id), eq(dashboards.orgId, orgId)))
+		.where(
+			and(eq(dashboards.id, params.id), eq(dashboards.orgId, orgId), eq(dashboards.mode, dataMode)),
+		)
 		.returning();
 
 	if (!deleted) {

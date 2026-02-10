@@ -3,6 +3,7 @@ import type { RequestHandler } from './$types';
 import { db, contexts, contextDatasets, datasets } from '$lib/server/db';
 import { getUserOrganizations } from '$lib/server/auth';
 import { eq, and } from 'drizzle-orm';
+import { getDataMode } from '$lib/server/demo/runtime';
 
 // POST - Add datasets to a context
 export const POST: RequestHandler = async ({ locals, params, request }) => {
@@ -16,12 +17,13 @@ export const POST: RequestHandler = async ({ locals, params, request }) => {
 	}
 
 	const orgId = orgs[0].id;
+	const dataMode = getDataMode();
 
 	// Verify context belongs to org
 	const [context] = await db
 		.select()
 		.from(contexts)
-		.where(and(eq(contexts.id, params.id), eq(contexts.orgId, orgId)));
+		.where(and(eq(contexts.id, params.id), eq(contexts.orgId, orgId), eq(contexts.mode, dataMode)));
 
 	if (!context) {
 		error(404, 'Context not found');
@@ -76,12 +78,13 @@ export const DELETE: RequestHandler = async ({ locals, params, request }) => {
 	}
 
 	const orgId = orgs[0].id;
+	const dataMode = getDataMode();
 
 	// Verify context belongs to org
 	const [context] = await db
 		.select()
 		.from(contexts)
-		.where(and(eq(contexts.id, params.id), eq(contexts.orgId, orgId)));
+		.where(and(eq(contexts.id, params.id), eq(contexts.orgId, orgId), eq(contexts.mode, dataMode)));
 
 	if (!context) {
 		error(404, 'Context not found');

@@ -1,5 +1,5 @@
 <script lang="ts">
-	import { goto } from '$app/navigation';
+	import { goto, invalidateAll } from '$app/navigation';
 	import Modal from '$lib/components/ui/Modal.svelte';
 	import { TriangleAlert, ChevronRight, CloudUpload, Plus, Package, Zap } from '@lucide/svelte';
 	import type { PageData } from './$types';
@@ -53,6 +53,7 @@
 
 			const result = await response.json();
 			showCreateDialog = false;
+			await invalidateAll();
 			goto(`/contexts/${result.context.id}`);
 		} catch (e) {
 			createError = e instanceof Error ? e.message : 'Failed to create context';

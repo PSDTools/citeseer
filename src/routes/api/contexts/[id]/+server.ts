@@ -3,6 +3,7 @@ import type { RequestHandler } from './$types';
 import { db, contexts, contextDatasets, datasets } from '$lib/server/db';
 import { getUserOrganizations } from '$lib/server/auth';
 import { eq, and } from 'drizzle-orm';
+import { getDataMode } from '$lib/server/demo/runtime';
 
 // GET - Get a single context with its datasets
 export const GET: RequestHandler = async ({ locals, params }) => {
@@ -16,11 +17,12 @@ export const GET: RequestHandler = async ({ locals, params }) => {
 	}
 
 	const orgId = orgs[0].id;
+	const dataMode = getDataMode();
 
 	const [context] = await db
 		.select()
 		.from(contexts)
-		.where(and(eq(contexts.id, params.id), eq(contexts.orgId, orgId)));
+		.where(and(eq(contexts.id, params.id), eq(contexts.orgId, orgId), eq(contexts.mode, dataMode)));
 
 	if (!context) {
 		error(404, 'Context not found');
@@ -57,10 +59,11 @@ export const DELETE: RequestHandler = async ({ locals, params }) => {
 	}
 
 	const orgId = orgs[0].id;
+	const dataMode = getDataMode();
 
 	const [deleted] = await db
 		.delete(contexts)
-		.where(and(eq(contexts.id, params.id), eq(contexts.orgId, orgId)))
+		.where(and(eq(contexts.id, params.id), eq(contexts.orgId, orgId), eq(contexts.mode, dataMode)))
 		.returning();
 
 	if (!deleted) {
@@ -82,6 +85,7 @@ export const PATCH: RequestHandler = async ({ locals, params, request }) => {
 	}
 
 	const orgId = orgs[0].id;
+	const dataMode = getDataMode();
 
 	const body = await request.json();
 	const { name, description } = body as { name?: string; description?: string };
@@ -92,7 +96,7 @@ export const PATCH: RequestHandler = async ({ locals, params, request }) => {
 			...(name && { name: name.trim() }),
 			...(description !== undefined && { description: description?.trim() || null }),
 		})
-		.where(and(eq(contexts.id, params.id), eq(contexts.orgId, orgId)))
+		.where(and(eq(contexts.id, params.id), eq(contexts.orgId, orgId), eq(contexts.mode, dataMode)))
 		.returning();
 
 	if (!updated) {

@@ -16,6 +16,7 @@ import { relations } from 'drizzle-orm';
 // Enums
 export const orgRoleEnum = pgEnum('org_role', ['owner', 'admin', 'member']);
 export const queryStatusEnum = pgEnum('query_status', ['pending', 'success', 'failed', 'refused']);
+export const dataModeEnum = pgEnum('data_mode', ['demo', 'live']);
 
 // Users table (better-auth compatible)
 export const users = pgTable('users', {
@@ -148,6 +149,7 @@ export const dashboards = pgTable('dashboards', {
 		onDelete: 'set null',
 	}),
 	name: varchar('name', { length: 255 }).notNull(),
+	mode: dataModeEnum('mode').notNull().default('live'),
 	question: text('question').notNull(),
 	description: text('description'),
 	plan: jsonb('plan').$type<AnalyticalPlan>(),
@@ -166,6 +168,7 @@ export const contexts = pgTable('contexts', {
 		.notNull()
 		.references(() => organizations.id, { onDelete: 'cascade' }),
 	name: varchar('name', { length: 255 }).notNull(),
+	mode: dataModeEnum('mode').notNull().default('live'),
 	description: text('description'),
 	createdAt: timestamp('created_at', { withTimezone: true }).notNull().defaultNow(),
 	createdBy: uuid('created_by').references(() => users.id, { onDelete: 'set null' }),
@@ -192,6 +195,10 @@ export const settings = pgTable('settings', {
 		.unique(),
 	geminiApiKey: text('gemini_api_key'), // Should be encrypted in production
 	geminiModel: varchar('gemini_model', { length: 100 }).notNull().default('gemini-2.0-flash'),
+	llmProvider: varchar('llm_provider', { length: 32 }).notNull().default('gemini'),
+	llmApiKey: text('llm_api_key'),
+	llmModel: varchar('llm_model', { length: 100 }),
+	llmBaseUrl: text('llm_base_url'),
 	updatedAt: timestamp('updated_at', { withTimezone: true }).notNull().defaultNow(),
 });
 
@@ -370,6 +377,9 @@ export interface PanelSpec {
 	confidence?: 'high' | 'medium' | 'low';
 	recommendations?: string[];
 	forecast?: ForecastSpec;
+	color?: string;
+	colorPalette?: string[];
+	colorMap?: Record<string, string>;
 }
 
 export interface AnalyticalPlan {

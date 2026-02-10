@@ -2,7 +2,8 @@
 	import { goto } from '$app/navigation';
 	import type { AnalyticalPlan, QueryResult } from '$lib/types/toon';
 	import ChartPanel from '$lib/components/viz/ChartPanel.svelte';
-	import { Plus, LoaderCircle, ArrowRight, ChevronRight } from '@lucide/svelte';
+	import LogoSpinner from '$lib/components/ui/LogoSpinner.svelte';
+	import { Plus, ArrowRight, ChevronRight } from '@lucide/svelte';
 
 	interface Dataset {
 		id: string;
@@ -225,7 +226,7 @@
 					class="absolute top-1/2 right-2 -translate-y-1/2 rounded-lg bg-gradient-to-r from-[#64ff96] to-[#3dd977] p-2.5 text-[#050810] transition-all hover:shadow-lg hover:shadow-[#64ff96]/20 disabled:cursor-not-allowed disabled:opacity-50"
 				>
 					{#if isLoading}
-						<LoaderCircle class="h-5 w-5 animate-spin" />
+						<LogoSpinner class="h-5 w-5" />
 					{:else}
 						<ArrowRight class="h-5 w-5" />
 					{/if}

@@ -3,7 +3,8 @@
  * Analyzes column data to identify date/time patterns and normalizes them to ISO format.
  */
 
-import { GoogleGenAI } from '@google/genai';
+import type { LlmConfig } from '$lib/server/llm/config';
+import { generateTextWithLlm } from '$lib/server/llm/text';
 
 interface DateColumnInfo {
 	columnName: string;
@@ -31,12 +32,10 @@ Column samples:
 `;
 
 export class DateNormalizer {
-	private client: GoogleGenAI;
-	private model: string;
+	private config: LlmConfig;
 
-	constructor(apiKey: string, model?: string) {
-		this.client = new GoogleGenAI({ apiKey });
-		this.model = model || 'gemini-2.0-flash';
+	constructor(config: LlmConfig) {
+		this.config = config;
 	}
 
 	/**
@@ -62,21 +61,12 @@ export class DateNormalizer {
 		}
 
 		try {
-			const response = await this.client.models.generateContent({
-				model: this.model,
-				contents: [
-					{
-						role: 'user',
-						parts: [{ text: DATE_ANALYSIS_PROMPT + columnSamples.join('\n') }],
-					},
-				],
-				config: {
-					temperature: 0.1,
-					maxOutputTokens: 1024,
-				},
+			const text = await generateTextWithLlm(this.config, {
+				prompt: DATE_ANALYSIS_PROMPT + columnSamples.join('\n'),
+				temperature: 0.1,
+				maxOutputTokens: 1024,
 			});
 
-			const text = response.text || '[]';
 			// Extract JSON from response
 			const jsonMatch = text.match(/\[[\s\S]*\]/);
 			if (jsonMatch) {

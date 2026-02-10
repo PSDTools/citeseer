@@ -1,0 +1,4556 @@
+{
+  "dataset": {
+    "name": "Demo Dataset",
+    "fileName": "demo.db",
+    "table": "demo_data"
+  },
+  "patterns": [
+    {
+      "regex": "^Why might there be so many pending inspections$",
+      "flags": "i",
+      "response": {
+        "query": {
+          "plan": {
+            "q": "Why might there be so many pending inspections",
+            "feasible": true,
+            "tables": [
+              "supply chain data 2"
+            ],
+            "sql": "SELECT data->>'Supplier name' AS supplier_name, COUNT(*) AS count FROM dataset_rows WHERE dataset_id = '4e7acb20-b58a-49fc-a87d-8bbb1e14cff9' AND data->>'Inspection results' = 'Pending' GROUP BY 1 ORDER BY 2 DESC",
+            "viz": [
+              {
+                "type": "bar",
+                "title": "Pending Inspections by Supplier",
+                "x": "supplier_name",
+                "y": "count",
+                "description": "Number of pending inspections for each supplier. This helps identify suppliers with a high volume of pending inspections, which could indicate bottlenecks or issues with their inspection processes.",
+                "_type": "panel",
+                "summary": "Supplier 3 has the highest number of pending inspections with 10, while Supplier 4 has the lowest with 6."
+              }
+            ],
+            "suggestedInvestigations": [
+              "What are the lead times for suppliers with pending inspections?",
+              "What are the defect rates for suppliers with pending inspections?",
+              "What are the shipping times for suppliers with pending inspections?"
+            ],
+            "_type": "plan",
+            "executiveSummary": "The high number of pending inspections appears to be driven by specific suppliers, with Supplier 3 having the most (10) and Supplier 4 the least (6). This backlog suggests a potential bottleneck in the inspection process or issues with certain suppliers consistently requiring more inspections. If the trend continues, it could lead to delays in product releases and potential compliance risks."
+          },
+          "results": {
+            "0": {
+              "success": true,
+              "data": [
+                {
+                  "supplier_name": "Supplier 3",
+                  "count": "10"
+                },
+                {
+                  "supplier_name": "Supplier 2",
+                  "count": "9"
+                },
+                {
+                  "supplier_name": "Supplier 1",
+                  "count": "8"
+                },
+                {
+                  "supplier_name": "Supplier 5",
+                  "count": "8"
+                },
+                {
+                  "supplier_name": "Supplier 4",
+                  "count": "6"
+                }
+              ],
+              "columns": [
+                "supplier_name",
+                "count"
+              ],
+              "rowCount": 5,
+              "executionMs": 2
+            },
+            "-1": {
+              "success": true,
+              "data": [
+                {
+                  "supplier_name": "Supplier 3",
+                  "count": "10"
+                },
+                {
+                  "supplier_name": "Supplier 2",
+                  "count": "9"
+                },
+                {
+                  "supplier_name": "Supplier 1",
+                  "count": "8"
+                },
+                {
+                  "supplier_name": "Supplier 5",
+                  "count": "8"
+                },
+                {
+                  "supplier_name": "Supplier 4",
+                  "count": "6"
+                }
+              ],
+              "columns": [
+                "supplier_name",
+                "count"
+              ],
+              "rowCount": 5,
+              "executionMs": 5
+            }
+          },
+          "errorExplanation": null
+        }
+      }
+    },
+    {
+      "regex": "^why might we have so many inspections pending$",
+      "flags": "i",
+      "response": {
+        "query": {
+          "plan": {
+            "q": "why might we have so many inspections pending",
+            "feasible": true,
+            "tables": [
+              "supply chain data 2"
+            ],
+            "sql": "SELECT data->>'Supplier name' as supplier_name, COUNT(*) as count FROM dataset_rows WHERE dataset_id = '4e7acb20-b58a-49fc-a87d-8bbb1e14cff9' AND data->>'Inspection results' = 'Pending' GROUP BY 1 ORDER BY 2 DESC",
+            "viz": [
+              {
+                "type": "bar",
+                "title": "Pending Inspections by Supplier",
+                "x": "supplier_name",
+                "y": "count",
+                "description": "Number of pending inspections for each supplier. This helps identify suppliers with a high volume of pending inspections, potentially indicating bottlenecks or issues in their processes.",
+                "_type": "panel",
+                "summary": "Supplier 3 has the highest number of pending inspections (10), indicating a potential bottleneck in their inspection process."
+              }
+            ],
+            "suggestedInvestigations": [
+              "What is the average lead time for suppliers with pending inspections?",
+              "What are the defect rates for suppliers with pending inspections?"
+            ],
+            "_type": "plan",
+            "executiveSummary": "We have a significant backlog of pending inspections, totaling 41 across the top 5 suppliers. Supplier 3 has the highest number of pending inspections with 10, closely followed by Supplier 2 with 9. If this trend continues, we risk production delays and potential quality issues; therefore, we should immediately investigate the root causes of these delays with Suppliers 2 and 3."
+          },
+          "results": {
+            "0": {
+              "success": true,
+              "data": [
+                {
+                  "supplier_name": "Supplier 3",
+                  "count": "10"
+                },
+                {
+                  "supplier_name": "Supplier 2",
+                  "count": "9"
+                },
+                {
+                  "supplier_name": "Supplier 1",
+                  "count": "8"
+                },
+                {
+                  "supplier_name": "Supplier 5",
+                  "count": "8"
+                },
+                {
+                  "supplier_name": "Supplier 4",
+                  "count": "6"
+                }
+              ],
+              "columns": [
+                "supplier_name",
+                "count"
+              ],
+              "rowCount": 5,
+              "executionMs": 2
+            },
+            "-1": {
+              "success": true,
+              "data": [
+                {
+                  "supplier_name": "Supplier 3",
+                  "count": "10"
+                },
+                {
+                  "supplier_name": "Supplier 2",
+                  "count": "9"
+                },
+                {
+                  "supplier_name": "Supplier 1",
+                  "count": "8"
+                },
+                {
+                  "supplier_name": "Supplier 5",
+                  "count": "8"
+                },
+                {
+                  "supplier_name": "Supplier 4",
+                  "count": "6"
+                }
+              ],
+              "columns": [
+                "supplier_name",
+                "count"
+              ],
+              "rowCount": 5,
+              "executionMs": 4
+            }
+          },
+          "errorExplanation": null
+        }
+      }
+    },
+    {
+      "regex": "^Which locations have the highest defect rates\\?$",
+      "flags": "i",
+      "response": {
+        "query": {
+          "plan": {
+            "q": "Which locations have the highest defect rates?",
+            "feasible": true,
+            "tables": [
+              "supply",
+              "chain",
+              "data",
+              2
+            ],
+            "sql": "SELECT data->>'Location' as location, AVG((data->>'Defect rates')::numeric) as avg_defect_rate FROM dataset_rows WHERE dataset_id = '4e7acb20-b58a-49fc-a87d-8bbb1e14cff9' GROUP BY 1 ORDER BY 2 DESC",
+            "viz": [
+              {
+                "type": "bar",
+                "title": "Average Defect Rates by Location",
+                "x": "location",
+                "y": "avg_defect_rate",
+                "description": "Average defect rates for each location.",
+                "_type": "panel",
+                "summary": "Chennai has the highest average defect rate of 2.64%, significantly exceeding Bangalore's rate of 2.09%."
+              }
+            ],
+            "suggestedInvestigations": [
+              "What are the causes of high defect rates in the locations with the highest rates?"
+            ],
+            "_type": "plan",
+            "executiveSummary": "Chennai exhibits the highest average defect rate at 2.64%, followed by Kolkata at 2.29%. This indicates a potential issue with process or quality control in Chennai that, if unaddressed, could lead to increased costs and customer dissatisfaction; therefore, we recommend an immediate investigation into the root causes of the high defect rate in Chennai."
+          },
+          "results": {
+            "0": {
+              "success": true,
+              "data": [
+                {
+                  "location": "Chennai",
+                  "avg_defect_rate": "2.63825551287183692"
+                },
+                {
+                  "location": "Kolkata",
+                  "avg_defect_rate": "2.28576565333431101"
+                },
+                {
+                  "location": "Delhi",
+                  "avg_defect_rate": "2.22863869421771919"
+                },
+                {
+                  "location": "Mumbai",
+                  "avg_defect_rate": "2.12233875394905927"
+                },
+                {
+                  "location": "Bangalore",
+                  "avg_defect_rate": "2.09363970461229940"
+                }
+              ],
+              "columns": [
+                "location",
+                "avg_defect_rate"
+              ],
+              "rowCount": 5,
+              "executionMs": 2
+            },
+            "-1": {
+              "success": true,
+              "data": [
+                {
+                  "location": "Chennai",
+                  "avg_defect_rate": "2.63825551287183692"
+                },
+                {
+                  "location": "Kolkata",
+                  "avg_defect_rate": "2.28576565333431101"
+                },
+                {
+                  "location": "Delhi",
+                  "avg_defect_rate": "2.22863869421771919"
+                },
+                {
+                  "location": "Mumbai",
+                  "avg_defect_rate": "2.12233875394905927"
+                },
+                {
+                  "location": "Bangalore",
+                  "avg_defect_rate": "2.09363970461229940"
+                }
+              ],
+              "columns": [
+                "location",
+                "avg_defect_rate"
+              ],
+              "rowCount": 5,
+              "executionMs": 3
+            }
+          },
+          "errorExplanation": null
+        }
+      }
+    },
+    {
+      "regex": "^How do manufacturing costs vary across different locations\\?$",
+      "flags": "i",
+      "response": {
+        "query": {
+          "plan": {
+            "q": "How do manufacturing costs vary across different locations?",
+            "feasible": true,
+            "tables": [
+              "supply",
+              "chain",
+              "data",
+              2
+            ],
+            "sql": "SELECT data->>'Location' as location, AVG((data->>'Manufacturing costs')::numeric) as avg_manufacturing_cost FROM dataset_rows WHERE dataset_id = '4e7acb20-b58a-49fc-a87d-8bbb1e14cff9' GROUP BY 1 ORDER BY 2 DESC",
+            "viz": [
+              {
+                "type": "bar",
+                "title": "Average Manufacturing Costs by Location",
+                "x": "location",
+                "y": "avg_manufacturing_cost",
+                "description": "Average manufacturing costs for each location.",
+                "_type": "panel",
+                "summary": "Average manufacturing costs are highest in Bangalore ($62) and lowest in Mumbai ($37), highlighting a significant location-based cost variance."
+              }
+            ],
+            "suggestedInvestigations": [
+              "What factors contribute to the differences in manufacturing costs across locations?",
+              "Which locations have the highest defect rates?"
+            ],
+            "_type": "plan",
+            "executiveSummary": "Manufacturing costs vary significantly across locations, with Bangalore exhibiting the highest average cost at approximately $62, while Mumbai shows the lowest at roughly $37. This disparity indicates potential inefficiencies or higher operational expenses in Bangalore, which, if unaddressed, could negatively impact overall profitability; therefore, a detailed cost analysis in Bangalore is recommended to identify and mitigate the drivers behind these elevated costs."
+          },
+          "results": {
+            "0": {
+              "success": true,
+              "data": [
+                {
+                  "location": "Bangalore",
+                  "avg_manufacturing_cost": "61.9949773642612312"
+                },
+                {
+                  "location": "Chennai",
+                  "avg_manufacturing_cost": "51.1450434694548009"
+                },
+                {
+                  "location": "Delhi",
+                  "avg_manufacturing_cost": "48.8800255227743410"
+                },
+                {
+                  "location": "Kolkata",
+                  "avg_manufacturing_cost": "41.8631221429269290"
+                },
+                {
+                  "location": "Mumbai",
+                  "avg_manufacturing_cost": "36.7309284448366108"
+                }
+              ],
+              "columns": [
+                "location",
+                "avg_manufacturing_cost"
+              ],
+              "rowCount": 5,
+              "executionMs": 2
+            },
+            "-1": {
+              "success": true,
+              "data": [
+                {
+                  "location": "Bangalore",
+                  "avg_manufacturing_cost": "61.9949773642612312"
+                },
+                {
+                  "location": "Chennai",
+                  "avg_manufacturing_cost": "51.1450434694548009"
+                },
+                {
+                  "location": "Delhi",
+                  "avg_manufacturing_cost": "48.8800255227743410"
+                },
+                {
+                  "location": "Kolkata",
+                  "avg_manufacturing_cost": "41.8631221429269290"
+                },
+                {
+                  "location": "Mumbai",
+                  "avg_manufacturing_cost": "36.7309284448366108"
+                }
+              ],
+              "columns": [
+                "location",
+                "avg_manufacturing_cost"
+              ],
+              "rowCount": 5,
+              "executionMs": 6
+            }
+          },
+          "errorExplanation": null
+        }
+      }
+    },
+    {
+      "regex": "^Please make me a dashboard for my organization please!$",
+      "flags": "i",
+      "response": {
+        "query": {
+          "plan": {
+            "q": "Please make me a dashboard for my organization please!",
+            "feasible": true,
+            "tables": [
+              "supply",
+              "chain",
+              "data",
+              2
+            ],
+            "sql": "SELECT data->>'Product type' as product_type, SUM((data->>'Revenue generated')::numeric) as total_revenue FROM dataset_rows WHERE dataset_id = 'DATASET_ID' GROUP BY 1 ORDER BY 2 DESC",
+            "viz": [
+              {
+                "type": "bar",
+                "title": "Revenue by Product Type",
+                "x": "product_type",
+                "y": "total_revenue",
+                "description": "Total revenue generated by each product type.",
+                "_type": "panel",
+                "summary": "Skincare products generate the highest revenue at $241,628.16, followed by haircare ($174,455.39) and cosmetics ($161,521.27)."
+              },
+              {
+                "type": "stat",
+                "title": "Total Revenue",
+                "value": "total_revenue",
+                "description": "Total revenue across all product types.",
+                "sql": "SELECT SUM((data->>'Revenue generated')::numeric) as total_revenue FROM dataset_rows WHERE dataset_id = 'DATASET_ID'",
+                "_type": "panel",
+                "summary": "The total revenue across all product types is $577,604.82."
+              },
+              {
+                "type": "bar",
+                "title": "Average Shipping Costs by Carrier",
+                "x": "shipping_carriers",
+                "y": "avg_shipping_cost",
+                "description": "Average shipping costs for each carrier.",
+                "sql": "SELECT data->>'Shipping carriers' as shipping_carriers, AVG((data->>'Shipping costs')::numeric) as avg_shipping_cost FROM dataset_rows WHERE dataset_id = 'DATASET_ID' GROUP BY 1 ORDER BY 2 DESC",
+                "_type": "panel",
+                "summary": "Average shipping costs are relatively consistent across all three carriers, ranging from $5.51 to $5.60."
+              },
+              {
+                "type": "pie",
+                "title": "Distribution of Inspection Results",
+                "x": "inspection_results",
+                "y": "count",
+                "description": "Distribution of inspection results (Pass, Fail, Pending).",
+                "sql": "SELECT data->>'Inspection results' as inspection_results, COUNT(*) as count FROM dataset_rows WHERE dataset_id = 'DATASET_ID' GROUP BY 1",
+                "_type": "panel",
+                "summary": "The distribution of inspection results shows a significant number of pending inspections (41), with fewer products passing (23) or failing (36)."
+              },
+              {
+                "type": "table",
+                "title": "Top 10 Products by Revenue",
+                "columns": [
+                  "product_type",
+                  "sku",
+                  "total_revenue"
+                ],
+                "description": "Top 10 products by revenue generated.",
+                "sql": "SELECT data->>'Product type' as product_type, data->>'SKU' as sku, SUM((data->>'Revenue generated')::numeric) as total_revenue FROM dataset_rows WHERE dataset_id = 'DATASET_ID' GROUP BY 1, 2 ORDER BY 3 DESC LIMIT 10",
+                "_type": "panel",
+                "summary": "The top 10 products by revenue include a mix of skincare, haircare, and cosmetic items, with individual SKU revenues ranging from approximately $9,364 to $9,866."
+              }
+            ],
+            "suggestedInvestigations": [
+              "What are the defect rates by product type?",
+              "How do lead times affect revenue?"
+            ],
+            "_type": "plan",
+            "executiveSummary": "This dashboard provides a comprehensive overview of the organization's performance. Total revenue is $577,604.82, with skincare products contributing the most at $241,628.16, suggesting a strong market presence in that category; however, the relatively high number of pending inspection results (41) indicates a potential bottleneck in quality control that could impact future sales if not addressed."
+          },
+          "results": {
+            "0": {
+              "success": true,
+              "data": [
+                {
+                  "product_type": "skincare",
+                  "total_revenue": "241628.1621330632273"
+                },
+                {
+                  "product_type": "haircare",
+                  "total_revenue": "174455.3906054623110"
+                },
+                {
+                  "product_type": "cosmetics",
+                  "total_revenue": "161521.2659994831420"
+                }
+              ],
+              "columns": [
+                "product_type",
+                "total_revenue"
+              ],
+              "rowCount": 3,
+              "executionMs": 1
+            },
+            "1": {
+              "success": true,
+              "data": [
+                {
+                  "total_revenue": "577604.8187380086803"
+                }
+              ],
+              "columns": [
+                "total_revenue"
+              ],
+              "rowCount": 1,
+              "executionMs": 1
+            },
+            "2": {
+              "success": true,
+              "data": [
+                {
+                  "shipping_carriers": "Carrier C",
+                  "avg_shipping_cost": "5.5992916183375063"
+                },
+                {
+                  "shipping_carriers": "Carrier A",
+                  "avg_shipping_cost": "5.5549225216512713"
+                },
+                {
+                  "shipping_carriers": "Carrier B",
+                  "avg_shipping_cost": "5.5092469689287304"
+                }
+              ],
+              "columns": [
+                "shipping_carriers",
+                "avg_shipping_cost"
+              ],
+              "rowCount": 3,
+              "executionMs": 1
+            },
+            "3": {
+              "success": true,
+              "data": [
+                {
+                  "inspection_results": "Pending",
+                  "count": "41"
+                },
+                {
+                  "inspection_results": "Pass",
+                  "count": "23"
+                },
+                {
+                  "inspection_results": "Fail",
+                  "count": "36"
+                }
+              ],
+              "columns": [
+                "inspection_results",
+                "count"
+              ],
+              "rowCount": 3,
+              "executionMs": 1
+            },
+            "4": {
+              "success": true,
+              "data": [
+                {
+                  "product_type": "haircare",
+                  "sku": "SKU51",
+                  "total_revenue": "9866.465457979697"
+                },
+                {
+                  "product_type": "cosmetics",
+                  "sku": "SKU38",
+                  "total_revenue": "9692.318040218432"
+                },
+                {
+                  "product_type": "skincare",
+                  "sku": "SKU31",
+                  "total_revenue": "9655.135102719398"
+                },
+                {
+                  "product_type": "skincare",
+                  "sku": "SKU90",
+                  "total_revenue": "9592.633570280312"
+                },
+                {
+                  "product_type": "haircare",
+                  "sku": "SKU2",
+                  "total_revenue": "9577.74962586873"
+                },
+                {
+                  "product_type": "skincare",
+                  "sku": "SKU32",
+                  "total_revenue": "9571.550487327819"
+                },
+                {
+                  "product_type": "skincare",
+                  "sku": "SKU67",
+                  "total_revenue": "9473.798032508337"
+                },
+                {
+                  "product_type": "cosmetics",
+                  "sku": "SKU88",
+                  "total_revenue": "9444.74203306298"
+                },
+                {
+                  "product_type": "skincare",
+                  "sku": "SKU52",
+                  "total_revenue": "9435.76260891213"
+                },
+                {
+                  "product_type": "haircare",
+                  "sku": "SKU18",
+                  "total_revenue": "9364.673505076173"
+                }
+              ],
+              "columns": [
+                "product_type",
+                "sku",
+                "total_revenue"
+              ],
+              "rowCount": 10,
+              "executionMs": 2
+            },
+            "-1": {
+              "success": true,
+              "data": [
+                {
+                  "product_type": "skincare",
+                  "total_revenue": "241628.1621330632273"
+                },
+                {
+                  "product_type": "haircare",
+                  "total_revenue": "174455.3906054623110"
+                },
+                {
+                  "product_type": "cosmetics",
+                  "total_revenue": "161521.2659994831420"
+                }
+              ],
+              "columns": [
+                "product_type",
+                "total_revenue"
+              ],
+              "rowCount": 3,
+              "executionMs": 6
+            }
+          },
+          "errorExplanation": null
+        }
+      }
+    },
+    {
+      "regex": "^What might be causing this defect rate$",
+      "flags": "i",
+      "response": {
+        "query": {
+          "plan": {
+            "q": "What might be causing this defect rate",
+            "feasible": true,
+            "tables": [
+              "supply chain data 2"
+            ],
+            "sql": "SELECT data->>'Product type' AS product_type, COUNT(*) AS count FROM dataset_rows WHERE dataset_id = '4e7acb20-b58a-49fc-a87d-8bbb1e14cff9' AND (data->>'Defect rates')::numeric = 2.27715799273960995 GROUP BY 1 ORDER BY 2 DESC",
+            "viz": [
+              {
+                "type": "bar",
+                "title": "Defect Rate Causes by Product Type",
+                "x": "product_type",
+                "y": "count",
+                "description": "Distribution of product types associated with the defect rate of 2.27715799273960995.",
+                "_type": "panel"
+              }
+            ],
+            "suggestedInvestigations": [
+              "What is the average lead time for products with this defect rate?",
+              "What are the inspection results for products with this defect rate?",
+              "What is the distribution of shipping carriers for products with this defect rate?"
+            ],
+            "_type": "plan"
+          },
+          "results": {
+            "0": {
+              "success": true,
+              "data": [],
+              "columns": [],
+              "rowCount": 0,
+              "executionMs": 2
+            },
+            "-1": {
+              "success": true,
+              "data": [],
+              "columns": [],
+              "rowCount": 0,
+              "executionMs": 5
+            }
+          },
+          "errorExplanation": {
+            "explanation": "The query returned 0 rows because it was looking for rows where the 'Defect rates' column was exactly equal to 2.27715799273960995. Given that 'Defect rates' is a float, it's unlikely that any values will match that specific number exactly due to the nature of floating-point numbers and the data in the table.",
+            "suggestions": [
+              "What are the average defect rates for each product type?",
+              "What is the distribution of defect rates across all products?",
+              "Which suppliers have the highest average defect rates?"
+            ]
+          }
+        }
+      }
+    },
+    {
+      "regex": "^Make me a dashboard for my organization!$",
+      "flags": "i",
+      "response": {
+        "query": {
+          "plan": {
+            "q": "Make me a dashboard for my organization!",
+            "feasible": true,
+            "tables": [
+              "supply",
+              "chain",
+              "data",
+              2
+            ],
+            "sql": "-- This query provides a high-level overview of key supply chain metrics.\\n-- It's designed to be a starting point for a more comprehensive dashboard.\\n\\nSELECT\\n  'Total Revenue' AS metric,\\n  SUM((data->>'Revenue generated')::numeric) AS value\\nFROM dataset_rows\\nWHERE dataset_id = 'DATASET_ID'\\n\\nUNION ALL\\n\\nSELECT\\n  'Average Lead Time' AS metric,\\n  AVG((data->>'Lead time')::numeric) AS value\\nFROM dataset_rows\\nWHERE dataset_id = 'DATASET_ID'\\n\\nUNION ALL\\n\\nSELECT\\n  'Average Defect Rate' AS metric,\\n  AVG((data->>'Defect rates')::numeric) AS value\\nFROM dataset_rows\\nWHERE dataset_id = 'DATASET_ID'\\n\\nUNION ALL\\n\\nSELECT\\n  'Average Shipping Cost' AS metric,\\n  AVG((data->>'Shipping costs')::numeric) AS value\\nFROM dataset_rows\\nWHERE dataset_id = 'DATASET_ID'",
+            "viz": [
+              {
+                "type": "stat",
+                "title": "Total Revenue",
+                "value": "value",
+                "description": "Total revenue generated from all products.",
+                "sql": "SELECT SUM((data->>'Revenue generated')::numeric) AS value FROM dataset_rows WHERE dataset_id = 'DATASET_ID'",
+                "_type": "panel",
+                "summary": "Total revenue is approximately $577,605, representing the overall financial performance."
+              },
+              {
+                "type": "stat",
+                "title": "Average Lead Time",
+                "value": "value",
+                "description": "Average lead time across all orders.",
+                "sql": "SELECT AVG((data->>'Lead time')::numeric) AS value FROM dataset_rows WHERE dataset_id = 'DATASET_ID'",
+                "_type": "panel",
+                "summary": "The average lead time is 17 days, which could be impacting customer satisfaction and requires further investigation."
+              },
+              {
+                "type": "stat",
+                "title": "Average Defect Rate",
+                "value": "value",
+                "description": "Average defect rate across all products.",
+                "sql": "SELECT AVG((data->>'Defect rates')::numeric) AS value FROM dataset_rows WHERE dataset_id = 'DATASET_ID'",
+                "_type": "panel",
+                "summary": "The average defect rate is 2.28%, indicating a need for quality control improvements to reduce waste and improve product reliability."
+              },
+              {
+                "type": "stat",
+                "title": "Average Shipping Cost",
+                "value": "value",
+                "description": "Average shipping cost across all orders.",
+                "sql": "SELECT AVG((data->>'Shipping costs')::numeric) AS value FROM dataset_rows WHERE dataset_id = 'DATASET_ID'",
+                "_type": "panel",
+                "summary": "The average shipping cost is approximately $5.55, which should be monitored to identify potential cost-saving opportunities."
+              },
+              {
+                "type": "bar",
+                "title": "Revenue by Product Type",
+                "x": "product_type",
+                "y": "revenue",
+                "description": "Total revenue generated by each product type.",
+                "sql": "SELECT data->>'Product type' as product_type, SUM((data->>'Revenue generated')::numeric) as revenue FROM dataset_rows WHERE dataset_id = 'DATASET_ID' GROUP BY 1 ORDER BY 2 DESC",
+                "_type": "panel",
+                "summary": "Skincare products generate the highest revenue at approximately $241,628, suggesting a strong market demand for this product type."
+              },
+              {
+                "type": "bar",
+                "title": "Number of Products Sold by Location",
+                "x": "location",
+                "y": "products_sold",
+                "description": "Number of products sold in each location.",
+                "sql": "SELECT data->>'Location' as location, SUM((data->>'Number of products sold')::numeric) as products_sold FROM dataset_rows WHERE dataset_id = 'DATASET_ID' GROUP BY 1 ORDER BY 2 DESC",
+                "_type": "panel",
+                "summary": "Kolkata has the highest number of products sold at 12,770, indicating a strong market presence in that location."
+              }
+            ],
+            "suggestedInvestigations": [
+              "What are the top-selling products?",
+              "Which suppliers have the shortest lead times?",
+              "How do defect rates vary by supplier?"
+            ],
+            "_type": "plan",
+            "executiveSummary": "This dashboard provides a high-level overview of key performance indicators. Total revenue is approximately $577,605, but average lead time is 17 days and the average defect rate is 2.28%, which indicates potential inefficiencies in the production and delivery process that could impact customer satisfaction and future sales growth if unaddressed. We should investigate the root causes of the lead time and defect rate to identify areas for improvement and maintain our competitive edge."
+          },
+          "results": {
+            "0": {
+              "success": true,
+              "data": [
+                {
+                  "value": "577604.8187380086803"
+                }
+              ],
+              "columns": [
+                "value"
+              ],
+              "rowCount": 1,
+              "executionMs": 3
+            },
+            "1": {
+              "success": true,
+              "data": [
+                {
+                  "value": "17.0800000000000000"
+                }
+              ],
+              "columns": [
+                "value"
+              ],
+              "rowCount": 1,
+              "executionMs": 1
+            },
+            "2": {
+              "success": true,
+              "data": [
+                {
+                  "value": "2.27715799273960995"
+                }
+              ],
+              "columns": [
+                "value"
+              ],
+              "rowCount": 1,
+              "executionMs": 2
+            },
+            "3": {
+              "success": true,
+              "data": [
+                {
+                  "value": "5.5481490720195868"
+                }
+              ],
+              "columns": [
+                "value"
+              ],
+              "rowCount": 1,
+              "executionMs": 0
+            },
+            "4": {
+              "success": true,
+              "data": [
+                {
+                  "product_type": "skincare",
+                  "revenue": "241628.1621330632273"
+                },
+                {
+                  "product_type": "haircare",
+                  "revenue": "174455.3906054623110"
+                },
+                {
+                  "product_type": "cosmetics",
+                  "revenue": "161521.2659994831420"
+                }
+              ],
+              "columns": [
+                "product_type",
+                "revenue"
+              ],
+              "rowCount": 3,
+              "executionMs": 3
+            },
+            "5": {
+              "success": true,
+              "data": [
+                {
+                  "location": "Kolkata",
+                  "products_sold": "12770"
+                },
+                {
+                  "location": "Delhi",
+                  "products_sold": "9715"
+                },
+                {
+                  "location": "Mumbai",
+                  "products_sold": "9426"
+                },
+                {
+                  "location": "Chennai",
+                  "products_sold": "8768"
+                },
+                {
+                  "location": "Bangalore",
+                  "products_sold": "5420"
+                }
+              ],
+              "columns": [
+                "location",
+                "products_sold"
+              ],
+              "rowCount": 5,
+              "executionMs": 1
+            },
+            "-1": {
+              "success": true,
+              "data": [],
+              "columns": [],
+              "rowCount": 0,
+              "executionMs": 2
+            }
+          },
+          "errorExplanation": null
+        }
+      }
+    },
+    {
+      "regex": "^Give me a dashboard for my organization!$",
+      "flags": "i",
+      "response": {
+        "query": {
+          "plan": {
+            "q": "Give me a dashboard for my organization!",
+            "feasible": true,
+            "tables": [
+              "supply",
+              "chain",
+              "data",
+              2
+            ],
+            "sql": "-- This query provides a high-level overview of key supply chain metrics.\\n-- It's designed to be a starting point for a more detailed dashboard.\\n\\nSELECT\\n  'Total Revenue' AS metric,\\n  SUM((data->>'Revenue generated')::numeric) AS value\\nFROM dataset_rows\\nWHERE dataset_id = 'DATASET_ID'\\n\\nUNION ALL\\n\\nSELECT\\n  'Average Lead Time' AS metric,\\n  AVG((data->>'Lead time')::numeric) AS value\\nFROM dataset_rows\\nWHERE dataset_id = 'DATASET_ID'\\n\\nUNION ALL\\n\\nSELECT\\n  'Average Defect Rate' AS metric,\\n  AVG((data->>'Defect rates')::numeric) AS value\\nFROM dataset_rows\\nWHERE dataset_id = 'DATASET_ID'\\n\\nUNION ALL\\n\\nSELECT\\n  'Average Shipping Cost' AS metric,\\n  AVG((data->>'Shipping costs')::numeric) AS value\\nFROM dataset_rows\\nWHERE dataset_id = 'DATASET_ID'\\n\\nUNION ALL\\n\\nSELECT\\n  'Average Stock Level' AS metric,\\n  AVG((data->>'Stock levels')::numeric) AS value\\nFROM dataset_rows\\nWHERE dataset_id = 'DATASET_ID'",
+            "viz": [
+              {
+                "type": "stat",
+                "title": "Total Revenue",
+                "value": "value",
+                "description": "Total revenue generated.",
+                "_type": "panel",
+                "summary": "There is currently no data available for Total Revenue."
+              },
+              {
+                "type": "stat",
+                "title": "Average Lead Time",
+                "value": "value",
+                "description": "Average lead time in days.",
+                "_type": "panel",
+                "summary": "There is currently no data available for Average Lead Time."
+              },
+              {
+                "type": "stat",
+                "title": "Average Defect Rate",
+                "value": "value",
+                "description": "Average defect rate across all products.",
+                "_type": "panel",
+                "summary": "There is currently no data available for Average Defect Rate."
+              },
+              {
+                "type": "stat",
+                "title": "Average Shipping Cost",
+                "value": "value",
+                "description": "Average shipping cost per product.",
+                "_type": "panel",
+                "summary": "There is currently no data available for Average Shipping Cost."
+              },
+              {
+                "type": "stat",
+                "title": "Average Stock Level",
+                "value": "value",
+                "description": "Average stock level across all products.",
+                "_type": "panel",
+                "summary": "There is currently no data available for Average Stock Level."
+              },
+              {
+                "type": "bar",
+                "title": "Revenue by Product Type",
+                "x": "product_type",
+                "y": "revenue",
+                "sql": "SELECT data->>'Product type' as product_type, SUM((data->>'Revenue generated')::numeric) as revenue FROM dataset_rows WHERE dataset_id = 'DATASET_ID' GROUP BY 1 ORDER BY 2 DESC",
+                "description": "Total revenue generated by each product type.",
+                "_type": "panel",
+                "summary": "Skincare products generate the highest revenue at $241,628, followed by haircare at $174,455 and cosmetics at $161,521."
+              },
+              {
+                "type": "bar",
+                "title": "Defect Rates by Product Type",
+                "x": "product_type",
+                "y": "defect_rate",
+                "sql": "SELECT data->>'Product type' as product_type, AVG((data->>'Defect rates')::numeric) as defect_rate FROM dataset_rows WHERE dataset_id = 'DATASET_ID' GROUP BY 1 ORDER BY 2 DESC",
+                "description": "Average defect rate for each product type.",
+                "_type": "panel",
+                "summary": "Haircare products have the highest defect rate at 2.48%, followed by skincare at 2.33% and cosmetics at 1.92%."
+              }
+            ],
+            "suggestedInvestigations": [
+              "What are the top-selling products?",
+              "What are the most common reasons for defects?",
+              "How can we reduce lead times?"
+            ],
+            "_type": "plan",
+            "executiveSummary": "This dashboard provides an initial overview of key performance indicators. While revenue data is currently unavailable, preliminary data suggests that skincare products generate the highest revenue at $241,628, but also have a relatively high defect rate of 2.33%. We should investigate the cause of defects in skincare to maximize revenue and minimize potential customer dissatisfaction; therefore, I recommend prioritizing a root cause analysis of skincare defects."
+          },
+          "results": {
+            "0": {
+              "success": true,
+              "data": [],
+              "columns": [],
+              "rowCount": 0,
+              "executionMs": 1
+            },
+            "1": {
+              "success": true,
+              "data": [],
+              "columns": [],
+              "rowCount": 0,
+              "executionMs": 1
+            },
+            "2": {
+              "success": true,
+              "data": [],
+              "columns": [],
+              "rowCount": 0,
+              "executionMs": 1
+            },
+            "3": {
+              "success": true,
+              "data": [],
+              "columns": [],
+              "rowCount": 0,
+              "executionMs": 0
+            },
+            "4": {
+              "success": true,
+              "data": [],
+              "columns": [],
+              "rowCount": 0,
+              "executionMs": 1
+            },
+            "5": {
+              "success": true,
+              "data": [
+                {
+                  "product_type": "skincare",
+                  "revenue": "241628.1621330632273"
+                },
+                {
+                  "product_type": "haircare",
+                  "revenue": "174455.3906054623110"
+                },
+                {
+                  "product_type": "cosmetics",
+                  "revenue": "161521.2659994831420"
+                }
+              ],
+              "columns": [
+                "product_type",
+                "revenue"
+              ],
+              "rowCount": 3,
+              "executionMs": 3
+            },
+            "6": {
+              "success": true,
+              "data": [
+                {
+                  "product_type": "haircare",
+                  "defect_rate": "2.48315019292462466"
+                },
+                {
+                  "product_type": "skincare",
+                  "defect_rate": "2.33468078198023708"
+                },
+                {
+                  "product_type": "cosmetics",
+                  "defect_rate": "1.91928697828131819"
+                }
+              ],
+              "columns": [
+                "product_type",
+                "defect_rate"
+              ],
+              "rowCount": 3,
+              "executionMs": 2
+            },
+            "-1": {
+              "success": true,
+              "data": [],
+              "columns": [],
+              "rowCount": 0,
+              "executionMs": 2
+            }
+          },
+          "errorExplanation": null
+        }
+      }
+    },
+    {
+      "regex": "^What skus are pending the most\\?$",
+      "flags": "i",
+      "response": {
+        "query": {
+          "plan": {
+            "q": "What skus are pending the most?",
+            "feasible": true,
+            "tables": [
+              "supply",
+              "chain",
+              "data",
+              2
+            ],
+            "sql": "SELECT data->>'SKU' as sku, COUNT(*) as count FROM dataset_rows WHERE dataset_id = '4e7acb20-b58a-49fc-a87d-8bbb1e14cff9' AND data->>'Inspection results' = 'Pending' GROUP BY 1 ORDER BY 2 DESC",
+            "viz": [
+              {
+                "type": "bar",
+                "title": "SKUs with Pending Inspection Results",
+                "x": "sku",
+                "y": "count",
+                "description": "Number of pending inspection results for each SKU.",
+                "_type": "panel",
+                "summary": "The bar chart shows that 41 SKUs each have one pending inspection result."
+              }
+            ],
+            "suggestedInvestigations": [
+              "What are the defect rates for these SKUs?",
+              "What are the lead times for these SKUs?"
+            ],
+            "_type": "plan",
+            "executiveSummary": "Currently, 41 distinct SKUs are pending inspection, with each SKU having only one pending inspection result. This widespread distribution across numerous SKUs suggests a potential bottleneck in the inspection process rather than issues concentrated on specific products, which could lead to delays in product release and fulfillment. We should investigate the inspection workflow to identify and address the underlying causes of these delays to prevent further disruptions."
+          },
+          "results": {
+            "0": {
+              "success": true,
+              "data": [
+                {
+                  "sku": "SKU0",
+                  "count": "1"
+                },
+                {
+                  "sku": "SKU1",
+                  "count": "1"
+                },
+                {
+                  "sku": "SKU11",
+                  "count": "1"
+                },
+                {
+                  "sku": "SKU13",
+                  "count": "1"
+                },
+                {
+                  "sku": "SKU14",
+                  "count": "1"
+                },
+                {
+                  "sku": "SKU18",
+                  "count": "1"
+                },
+                {
+                  "sku": "SKU2",
+                  "count": "1"
+                },
+                {
+                  "sku": "SKU21",
+                  "count": "1"
+                },
+                {
+                  "sku": "SKU23",
+                  "count": "1"
+                },
+                {
+                  "sku": "SKU24",
+                  "count": "1"
+                },
+                {
+                  "sku": "SKU25",
+                  "count": "1"
+                },
+                {
+                  "sku": "SKU30",
+                  "count": "1"
+                },
+                {
+                  "sku": "SKU31",
+                  "count": "1"
+                },
+                {
+                  "sku": "SKU37",
+                  "count": "1"
+                },
+                {
+                  "sku": "SKU38",
+                  "count": "1"
+                },
+                {
+                  "sku": "SKU40",
+                  "count": "1"
+                },
+                {
+                  "sku": "SKU43",
+                  "count": "1"
+                },
+                {
+                  "sku": "SKU46",
+                  "count": "1"
+                },
+                {
+                  "sku": "SKU47",
+                  "count": "1"
+                },
+                {
+                  "sku": "SKU51",
+                  "count": "1"
+                },
+                {
+                  "sku": "SKU52",
+                  "count": "1"
+                },
+                {
+                  "sku": "SKU53",
+                  "count": "1"
+                },
+                {
+                  "sku": "SKU57",
+                  "count": "1"
+                },
+                {
+                  "sku": "SKU6",
+                  "count": "1"
+                },
+                {
+                  "sku": "SKU63",
+                  "count": "1"
+                },
+                {
+                  "sku": "SKU69",
+                  "count": "1"
+                },
+                {
+                  "sku": "SKU71",
+                  "count": "1"
+                },
+                {
+                  "sku": "SKU72",
+                  "count": "1"
+                },
+                {
+                  "sku": "SKU76",
+                  "count": "1"
+                },
+                {
+                  "sku": "SKU78",
+                  "count": "1"
+                },
+                {
+                  "sku": "SKU79",
+                  "count": "1"
+                },
+                {
+                  "sku": "SKU8",
+                  "count": "1"
+                },
+                {
+                  "sku": "SKU81",
+                  "count": "1"
+                },
+                {
+                  "sku": "SKU82",
+                  "count": "1"
+                },
+                {
+                  "sku": "SKU88",
+                  "count": "1"
+                },
+                {
+                  "sku": "SKU89",
+                  "count": "1"
+                },
+                {
+                  "sku": "SKU9",
+                  "count": "1"
+                },
+                {
+                  "sku": "SKU91",
+                  "count": "1"
+                },
+                {
+                  "sku": "SKU95",
+                  "count": "1"
+                },
+                {
+                  "sku": "SKU96",
+                  "count": "1"
+                },
+                {
+                  "sku": "SKU98",
+                  "count": "1"
+                }
+              ],
+              "columns": [
+                "sku",
+                "count"
+              ],
+              "rowCount": 41,
+              "executionMs": 3
+            },
+            "-1": {
+              "success": true,
+              "data": [
+                {
+                  "sku": "SKU0",
+                  "count": "1"
+                },
+                {
+                  "sku": "SKU1",
+                  "count": "1"
+                },
+                {
+                  "sku": "SKU11",
+                  "count": "1"
+                },
+                {
+                  "sku": "SKU13",
+                  "count": "1"
+                },
+                {
+                  "sku": "SKU14",
+                  "count": "1"
+                },
+                {
+                  "sku": "SKU18",
+                  "count": "1"
+                },
+                {
+                  "sku": "SKU2",
+                  "count": "1"
+                },
+                {
+                  "sku": "SKU21",
+                  "count": "1"
+                },
+                {
+                  "sku": "SKU23",
+                  "count": "1"
+                },
+                {
+                  "sku": "SKU24",
+                  "count": "1"
+                },
+                {
+                  "sku": "SKU25",
+                  "count": "1"
+                },
+                {
+                  "sku": "SKU30",
+                  "count": "1"
+                },
+                {
+                  "sku": "SKU31",
+                  "count": "1"
+                },
+                {
+                  "sku": "SKU37",
+                  "count": "1"
+                },
+                {
+                  "sku": "SKU38",
+                  "count": "1"
+                },
+                {
+                  "sku": "SKU40",
+                  "count": "1"
+                },
+                {
+                  "sku": "SKU43",
+                  "count": "1"
+                },
+                {
+                  "sku": "SKU46",
+                  "count": "1"
+                },
+                {
+                  "sku": "SKU47",
+                  "count": "1"
+                },
+                {
+                  "sku": "SKU51",
+                  "count": "1"
+                },
+                {
+                  "sku": "SKU52",
+                  "count": "1"
+                },
+                {
+                  "sku": "SKU53",
+                  "count": "1"
+                },
+                {
+                  "sku": "SKU57",
+                  "count": "1"
+                },
+                {
+                  "sku": "SKU6",
+                  "count": "1"
+                },
+                {
+                  "sku": "SKU63",
+                  "count": "1"
+                },
+                {
+                  "sku": "SKU69",
+                  "count": "1"
+                },
+                {
+                  "sku": "SKU71",
+                  "count": "1"
+                },
+                {
+                  "sku": "SKU72",
+                  "count": "1"
+                },
+                {
+                  "sku": "SKU76",
+                  "count": "1"
+                },
+                {
+                  "sku": "SKU78",
+                  "count": "1"
+                },
+                {
+                  "sku": "SKU79",
+                  "count": "1"
+                },
+                {
+                  "sku": "SKU8",
+                  "count": "1"
+                },
+                {
+                  "sku": "SKU81",
+                  "count": "1"
+                },
+                {
+                  "sku": "SKU82",
+                  "count": "1"
+                },
+                {
+                  "sku": "SKU88",
+                  "count": "1"
+                },
+                {
+                  "sku": "SKU89",
+                  "count": "1"
+                },
+                {
+                  "sku": "SKU9",
+                  "count": "1"
+                },
+                {
+                  "sku": "SKU91",
+                  "count": "1"
+                },
+                {
+                  "sku": "SKU95",
+                  "count": "1"
+                },
+                {
+                  "sku": "SKU96",
+                  "count": "1"
+                },
+                {
+                  "sku": "SKU98",
+                  "count": "1"
+                }
+              ],
+              "columns": [
+                "sku",
+                "count"
+              ],
+              "rowCount": 41,
+              "executionMs": 5
+            }
+          },
+          "errorExplanation": null
+        }
+      }
+    },
+    {
+      "regex": "^Can you forcast revenue for the future$",
+      "flags": "i",
+      "response": {
+        "query": {
+          "plan": {
+            "q": "Can you forcast revenue for the future",
+            "feasible": false,
+            "reason": "I cannot directly forecast future revenue because I lack the ability to perform time series forecasting or integrate with external forecasting tools. I can only query and analyze the existing data.",
+            "tables": [],
+            "sql": null,
+            "viz": [],
+            "suggestedInvestigations": [],
+            "_type": "plan"
+          },
+          "results": {}
+        }
+      }
+    },
+    {
+      "regex": "^Why might we have so many pending inspections$",
+      "flags": "i",
+      "response": {
+        "query": {
+          "plan": {
+            "q": "Why might we have so many pending inspections",
+            "feasible": true,
+            "tables": [
+              "supply",
+              "chain",
+              "data",
+              2
+            ],
+            "sql": "SELECT data->>'Supplier name' as supplier_name, COUNT(*) as count FROM dataset_rows WHERE dataset_id = '4e7acb20-b58a-49fc-a87d-8bbb1e14cff9' AND data->>'Inspection results' = 'Pending' GROUP BY 1 ORDER BY 2 DESC LIMIT 10",
+            "viz": [
+              {
+                "type": "bar",
+                "title": "Pending Inspections by Supplier",
+                "description": "Number of pending inspection results for each supplier.",
+                "x": "supplier_name",
+                "y": "count",
+                "_type": "panel"
+              }
+            ],
+            "suggestedInvestigations": [
+              "What is the average lead time for suppliers with pending inspections?",
+              "What are the defect rates for suppliers with pending inspections?"
+            ],
+            "_type": "plan",
+            "executiveSummary": ""
+          },
+          "results": {
+            "0": {
+              "success": true,
+              "data": [
+                {
+                  "supplier_name": "Supplier 3",
+                  "count": "10"
+                },
+                {
+                  "supplier_name": "Supplier 2",
+                  "count": "9"
+                },
+                {
+                  "supplier_name": "Supplier 1",
+                  "count": "8"
+                },
+                {
+                  "supplier_name": "Supplier 5",
+                  "count": "8"
+                },
+                {
+                  "supplier_name": "Supplier 4",
+                  "count": "6"
+                }
+              ],
+              "columns": [
+                "supplier_name",
+                "count"
+              ],
+              "rowCount": 5,
+              "executionMs": 2
+            },
+            "-1": {
+              "success": true,
+              "data": [
+                {
+                  "supplier_name": "Supplier 3",
+                  "count": "10"
+                },
+                {
+                  "supplier_name": "Supplier 2",
+                  "count": "9"
+                },
+                {
+                  "supplier_name": "Supplier 1",
+                  "count": "8"
+                },
+                {
+                  "supplier_name": "Supplier 5",
+                  "count": "8"
+                },
+                {
+                  "supplier_name": "Supplier 4",
+                  "count": "6"
+                }
+              ],
+              "columns": [
+                "supplier_name",
+                "count"
+              ],
+              "rowCount": 5,
+              "executionMs": 5
+            }
+          },
+          "errorExplanation": null
+        }
+      }
+    },
+    {
+      "regex": "^Make me a dashboard for my organization please!$",
+      "flags": "i",
+      "response": {
+        "query": {
+          "plan": {
+            "q": "Make me a dashboard for my organization please!",
+            "sql": "-- This is a dashboard, so no single SQL query is provided here. See the individual panels below.",
+            "viz": [
+              {
+                "sql": "SELECT ROUND(SUM((data->>'Revenue generated')::numeric), 2) as total_revenue FROM dataset_rows WHERE dataset_id = '4e7acb20-b58a-49fc-a87d-8bbb1e14cff9'",
+                "type": "stat",
+                "_type": "panel",
+                "title": "Total Revenue Generated",
+                "value": "total_revenue",
+                "summary": "Total revenue generated is $577,604.82, representing the overall financial performance.",
+                "description": "Total revenue generated across all products."
+              },
+              {
+                "x": "product_type",
+                "y": "total_revenue",
+                "sql": "SELECT data->>'Product type' as product_type, ROUND(SUM((data->>'Revenue generated')::numeric), 2) as total_revenue FROM dataset_rows WHERE dataset_id = '4e7acb20-b58a-49fc-a87d-8bbb1e14cff9' GROUP BY 1 ORDER BY 2 DESC",
+                "type": "bar",
+                "_type": "panel",
+                "title": "Revenue by Product Type",
+                "summary": "Skincare products contribute the highest revenue at $241,628.16, followed by haircare and cosmetics, indicating skincare is a key area of strength.",
+                "description": "Revenue generated by each product type."
+              },
+              {
+                "x": "shipping_carrier",
+                "y": "avg_shipping_cost",
+                "sql": "SELECT data->>'Shipping carriers' as shipping_carrier, ROUND(AVG((data->>'Shipping costs')::numeric), 2) as avg_shipping_cost FROM dataset_rows WHERE dataset_id = '4e7acb20-b58a-49fc-a87d-8bbb1e14cff9' GROUP BY 1 ORDER BY 2 DESC",
+                "type": "bar",
+                "_type": "panel",
+                "title": "Average Shipping Cost by Carrier",
+                "summary": "Average shipping costs are relatively consistent across carriers, ranging from $5.51 to $5.60, suggesting limited opportunity for cost optimization in carrier selection.",
+                "description": "Average shipping cost for each carrier."
+              },
+              {
+                "x": "inspection_result",
+                "y": "count",
+                "sql": "SELECT data->>'Inspection results' as inspection_result, COUNT(*) as count FROM dataset_rows WHERE dataset_id = '4e7acb20-b58a-49fc-a87d-8bbb1e14cff9' GROUP BY 1",
+                "type": "pie",
+                "_type": "panel",
+                "title": "Distribution of Inspection Results",
+                "summary": "A significant portion of inspections are pending (41%), which is higher than the number of passed (23%) or failed (36%) inspections, highlighting a potential bottleneck in the inspection process.",
+                "description": "Distribution of inspection results (Pass, Fail, Pending)."
+              },
+              {
+                "sql": "SELECT data->>'SKU' as sku, data->>'Product type' as product_type, (data->>'Revenue generated')::numeric as revenue FROM dataset_rows WHERE dataset_id = '4e7acb20-b58a-49fc-a87d-8bbb1e14cff9' ORDER BY (data->>'Revenue generated')::numeric DESC LIMIT 10",
+                "type": "table",
+                "_type": "panel",
+                "title": "Top 10 Products by Revenue",
+                "columns": [
+                  "sku",
+                  "product_type",
+                  "revenue"
+                ],
+                "summary": "The top 10 products by revenue include a mix of haircare, cosmetics, and skincare, with SKU51 (haircare) leading at $9,866.47, suggesting a diverse range of high-performing products.",
+                "description": "Top 10 products with the highest revenue generated."
+              }
+            ],
+            "_type": "plan",
+            "tables": [
+              "supply",
+              "chain",
+              "data",
+              2
+            ],
+            "feasible": true,
+            "executiveSummary": "This dashboard provides a snapshot of key performance indicators, revealing total revenue of $577,604.82, with skincare products driving the highest revenue at $241,628.16; however, a significant portion of inspections are pending (41 out of 100), which indicates a potential bottleneck in quality control and could impact future sales if not addressed promptly. We should prioritize resolving pending inspections to ensure product quality and avoid potential delays or customer dissatisfaction.",
+            "suggestedInvestigations": [
+              "What is the correlation between lead time and production volume?",
+              "How do defect rates vary by supplier?",
+              "What is the impact of transportation mode on shipping costs?"
+            ]
+          },
+          "results": {
+            "0": {
+              "data": [
+                {
+                  "total_revenue": "577604.82"
+                }
+              ],
+              "columns": [
+                "total_revenue"
+              ],
+              "success": true,
+              "rowCount": 1,
+              "executionMs": 3
+            },
+            "1": {
+              "data": [
+                {
+                  "product_type": "skincare",
+                  "total_revenue": "241628.16"
+                },
+                {
+                  "product_type": "haircare",
+                  "total_revenue": "174455.39"
+                },
+                {
+                  "product_type": "cosmetics",
+                  "total_revenue": "161521.27"
+                }
+              ],
+              "columns": [
+                "product_type",
+                "total_revenue"
+              ],
+              "success": true,
+              "rowCount": 3,
+              "executionMs": 1
+            },
+            "2": {
+              "data": [
+                {
+                  "shipping_carrier": "Carrier C",
+                  "avg_shipping_cost": "5.60"
+                },
+                {
+                  "shipping_carrier": "Carrier A",
+                  "avg_shipping_cost": "5.55"
+                },
+                {
+                  "shipping_carrier": "Carrier B",
+                  "avg_shipping_cost": "5.51"
+                }
+              ],
+              "columns": [
+                "shipping_carrier",
+                "avg_shipping_cost"
+              ],
+              "success": true,
+              "rowCount": 3,
+              "executionMs": 1
+            },
+            "3": {
+              "data": [
+                {
+                  "count": "41",
+                  "inspection_result": "Pending"
+                },
+                {
+                  "count": "23",
+                  "inspection_result": "Pass"
+                },
+                {
+                  "count": "36",
+                  "inspection_result": "Fail"
+                }
+              ],
+              "columns": [
+                "inspection_result",
+                "count"
+              ],
+              "success": true,
+              "rowCount": 3,
+              "executionMs": 1
+            },
+            "4": {
+              "data": [
+                {
+                  "sku": "SKU51",
+                  "revenue": "9866.465457979697",
+                  "product_type": "haircare"
+                },
+                {
+                  "sku": "SKU38",
+                  "revenue": "9692.318040218432",
+                  "product_type": "cosmetics"
+                },
+                {
+                  "sku": "SKU31",
+                  "revenue": "9655.135102719398",
+                  "product_type": "skincare"
+                },
+                {
+                  "sku": "SKU90",
+                  "revenue": "9592.633570280312",
+                  "product_type": "skincare"
+                },
+                {
+                  "sku": "SKU2",
+                  "revenue": "9577.74962586873",
+                  "product_type": "haircare"
+                },
+                {
+                  "sku": "SKU32",
+                  "revenue": "9571.550487327819",
+                  "product_type": "skincare"
+                },
+                {
+                  "sku": "SKU67",
+                  "revenue": "9473.798032508337",
+                  "product_type": "skincare"
+                },
+                {
+                  "sku": "SKU88",
+                  "revenue": "9444.74203306298",
+                  "product_type": "cosmetics"
+                },
+                {
+                  "sku": "SKU52",
+                  "revenue": "9435.76260891213",
+                  "product_type": "skincare"
+                },
+                {
+                  "sku": "SKU18",
+                  "revenue": "9364.673505076173",
+                  "product_type": "haircare"
+                }
+              ],
+              "columns": [
+                "sku",
+                "product_type",
+                "revenue"
+              ],
+              "success": true,
+              "rowCount": 10,
+              "executionMs": 0
+            },
+            "-1": {
+              "data": [],
+              "columns": [],
+              "success": true,
+              "rowCount": 0,
+              "executionMs": 2
+            }
+          }
+        }
+      }
+    },
+    {
+      "regex": "^supply chain data 2$",
+      "flags": "i",
+      "response": {
+        "contextName": {
+          "name": "Supply Chain Insights"
+        }
+      }
+    },
+    {
+      "regex": "(total|count).*(row|record|order|sale)|how many",
+      "flags": "i",
+      "response": {
+        "query": {
+          "plan": {
+            "_type": "plan",
+            "q": "count records",
+            "feasible": true,
+            "tables": [
+              "demo_data"
+            ],
+            "sql": "SELECT COUNT(*) as total FROM dataset_rows WHERE dataset_id = 'DATASET_ID'",
+            "viz": [
+              {
+                "type": "stat",
+                "title": "Total Records",
+                "value": "total",
+                "description": "Total number of records in the selected dataset"
+              }
+            ]
+          },
+          "results": {
+            "0": {
+              "success": true,
+              "data": [
+                {
+                  "total": 1248
+                }
+              ],
+              "columns": [
+                "total"
+              ],
+              "rowCount": 1,
+              "executionMs": 8
+            },
+            "-1": {
+              "success": true,
+              "data": [
+                {
+                  "total": 1248
+                }
+              ],
+              "columns": [
+                "total"
+              ],
+              "rowCount": 1,
+              "executionMs": 8
+            }
+          }
+        },
+        "realign": {
+          "suggestions": [
+            "What is the total number of records?",
+            "Break down record counts by category",
+            "Show the trend of records over time"
+          ]
+        },
+        "contextName": {
+          "name": "Demo Analysis"
+        }
+      }
+    }
+  ],
+  "defaultResponse": {
+    "query": {
+      "plan": {
+        "_type": "plan",
+        "q": "demo fallback",
+        "feasible": false,
+        "reason": "This demo environment can answer only the scripted examples right now.",
+        "tables": [
+          "demo_data"
+        ]
+      },
+      "results": {},
+      "errorExplanation": {
+        "explanation": "This question is outside the scripted demo prompts.",
+        "suggestions": [
+          "Try asking for total counts",
+          "Try a category breakdown",
+          "Try a simple trend question"
+        ]
+      }
+    },
+    "realign": {
+      "suggestions": [
+        "What is the total number of records?",
+        "Which categories are largest?",
+        "How has the metric changed over time?"
+      ]
+    },
+    "contextName": {
+      "name": "Demo Context"
+    }
+  },
+  "workspace": {
+    "contexts": [
+      {
+        "id": "56999052-d033-4d4b-8eed-d9d66c03bc7f",
+        "name": "Supply Chain Insights",
+        "description": null,
+        "datasetIds": [
+          "4e7acb20-b58a-49fc-a87d-8bbb1e14cff9"
+        ],
+        "createdAt": "2026-02-10T21:15:07.775Z"
+      },
+      {
+        "id": "2bfcf324-b47f-4205-a4c3-b905db5be7f1",
+        "name": "Supply Chain Analytics",
+        "description": null,
+        "datasetIds": [
+          "4e7acb20-b58a-49fc-a87d-8bbb1e14cff9"
+        ],
+        "createdAt": "2026-02-10T20:14:14.318Z"
+      },
+      {
+        "id": "5d87465d-1582-4692-a067-7feef11c8d5a",
+        "name": "Supply Chain Insights",
+        "description": null,
+        "datasetIds": [
+          "4e7acb20-b58a-49fc-a87d-8bbb1e14cff9"
+        ],
+        "createdAt": "2026-02-10T20:11:07.072Z"
+      },
+      {
+        "id": "b427a075-e6f9-43b2-bf18-7aceef5767f8",
+        "name": "Supply Chain Analytics",
+        "description": null,
+        "datasetIds": [
+          "4e7acb20-b58a-49fc-a87d-8bbb1e14cff9"
+        ],
+        "createdAt": "2026-02-10T19:13:48.786Z"
+      }
+    ],
+    "dashboards": [
+      {
+        "id": "e5fa5e7e-abbf-4b73-90c7-4fe64d1aca3b",
+        "name": "Why might there be so many pending inspections",
+        "question": "Why might there be so many pending inspections",
+        "description": null,
+        "contextId": "56999052-d033-4d4b-8eed-d9d66c03bc7f",
+        "parentDashboardId": "527c1c46-8941-498d-8a99-80b69d0affe8",
+        "rootDashboardId": "527c1c46-8941-498d-8a99-80b69d0affe8",
+        "plan": {
+          "q": "Why might there be so many pending inspections",
+          "sql": "SELECT data->>'Supplier name' AS supplier_name, COUNT(*) AS count FROM dataset_rows WHERE dataset_id = '4e7acb20-b58a-49fc-a87d-8bbb1e14cff9' AND data->>'Inspection results' = 'Pending' GROUP BY 1 ORDER BY 2 DESC",
+          "viz": [
+            {
+              "x": "supplier_name",
+              "y": "count",
+              "type": "bar",
+              "_type": "panel",
+              "title": "Pending Inspections by Supplier",
+              "summary": "Supplier 3 has the highest number of pending inspections with 10, while Supplier 4 has the lowest with 6.",
+              "description": "Number of pending inspections for each supplier. This helps identify suppliers with a high volume of pending inspections, which could indicate bottlenecks or issues with their inspection processes."
+            }
+          ],
+          "_type": "plan",
+          "tables": [
+            "supply chain data 2"
+          ],
+          "feasible": true,
+          "executiveSummary": "The high number of pending inspections appears to be driven by specific suppliers, with Supplier 3 having the most (10) and Supplier 4 the least (6). This backlog suggests a potential bottleneck in the inspection process or issues with certain suppliers consistently requiring more inspections. If the trend continues, it could lead to delays in product releases and potential compliance risks.",
+          "suggestedInvestigations": [
+            "What are the lead times for suppliers with pending inspections?",
+            "What are the defect rates for suppliers with pending inspections?",
+            "What are the shipping times for suppliers with pending inspections?"
+          ]
+        },
+        "panels": [
+          {
+            "x": "supplier_name",
+            "y": "count",
+            "type": "bar",
+            "_type": "panel",
+            "title": "Pending Inspections by Supplier",
+            "summary": "Supplier 3 has the highest number of pending inspections with 10, while Supplier 4 has the lowest with 6.",
+            "description": "Number of pending inspections for each supplier. This helps identify suppliers with a high volume of pending inspections, which could indicate bottlenecks or issues with their inspection processes."
+          }
+        ],
+        "results": {
+          "0": {
+            "data": [
+              {
+                "count": "10",
+                "supplier_name": "Supplier 3"
+              },
+              {
+                "count": "9",
+                "supplier_name": "Supplier 2"
+              },
+              {
+                "count": "8",
+                "supplier_name": "Supplier 1"
+              },
+              {
+                "count": "8",
+                "supplier_name": "Supplier 5"
+              },
+              {
+                "count": "6",
+                "supplier_name": "Supplier 4"
+              }
+            ],
+            "columns": [
+              "supplier_name",
+              "count"
+            ],
+            "success": true,
+            "rowCount": 5,
+            "executionMs": 2
+          },
+          "-1": {
+            "data": [
+              {
+                "count": "10",
+                "supplier_name": "Supplier 3"
+              },
+              {
+                "count": "9",
+                "supplier_name": "Supplier 2"
+              },
+              {
+                "count": "8",
+                "supplier_name": "Supplier 1"
+              },
+              {
+                "count": "8",
+                "supplier_name": "Supplier 5"
+              },
+              {
+                "count": "6",
+                "supplier_name": "Supplier 4"
+              }
+            ],
+            "columns": [
+              "supplier_name",
+              "count"
+            ],
+            "success": true,
+            "rowCount": 5,
+            "executionMs": 5
+          }
+        },
+        "nodeContext": {
+          "filters": {
+            "inspection_results": "Pending"
+          },
+          "parentSql": "SELECT data->>'Inspection results' as inspection_results, COUNT(*) as count FROM dataset_rows WHERE dataset_id = 'DATASET_ID' GROUP BY 1",
+          "selectedMark": {
+            "datum": {
+              "count": "41",
+              "count_end": 100,
+              "count_start": 59,
+              "inspection_results": "Pending",
+              "_inspection_results_sort_index": 0
+            },
+            "field": "inspection_results",
+            "value": "Pending",
+            "panelIndex": 3,
+            "panelTitle": "Distribution of Inspection Results",
+            "metricField": "count",
+            "metricValue": "41"
+          },
+          "parentQuestion": "Please make me a dashboard for my organization please!",
+          "parentDashboardId": "527c1c46-8941-498d-8a99-80b69d0affe8"
+        },
+        "createdAt": "2026-02-10T21:17:36.256Z"
+      },
+      {
+        "id": "527c1c46-8941-498d-8a99-80b69d0affe8",
+        "name": "Please make me a dashboard for my organization please!",
+        "question": "Please make me a dashboard for my organization please!",
+        "description": null,
+        "contextId": "56999052-d033-4d4b-8eed-d9d66c03bc7f",
+        "parentDashboardId": null,
+        "rootDashboardId": null,
+        "plan": {
+          "q": "Please make me a dashboard for my organization please!",
+          "sql": "SELECT data->>'Product type' as product_type, SUM((data->>'Revenue generated')::numeric) as total_revenue FROM dataset_rows WHERE dataset_id = 'DATASET_ID' GROUP BY 1 ORDER BY 2 DESC",
+          "viz": [
+            {
+              "x": "product_type",
+              "y": "total_revenue",
+              "type": "bar",
+              "_type": "panel",
+              "title": "Revenue by Product Type",
+              "summary": "Skincare products generate the highest revenue at $241,628.16, followed by haircare ($174,455.39) and cosmetics ($161,521.27).",
+              "description": "Total revenue generated by each product type."
+            },
+            {
+              "sql": "SELECT SUM((data->>'Revenue generated')::numeric) as total_revenue FROM dataset_rows WHERE dataset_id = 'DATASET_ID'",
+              "type": "stat",
+              "_type": "panel",
+              "title": "Total Revenue",
+              "value": "total_revenue",
+              "summary": "The total revenue across all product types is $577,604.82.",
+              "description": "Total revenue across all product types."
+            },
+            {
+              "x": "shipping_carriers",
+              "y": "avg_shipping_cost",
+              "sql": "SELECT data->>'Shipping carriers' as shipping_carriers, AVG((data->>'Shipping costs')::numeric) as avg_shipping_cost FROM dataset_rows WHERE dataset_id = 'DATASET_ID' GROUP BY 1 ORDER BY 2 DESC",
+              "type": "bar",
+              "_type": "panel",
+              "title": "Average Shipping Costs by Carrier",
+              "summary": "Average shipping costs are relatively consistent across all three carriers, ranging from $5.51 to $5.60.",
+              "description": "Average shipping costs for each carrier."
+            },
+            {
+              "x": "inspection_results",
+              "y": "count",
+              "sql": "SELECT data->>'Inspection results' as inspection_results, COUNT(*) as count FROM dataset_rows WHERE dataset_id = 'DATASET_ID' GROUP BY 1",
+              "type": "pie",
+              "_type": "panel",
+              "title": "Distribution of Inspection Results",
+              "summary": "The distribution of inspection results shows a significant number of pending inspections (41), with fewer products passing (23) or failing (36).",
+              "description": "Distribution of inspection results (Pass, Fail, Pending)."
+            },
+            {
+              "sql": "SELECT data->>'Product type' as product_type, data->>'SKU' as sku, SUM((data->>'Revenue generated')::numeric) as total_revenue FROM dataset_rows WHERE dataset_id = 'DATASET_ID' GROUP BY 1, 2 ORDER BY 3 DESC LIMIT 10",
+              "type": "table",
+              "_type": "panel",
+              "title": "Top 10 Products by Revenue",
+              "columns": [
+                "product_type",
+                "sku",
+                "total_revenue"
+              ],
+              "summary": "The top 10 products by revenue include a mix of skincare, haircare, and cosmetic items, with individual SKU revenues ranging from approximately $9,364 to $9,866.",
+              "description": "Top 10 products by revenue generated."
+            }
+          ],
+          "_type": "plan",
+          "tables": [
+            "supply",
+            "chain",
+            "data",
+            2
+          ],
+          "feasible": true,
+          "executiveSummary": "This dashboard provides a comprehensive overview of the organization's performance. Total revenue is $577,604.82, with skincare products contributing the most at $241,628.16, suggesting a strong market presence in that category; however, the relatively high number of pending inspection results (41) indicates a potential bottleneck in quality control that could impact future sales if not addressed.",
+          "suggestedInvestigations": [
+            "What are the defect rates by product type?",
+            "How do lead times affect revenue?"
+          ]
+        },
+        "panels": [
+          {
+            "x": "product_type",
+            "y": "total_revenue",
+            "type": "bar",
+            "_type": "panel",
+            "title": "Revenue by Product Type",
+            "summary": "Skincare products generate the highest revenue at $241,628.16, followed by haircare ($174,455.39) and cosmetics ($161,521.27).",
+            "description": "Total revenue generated by each product type."
+          },
+          {
+            "sql": "SELECT SUM((data->>'Revenue generated')::numeric) as total_revenue FROM dataset_rows WHERE dataset_id = 'DATASET_ID'",
+            "type": "stat",
+            "_type": "panel",
+            "title": "Total Revenue",
+            "value": "total_revenue",
+            "summary": "The total revenue across all product types is $577,604.82.",
+            "description": "Total revenue across all product types."
+          },
+          {
+            "x": "shipping_carriers",
+            "y": "avg_shipping_cost",
+            "sql": "SELECT data->>'Shipping carriers' as shipping_carriers, AVG((data->>'Shipping costs')::numeric) as avg_shipping_cost FROM dataset_rows WHERE dataset_id = 'DATASET_ID' GROUP BY 1 ORDER BY 2 DESC",
+            "type": "bar",
+            "_type": "panel",
+            "title": "Average Shipping Costs by Carrier",
+            "summary": "Average shipping costs are relatively consistent across all three carriers, ranging from $5.51 to $5.60.",
+            "description": "Average shipping costs for each carrier."
+          },
+          {
+            "x": "inspection_results",
+            "y": "count",
+            "sql": "SELECT data->>'Inspection results' as inspection_results, COUNT(*) as count FROM dataset_rows WHERE dataset_id = 'DATASET_ID' GROUP BY 1",
+            "type": "pie",
+            "_type": "panel",
+            "title": "Distribution of Inspection Results",
+            "summary": "The distribution of inspection results shows a significant number of pending inspections (41), with fewer products passing (23) or failing (36).",
+            "description": "Distribution of inspection results (Pass, Fail, Pending)."
+          },
+          {
+            "sql": "SELECT data->>'Product type' as product_type, data->>'SKU' as sku, SUM((data->>'Revenue generated')::numeric) as total_revenue FROM dataset_rows WHERE dataset_id = 'DATASET_ID' GROUP BY 1, 2 ORDER BY 3 DESC LIMIT 10",
+            "type": "table",
+            "_type": "panel",
+            "title": "Top 10 Products by Revenue",
+            "columns": [
+              "product_type",
+              "sku",
+              "total_revenue"
+            ],
+            "summary": "The top 10 products by revenue include a mix of skincare, haircare, and cosmetic items, with individual SKU revenues ranging from approximately $9,364 to $9,866.",
+            "description": "Top 10 products by revenue generated."
+          }
+        ],
+        "results": {
+          "0": {
+            "data": [
+              {
+                "product_type": "skincare",
+                "total_revenue": "241628.1621330632273"
+              },
+              {
+                "product_type": "haircare",
+                "total_revenue": "174455.3906054623110"
+              },
+              {
+                "product_type": "cosmetics",
+                "total_revenue": "161521.2659994831420"
+              }
+            ],
+            "columns": [
+              "product_type",
+              "total_revenue"
+            ],
+            "success": true,
+            "rowCount": 3,
+            "executionMs": 1
+          },
+          "1": {
+            "data": [
+              {
+                "total_revenue": "577604.8187380086803"
+              }
+            ],
+            "columns": [
+              "total_revenue"
+            ],
+            "success": true,
+            "rowCount": 1,
+            "executionMs": 1
+          },
+          "2": {
+            "data": [
+              {
+                "avg_shipping_cost": "5.5992916183375063",
+                "shipping_carriers": "Carrier C"
+              },
+              {
+                "avg_shipping_cost": "5.5549225216512713",
+                "shipping_carriers": "Carrier A"
+              },
+              {
+                "avg_shipping_cost": "5.5092469689287304",
+                "shipping_carriers": "Carrier B"
+              }
+            ],
+            "columns": [
+              "shipping_carriers",
+              "avg_shipping_cost"
+            ],
+            "success": true,
+            "rowCount": 3,
+            "executionMs": 1
+          },
+          "3": {
+            "data": [
+              {
+                "count": "41",
+                "inspection_results": "Pending"
+              },
+              {
+                "count": "23",
+                "inspection_results": "Pass"
+              },
+              {
+                "count": "36",
+                "inspection_results": "Fail"
+              }
+            ],
+            "columns": [
+              "inspection_results",
+              "count"
+            ],
+            "success": true,
+            "rowCount": 3,
+            "executionMs": 1
+          },
+          "4": {
+            "data": [
+              {
+                "sku": "SKU51",
+                "product_type": "haircare",
+                "total_revenue": "9866.465457979697"
+              },
+              {
+                "sku": "SKU38",
+                "product_type": "cosmetics",
+                "total_revenue": "9692.318040218432"
+              },
+              {
+                "sku": "SKU31",
+                "product_type": "skincare",
+                "total_revenue": "9655.135102719398"
+              },
+              {
+                "sku": "SKU90",
+                "product_type": "skincare",
+                "total_revenue": "9592.633570280312"
+              },
+              {
+                "sku": "SKU2",
+                "product_type": "haircare",
+                "total_revenue": "9577.74962586873"
+              },
+              {
+                "sku": "SKU32",
+                "product_type": "skincare",
+                "total_revenue": "9571.550487327819"
+              },
+              {
+                "sku": "SKU67",
+                "product_type": "skincare",
+                "total_revenue": "9473.798032508337"
+              },
+              {
+                "sku": "SKU88",
+                "product_type": "cosmetics",
+                "total_revenue": "9444.74203306298"
+              },
+              {
+                "sku": "SKU52",
+                "product_type": "skincare",
+                "total_revenue": "9435.76260891213"
+              },
+              {
+                "sku": "SKU18",
+                "product_type": "haircare",
+                "total_revenue": "9364.673505076173"
+              }
+            ],
+            "columns": [
+              "product_type",
+              "sku",
+              "total_revenue"
+            ],
+            "success": true,
+            "rowCount": 10,
+            "executionMs": 2
+          },
+          "-1": {
+            "data": [
+              {
+                "product_type": "skincare",
+                "total_revenue": "241628.1621330632273"
+              },
+              {
+                "product_type": "haircare",
+                "total_revenue": "174455.3906054623110"
+              },
+              {
+                "product_type": "cosmetics",
+                "total_revenue": "161521.2659994831420"
+              }
+            ],
+            "columns": [
+              "product_type",
+              "total_revenue"
+            ],
+            "success": true,
+            "rowCount": 3,
+            "executionMs": 6
+          }
+        },
+        "nodeContext": null,
+        "createdAt": "2026-02-10T21:15:17.497Z"
+      },
+      {
+        "id": "33a526c0-d4a6-408d-b3f8-75966d1a2743",
+        "name": "why might we have so many inspections pending",
+        "question": "why might we have so many inspections pending",
+        "description": null,
+        "contextId": "2bfcf324-b47f-4205-a4c3-b905db5be7f1",
+        "parentDashboardId": "339f0576-d80d-4932-ab2d-715bb7cb9029",
+        "rootDashboardId": "339f0576-d80d-4932-ab2d-715bb7cb9029",
+        "plan": {
+          "q": "why might we have so many inspections pending",
+          "sql": "SELECT data->>'Supplier name' as supplier_name, COUNT(*) as count FROM dataset_rows WHERE dataset_id = '4e7acb20-b58a-49fc-a87d-8bbb1e14cff9' AND data->>'Inspection results' = 'Pending' GROUP BY 1 ORDER BY 2 DESC",
+          "viz": [
+            {
+              "x": "supplier_name",
+              "y": "count",
+              "type": "bar",
+              "_type": "panel",
+              "title": "Pending Inspections by Supplier",
+              "summary": "Supplier 3 has the highest number of pending inspections (10), indicating a potential bottleneck in their inspection process.",
+              "description": "Number of pending inspections for each supplier. This helps identify suppliers with a high volume of pending inspections, potentially indicating bottlenecks or issues in their processes."
+            }
+          ],
+          "_type": "plan",
+          "tables": [
+            "supply chain data 2"
+          ],
+          "feasible": true,
+          "executiveSummary": "We have a significant backlog of pending inspections, totaling 41 across the top 5 suppliers. Supplier 3 has the highest number of pending inspections with 10, closely followed by Supplier 2 with 9. If this trend continues, we risk production delays and potential quality issues; therefore, we should immediately investigate the root causes of these delays with Suppliers 2 and 3.",
+          "suggestedInvestigations": [
+            "What is the average lead time for suppliers with pending inspections?",
+            "What are the defect rates for suppliers with pending inspections?"
+          ]
+        },
+        "panels": [
+          {
+            "x": "supplier_name",
+            "y": "count",
+            "type": "bar",
+            "_type": "panel",
+            "title": "Pending Inspections by Supplier",
+            "summary": "Supplier 3 has the highest number of pending inspections (10), indicating a potential bottleneck in their inspection process.",
+            "description": "Number of pending inspections for each supplier. This helps identify suppliers with a high volume of pending inspections, potentially indicating bottlenecks or issues in their processes."
+          }
+        ],
+        "results": {
+          "0": {
+            "data": [
+              {
+                "count": "10",
+                "supplier_name": "Supplier 3"
+              },
+              {
+                "count": "9",
+                "supplier_name": "Supplier 2"
+              },
+              {
+                "count": "8",
+                "supplier_name": "Supplier 1"
+              },
+              {
+                "count": "8",
+                "supplier_name": "Supplier 5"
+              },
+              {
+                "count": "6",
+                "supplier_name": "Supplier 4"
+              }
+            ],
+            "columns": [
+              "supplier_name",
+              "count"
+            ],
+            "success": true,
+            "rowCount": 5,
+            "executionMs": 2
+          },
+          "-1": {
+            "data": [
+              {
+                "count": "10",
+                "supplier_name": "Supplier 3"
+              },
+              {
+                "count": "9",
+                "supplier_name": "Supplier 2"
+              },
+              {
+                "count": "8",
+                "supplier_name": "Supplier 1"
+              },
+              {
+                "count": "8",
+                "supplier_name": "Supplier 5"
+              },
+              {
+                "count": "6",
+                "supplier_name": "Supplier 4"
+              }
+            ],
+            "columns": [
+              "supplier_name",
+              "count"
+            ],
+            "success": true,
+            "rowCount": 5,
+            "executionMs": 4
+          }
+        },
+        "nodeContext": {
+          "filters": {
+            "inspection_results": "Pending"
+          },
+          "parentSql": "SELECT data->>'Inspection results' as inspection_results, AVG((data->>'Defect rates')::numeric) as avg_defect_rate FROM dataset_rows WHERE dataset_id = 'DATASET_ID' GROUP BY 1 ORDER BY 2 DESC",
+          "selectedMark": {
+            "datum": {
+              "avg_defect_rate": "2.15421777491051473",
+              "inspection_results": "Pending",
+              "avg_defect_rate_end": 2.154217774910515,
+              "avg_defect_rate_start": 0,
+              "_inspection_results_sort_index": 1
+            },
+            "field": "inspection_results",
+            "value": "Pending",
+            "panelIndex": 4,
+            "panelTitle": "Defect Rates by Inspection Result",
+            "metricField": "avg_defect_rate",
+            "metricValue": "2.15421777491051473"
+          },
+          "parentQuestion": "Please make me a dashboard for my organization please!",
+          "parentDashboardId": "a65b65f4-8385-4c64-851a-65709a7bdef2"
+        },
+        "createdAt": "2026-02-10T21:10:55.344Z"
+      },
+      {
+        "id": "339f0576-d80d-4932-ab2d-715bb7cb9029",
+        "name": "Which locations have the highest defect rates?",
+        "question": "Which locations have the highest defect rates?",
+        "description": null,
+        "contextId": "2bfcf324-b47f-4205-a4c3-b905db5be7f1",
+        "parentDashboardId": null,
+        "rootDashboardId": null,
+        "plan": {
+          "q": "Which locations have the highest defect rates?",
+          "sql": "SELECT data->>'Location' as location, AVG((data->>'Defect rates')::numeric) as avg_defect_rate FROM dataset_rows WHERE dataset_id = '4e7acb20-b58a-49fc-a87d-8bbb1e14cff9' GROUP BY 1 ORDER BY 2 DESC",
+          "viz": [
+            {
+              "x": "location",
+              "y": "avg_defect_rate",
+              "type": "bar",
+              "_type": "panel",
+              "title": "Average Defect Rates by Location",
+              "summary": "Chennai has the highest average defect rate of 2.64%, significantly exceeding Bangalore's rate of 2.09%.",
+              "description": "Average defect rates for each location."
+            }
+          ],
+          "_type": "plan",
+          "tables": [
+            "supply",
+            "chain",
+            "data",
+            2
+          ],
+          "feasible": true,
+          "executiveSummary": "Chennai exhibits the highest average defect rate at 2.64%, followed by Kolkata at 2.29%. This indicates a potential issue with process or quality control in Chennai that, if unaddressed, could lead to increased costs and customer dissatisfaction; therefore, we recommend an immediate investigation into the root causes of the high defect rate in Chennai.",
+          "suggestedInvestigations": [
+            "What are the causes of high defect rates in the locations with the highest rates?"
+          ]
+        },
+        "panels": [
+          {
+            "x": "location",
+            "y": "avg_defect_rate",
+            "type": "bar",
+            "_type": "panel",
+            "title": "Average Defect Rates by Location",
+            "summary": "Chennai has the highest average defect rate of 2.64%, significantly exceeding Bangalore's rate of 2.09%.",
+            "description": "Average defect rates for each location."
+          }
+        ],
+        "results": {
+          "0": {
+            "data": [
+              {
+                "location": "Chennai",
+                "avg_defect_rate": "2.63825551287183692"
+              },
+              {
+                "location": "Kolkata",
+                "avg_defect_rate": "2.28576565333431101"
+              },
+              {
+                "location": "Delhi",
+                "avg_defect_rate": "2.22863869421771919"
+              },
+              {
+                "location": "Mumbai",
+                "avg_defect_rate": "2.12233875394905927"
+              },
+              {
+                "location": "Bangalore",
+                "avg_defect_rate": "2.09363970461229940"
+              }
+            ],
+            "columns": [
+              "location",
+              "avg_defect_rate"
+            ],
+            "success": true,
+            "rowCount": 5,
+            "executionMs": 2
+          },
+          "-1": {
+            "data": [
+              {
+                "location": "Chennai",
+                "avg_defect_rate": "2.63825551287183692"
+              },
+              {
+                "location": "Kolkata",
+                "avg_defect_rate": "2.28576565333431101"
+              },
+              {
+                "location": "Delhi",
+                "avg_defect_rate": "2.22863869421771919"
+              },
+              {
+                "location": "Mumbai",
+                "avg_defect_rate": "2.12233875394905927"
+              },
+              {
+                "location": "Bangalore",
+                "avg_defect_rate": "2.09363970461229940"
+              }
+            ],
+            "columns": [
+              "location",
+              "avg_defect_rate"
+            ],
+            "success": true,
+            "rowCount": 5,
+            "executionMs": 3
+          }
+        },
+        "nodeContext": null,
+        "createdAt": "2026-02-10T21:09:10.894Z"
+      },
+      {
+        "id": "dfc02a76-ea00-4075-bd05-8162f079e376",
+        "name": "How do manufacturing costs vary across different locations?",
+        "question": "How do manufacturing costs vary across different locations?",
+        "description": null,
+        "contextId": "2bfcf324-b47f-4205-a4c3-b905db5be7f1",
+        "parentDashboardId": null,
+        "rootDashboardId": null,
+        "plan": {
+          "q": "How do manufacturing costs vary across different locations?",
+          "sql": "SELECT data->>'Location' as location, AVG((data->>'Manufacturing costs')::numeric) as avg_manufacturing_cost FROM dataset_rows WHERE dataset_id = '4e7acb20-b58a-49fc-a87d-8bbb1e14cff9' GROUP BY 1 ORDER BY 2 DESC",
+          "viz": [
+            {
+              "x": "location",
+              "y": "avg_manufacturing_cost",
+              "type": "bar",
+              "_type": "panel",
+              "title": "Average Manufacturing Costs by Location",
+              "summary": "Average manufacturing costs are highest in Bangalore ($62) and lowest in Mumbai ($37), highlighting a significant location-based cost variance.",
+              "description": "Average manufacturing costs for each location."
+            }
+          ],
+          "_type": "plan",
+          "tables": [
+            "supply",
+            "chain",
+            "data",
+            2
+          ],
+          "feasible": true,
+          "executiveSummary": "Manufacturing costs vary significantly across locations, with Bangalore exhibiting the highest average cost at approximately $62, while Mumbai shows the lowest at roughly $37. This disparity indicates potential inefficiencies or higher operational expenses in Bangalore, which, if unaddressed, could negatively impact overall profitability; therefore, a detailed cost analysis in Bangalore is recommended to identify and mitigate the drivers behind these elevated costs.",
+          "suggestedInvestigations": [
+            "What factors contribute to the differences in manufacturing costs across locations?",
+            "Which locations have the highest defect rates?"
+          ]
+        },
+        "panels": [
+          {
+            "x": "location",
+            "y": "avg_manufacturing_cost",
+            "type": "bar",
+            "_type": "panel",
+            "title": "Average Manufacturing Costs by Location",
+            "summary": "Average manufacturing costs are highest in Bangalore ($62) and lowest in Mumbai ($37), highlighting a significant location-based cost variance.",
+            "description": "Average manufacturing costs for each location."
+          }
+        ],
+        "results": {
+          "0": {
+            "data": [
+              {
+                "location": "Bangalore",
+                "avg_manufacturing_cost": "61.9949773642612312"
+              },
+              {
+                "location": "Chennai",
+                "avg_manufacturing_cost": "51.1450434694548009"
+              },
+              {
+                "location": "Delhi",
+                "avg_manufacturing_cost": "48.8800255227743410"
+              },
+              {
+                "location": "Kolkata",
+                "avg_manufacturing_cost": "41.8631221429269290"
+              },
+              {
+                "location": "Mumbai",
+                "avg_manufacturing_cost": "36.7309284448366108"
+              }
+            ],
+            "columns": [
+              "location",
+              "avg_manufacturing_cost"
+            ],
+            "success": true,
+            "rowCount": 5,
+            "executionMs": 2
+          },
+          "-1": {
+            "data": [
+              {
+                "location": "Bangalore",
+                "avg_manufacturing_cost": "61.9949773642612312"
+              },
+              {
+                "location": "Chennai",
+                "avg_manufacturing_cost": "51.1450434694548009"
+              },
+              {
+                "location": "Delhi",
+                "avg_manufacturing_cost": "48.8800255227743410"
+              },
+              {
+                "location": "Kolkata",
+                "avg_manufacturing_cost": "41.8631221429269290"
+              },
+              {
+                "location": "Mumbai",
+                "avg_manufacturing_cost": "36.7309284448366108"
+              }
+            ],
+            "columns": [
+              "location",
+              "avg_manufacturing_cost"
+            ],
+            "success": true,
+            "rowCount": 5,
+            "executionMs": 6
+          }
+        },
+        "nodeContext": null,
+        "createdAt": "2026-02-10T21:08:56.696Z"
+      },
+      {
+        "id": "a65b65f4-8385-4c64-851a-65709a7bdef2",
+        "name": "Please make me a dashboard for my organization please!",
+        "question": "Please make me a dashboard for my organization please!",
+        "description": null,
+        "contextId": "2bfcf324-b47f-4205-a4c3-b905db5be7f1",
+        "parentDashboardId": null,
+        "rootDashboardId": null,
+        "plan": {
+          "q": "Please make me a dashboard for my organization please!",
+          "sql": "SELECT data->>'Product type' as product_type, SUM((data->>'Revenue generated')::numeric) as total_revenue FROM dataset_rows WHERE dataset_id = 'DATASET_ID' GROUP BY 1 ORDER BY 2 DESC",
+          "viz": [
+            {
+              "x": "product_type",
+              "y": "total_revenue",
+              "type": "bar",
+              "_type": "panel",
+              "title": "Revenue by Product Type",
+              "summary": "Skincare products generate the highest revenue at $241,628, surpassing haircare and cosmetics, suggesting a potential area for further investment and product development.",
+              "description": "Total revenue generated by each product type."
+            },
+            {
+              "x": "customer_demographics",
+              "y": "count",
+              "sql": "SELECT data->>'Customer demographics' as customer_demographics, COUNT(*) as count FROM dataset_rows WHERE dataset_id = 'DATASET_ID' GROUP BY 1 ORDER BY 2 DESC",
+              "type": "pie",
+              "_type": "panel",
+              "title": "Customer Demographics",
+              "summary": "Customer demographics are relatively balanced across Female, Non-binary, and Male categories, with a small percentage (31) categorized as Unknown, indicating a need to improve data collection on customer profiles.",
+              "description": "Distribution of customers across different demographic groups."
+            },
+            {
+              "sql": "SELECT data->>'SKU' as sku, data->>'Product type' as product_type, SUM((data->>'Revenue generated')::numeric) as revenue_generated FROM dataset_rows WHERE dataset_id = 'DATASET_ID' GROUP BY 1, 2 ORDER BY 3 DESC LIMIT 10",
+              "type": "table",
+              "_type": "panel",
+              "title": "Top 10 Products by Revenue",
+              "columns": [
+                "sku",
+                "product_type",
+                "revenue_generated"
+              ],
+              "summary": "The top 10 products by revenue include a mix of skincare, haircare, and cosmetics, with SKU51 (haircare) leading at $9,866, highlighting the importance of these specific SKUs to overall sales.",
+              "description": "Top 10 products based on the revenue they generated."
+            },
+            {
+              "x": "shipping_carriers",
+              "y": "avg_shipping_cost",
+              "sql": "SELECT data->>'Shipping carriers' as shipping_carriers, AVG((data->>'Shipping costs')::numeric) as avg_shipping_cost FROM dataset_rows WHERE dataset_id = 'DATASET_ID' GROUP BY 1 ORDER BY 2 DESC",
+              "type": "bar",
+              "_type": "panel",
+              "title": "Average Shipping Costs by Carrier",
+              "summary": "Average shipping costs are relatively similar across all three carriers (A, B, and C), with Carrier C having a slightly higher average cost of $5.60, suggesting limited opportunity for cost savings through carrier negotiation.",
+              "description": "Average shipping costs for each shipping carrier."
+            },
+            {
+              "x": "inspection_results",
+              "y": "avg_defect_rate",
+              "sql": "SELECT data->>'Inspection results' as inspection_results, AVG((data->>'Defect rates')::numeric) as avg_defect_rate FROM dataset_rows WHERE dataset_id = 'DATASET_ID' GROUP BY 1 ORDER BY 2 DESC",
+              "type": "bar",
+              "_type": "panel",
+              "title": "Defect Rates by Inspection Result",
+              "summary": "Average defect rates are highest for products that 'Fail' inspection (2.57%), followed by 'Pending' (2.15%) and 'Pass' (2.04%), indicating a need to investigate and address the root causes of defects across the entire production process.",
+              "description": "Average defect rates based on inspection results."
+            }
+          ],
+          "_type": "plan",
+          "tables": [
+            "supply",
+            "chain",
+            "data",
+            2
+          ],
+          "feasible": true,
+          "executiveSummary": "This dashboard provides a snapshot of our current business performance, revealing that skincare products are driving the highest revenue at $241,628, while defect rates remain a concern across all inspection results. This data indicates a need to optimize production processes to reduce defects, as continued high defect rates could erode customer trust and negatively impact future sales; therefore, we should prioritize a review of our quality control procedures.",
+          "suggestedInvestigations": [
+            "What is the correlation between lead time and production volume?",
+            "How do manufacturing costs vary across different locations?",
+            "What is the impact of transportation mode on overall costs?"
+          ]
+        },
+        "panels": [
+          {
+            "x": "product_type",
+            "y": "total_revenue",
+            "type": "bar",
+            "_type": "panel",
+            "title": "Revenue by Product Type",
+            "summary": "Skincare products generate the highest revenue at $241,628, surpassing haircare and cosmetics, suggesting a potential area for further investment and product development.",
+            "description": "Total revenue generated by each product type."
+          },
+          {
+            "x": "customer_demographics",
+            "y": "count",
+            "sql": "SELECT data->>'Customer demographics' as customer_demographics, COUNT(*) as count FROM dataset_rows WHERE dataset_id = 'DATASET_ID' GROUP BY 1 ORDER BY 2 DESC",
+            "type": "pie",
+            "_type": "panel",
+            "title": "Customer Demographics",
+            "summary": "Customer demographics are relatively balanced across Female, Non-binary, and Male categories, with a small percentage (31) categorized as Unknown, indicating a need to improve data collection on customer profiles.",
+            "description": "Distribution of customers across different demographic groups."
+          },
+          {
+            "sql": "SELECT data->>'SKU' as sku, data->>'Product type' as product_type, SUM((data->>'Revenue generated')::numeric) as revenue_generated FROM dataset_rows WHERE dataset_id = 'DATASET_ID' GROUP BY 1, 2 ORDER BY 3 DESC LIMIT 10",
+            "type": "table",
+            "_type": "panel",
+            "title": "Top 10 Products by Revenue",
+            "columns": [
+              "sku",
+              "product_type",
+              "revenue_generated"
+            ],
+            "summary": "The top 10 products by revenue include a mix of skincare, haircare, and cosmetics, with SKU51 (haircare) leading at $9,866, highlighting the importance of these specific SKUs to overall sales.",
+            "description": "Top 10 products based on the revenue they generated."
+          },
+          {
+            "x": "shipping_carriers",
+            "y": "avg_shipping_cost",
+            "sql": "SELECT data->>'Shipping carriers' as shipping_carriers, AVG((data->>'Shipping costs')::numeric) as avg_shipping_cost FROM dataset_rows WHERE dataset_id = 'DATASET_ID' GROUP BY 1 ORDER BY 2 DESC",
+            "type": "bar",
+            "_type": "panel",
+            "title": "Average Shipping Costs by Carrier",
+            "summary": "Average shipping costs are relatively similar across all three carriers (A, B, and C), with Carrier C having a slightly higher average cost of $5.60, suggesting limited opportunity for cost savings through carrier negotiation.",
+            "description": "Average shipping costs for each shipping carrier."
+          },
+          {
+            "x": "inspection_results",
+            "y": "avg_defect_rate",
+            "sql": "SELECT data->>'Inspection results' as inspection_results, AVG((data->>'Defect rates')::numeric) as avg_defect_rate FROM dataset_rows WHERE dataset_id = 'DATASET_ID' GROUP BY 1 ORDER BY 2 DESC",
+            "type": "bar",
+            "_type": "panel",
+            "title": "Defect Rates by Inspection Result",
+            "summary": "Average defect rates are highest for products that 'Fail' inspection (2.57%), followed by 'Pending' (2.15%) and 'Pass' (2.04%), indicating a need to investigate and address the root causes of defects across the entire production process.",
+            "description": "Average defect rates based on inspection results."
+          }
+        ],
+        "results": {
+          "0": {
+            "data": [
+              {
+                "product_type": "skincare",
+                "total_revenue": "241628.1621330632273"
+              },
+              {
+                "product_type": "haircare",
+                "total_revenue": "174455.3906054623110"
+              },
+              {
+                "product_type": "cosmetics",
+                "total_revenue": "161521.2659994831420"
+              }
+            ],
+            "columns": [
+              "product_type",
+              "total_revenue"
+            ],
+            "success": true,
+            "rowCount": 3,
+            "executionMs": 2
+          },
+          "1": {
+            "data": [
+              {
+                "count": "31",
+                "customer_demographics": "Unknown"
+              },
+              {
+                "count": "25",
+                "customer_demographics": "Female"
+              },
+              {
+                "count": "23",
+                "customer_demographics": "Non-binary"
+              },
+              {
+                "count": "21",
+                "customer_demographics": "Male"
+              }
+            ],
+            "columns": [
+              "customer_demographics",
+              "count"
+            ],
+            "success": true,
+            "rowCount": 4,
+            "executionMs": 2
+          },
+          "2": {
+            "data": [
+              {
+                "sku": "SKU51",
+                "product_type": "haircare",
+                "revenue_generated": "9866.465457979697"
+              },
+              {
+                "sku": "SKU38",
+                "product_type": "cosmetics",
+                "revenue_generated": "9692.318040218432"
+              },
+              {
+                "sku": "SKU31",
+                "product_type": "skincare",
+                "revenue_generated": "9655.135102719398"
+              },
+              {
+                "sku": "SKU90",
+                "product_type": "skincare",
+                "revenue_generated": "9592.633570280312"
+              },
+              {
+                "sku": "SKU2",
+                "product_type": "haircare",
+                "revenue_generated": "9577.74962586873"
+              },
+              {
+                "sku": "SKU32",
+                "product_type": "skincare",
+                "revenue_generated": "9571.550487327819"
+              },
+              {
+                "sku": "SKU67",
+                "product_type": "skincare",
+                "revenue_generated": "9473.798032508337"
+              },
+              {
+                "sku": "SKU88",
+                "product_type": "cosmetics",
+                "revenue_generated": "9444.74203306298"
+              },
+              {
+                "sku": "SKU52",
+                "product_type": "skincare",
+                "revenue_generated": "9435.76260891213"
+              },
+              {
+                "sku": "SKU18",
+                "product_type": "haircare",
+                "revenue_generated": "9364.673505076173"
+              }
+            ],
+            "columns": [
+              "sku",
+              "product_type",
+              "revenue_generated"
+            ],
+            "success": true,
+            "rowCount": 10,
+            "executionMs": 1
+          },
+          "3": {
+            "data": [
+              {
+                "avg_shipping_cost": "5.5992916183375063",
+                "shipping_carriers": "Carrier C"
+              },
+              {
+                "avg_shipping_cost": "5.5549225216512713",
+                "shipping_carriers": "Carrier A"
+              },
+              {
+                "avg_shipping_cost": "5.5092469689287304",
+                "shipping_carriers": "Carrier B"
+              }
+            ],
+            "columns": [
+              "shipping_carriers",
+              "avg_shipping_cost"
+            ],
+            "success": true,
+            "rowCount": 3,
+            "executionMs": 1
+          },
+          "4": {
+            "data": [
+              {
+                "avg_defect_rate": "2.56930214505031378",
+                "inspection_results": "Fail"
+              },
+              {
+                "avg_defect_rate": "2.15421777491051473",
+                "inspection_results": "Pending"
+              },
+              {
+                "avg_defect_rate": "2.03904318612254759",
+                "inspection_results": "Pass"
+              }
+            ],
+            "columns": [
+              "inspection_results",
+              "avg_defect_rate"
+            ],
+            "success": true,
+            "rowCount": 3,
+            "executionMs": 2
+          },
+          "-1": {
+            "data": [
+              {
+                "product_type": "skincare",
+                "total_revenue": "241628.1621330632273"
+              },
+              {
+                "product_type": "haircare",
+                "total_revenue": "174455.3906054623110"
+              },
+              {
+                "product_type": "cosmetics",
+                "total_revenue": "161521.2659994831420"
+              }
+            ],
+            "columns": [
+              "product_type",
+              "total_revenue"
+            ],
+            "success": true,
+            "rowCount": 3,
+            "executionMs": 7
+          }
+        },
+        "nodeContext": null,
+        "createdAt": "2026-02-10T20:14:48.213Z"
+      },
+      {
+        "id": "a8b08d81-4b37-4e1c-945c-94002f912c53",
+        "name": "What might be causing this defect rate",
+        "question": "What might be causing this defect rate",
+        "description": null,
+        "contextId": "5d87465d-1582-4692-a067-7feef11c8d5a",
+        "parentDashboardId": "7dc2a841-55c4-4542-9323-0fefcaee6874",
+        "rootDashboardId": "7dc2a841-55c4-4542-9323-0fefcaee6874",
+        "plan": {
+          "q": "What might be causing this defect rate",
+          "sql": "SELECT data->>'Product type' AS product_type, COUNT(*) AS count FROM dataset_rows WHERE dataset_id = '4e7acb20-b58a-49fc-a87d-8bbb1e14cff9' AND (data->>'Defect rates')::numeric = 2.27715799273960995 GROUP BY 1 ORDER BY 2 DESC",
+          "viz": [
+            {
+              "x": "product_type",
+              "y": "count",
+              "type": "bar",
+              "_type": "panel",
+              "title": "Defect Rate Causes by Product Type",
+              "description": "Distribution of product types associated with the defect rate of 2.27715799273960995."
+            }
+          ],
+          "_type": "plan",
+          "tables": [
+            "supply chain data 2"
+          ],
+          "feasible": true,
+          "suggestedInvestigations": [
+            "What is the average lead time for products with this defect rate?",
+            "What are the inspection results for products with this defect rate?",
+            "What is the distribution of shipping carriers for products with this defect rate?"
+          ]
+        },
+        "panels": [
+          {
+            "x": "product_type",
+            "y": "count",
+            "type": "bar",
+            "_type": "panel",
+            "title": "Defect Rate Causes by Product Type",
+            "description": "Distribution of product types associated with the defect rate of 2.27715799273960995."
+          }
+        ],
+        "results": {
+          "0": {
+            "data": [],
+            "columns": [],
+            "success": true,
+            "rowCount": 0,
+            "executionMs": 2
+          },
+          "-1": {
+            "data": [],
+            "columns": [],
+            "success": true,
+            "rowCount": 0,
+            "executionMs": 5
+          }
+        },
+        "nodeContext": {
+          "filters": {
+            "value": "2.27715799273960995"
+          },
+          "parentSql": "-- This query provides a high-level overview of key supply chain metrics.\\n-- It's designed to be a starting point for a more comprehensive dashboard.\\n\\nSELECT\\n  'Total Revenue' AS metric,\\n  SUM((data->>'Revenue generated')::numeric) AS value\\nFROM dataset_rows\\nWHERE dataset_id = 'DATASET_ID'\\n\\nUNION ALL\\n\\nSELECT\\n  'Average Lead Time' AS metric,\\n  AVG((data->>'Lead time')::numeric) AS value\\nFROM dataset_rows\\nWHERE dataset_id = 'DATASET_ID'\\n\\nUNION ALL\\n\\nSELECT\\n  'Average Defect Rate' AS metric,\\n  AVG((data->>'Defect rates')::numeric) AS value\\nFROM dataset_rows\\nWHERE dataset_id = 'DATASET_ID'\\n\\nUNION ALL\\n\\nSELECT\\n  'Average Shipping Cost' AS metric,\\n  AVG((data->>'Shipping costs')::numeric) AS value\\nFROM dataset_rows\\nWHERE dataset_id = 'DATASET_ID'",
+          "selectedMark": {
+            "datum": {
+              "value": "2.27715799273960995"
+            },
+            "field": "value",
+            "value": "2.27715799273960995"
+          },
+          "parentQuestion": "Make me a dashboard for my organization!",
+          "parentDashboardId": "7dc2a841-55c4-4542-9323-0fefcaee6874"
+        },
+        "createdAt": "2026-02-10T20:13:44.834Z"
+      },
+      {
+        "id": "7dc2a841-55c4-4542-9323-0fefcaee6874",
+        "name": "Make me a dashboard for my organization!",
+        "question": "Make me a dashboard for my organization!",
+        "description": null,
+        "contextId": "5d87465d-1582-4692-a067-7feef11c8d5a",
+        "parentDashboardId": null,
+        "rootDashboardId": null,
+        "plan": {
+          "q": "Make me a dashboard for my organization!",
+          "sql": "-- This query provides a high-level overview of key supply chain metrics.\\n-- It's designed to be a starting point for a more comprehensive dashboard.\\n\\nSELECT\\n  'Total Revenue' AS metric,\\n  SUM((data->>'Revenue generated')::numeric) AS value\\nFROM dataset_rows\\nWHERE dataset_id = 'DATASET_ID'\\n\\nUNION ALL\\n\\nSELECT\\n  'Average Lead Time' AS metric,\\n  AVG((data->>'Lead time')::numeric) AS value\\nFROM dataset_rows\\nWHERE dataset_id = 'DATASET_ID'\\n\\nUNION ALL\\n\\nSELECT\\n  'Average Defect Rate' AS metric,\\n  AVG((data->>'Defect rates')::numeric) AS value\\nFROM dataset_rows\\nWHERE dataset_id = 'DATASET_ID'\\n\\nUNION ALL\\n\\nSELECT\\n  'Average Shipping Cost' AS metric,\\n  AVG((data->>'Shipping costs')::numeric) AS value\\nFROM dataset_rows\\nWHERE dataset_id = 'DATASET_ID'",
+          "viz": [
+            {
+              "sql": "SELECT SUM((data->>'Revenue generated')::numeric) AS value FROM dataset_rows WHERE dataset_id = 'DATASET_ID'",
+              "type": "stat",
+              "_type": "panel",
+              "title": "Total Revenue",
+              "value": "value",
+              "summary": "Total revenue is approximately $577,605, representing the overall financial performance.",
+              "description": "Total revenue generated from all products."
+            },
+            {
+              "sql": "SELECT AVG((data->>'Lead time')::numeric) AS value FROM dataset_rows WHERE dataset_id = 'DATASET_ID'",
+              "type": "stat",
+              "_type": "panel",
+              "title": "Average Lead Time",
+              "value": "value",
+              "summary": "The average lead time is 17 days, which could be impacting customer satisfaction and requires further investigation.",
+              "description": "Average lead time across all orders."
+            },
+            {
+              "sql": "SELECT AVG((data->>'Defect rates')::numeric) AS value FROM dataset_rows WHERE dataset_id = 'DATASET_ID'",
+              "type": "stat",
+              "_type": "panel",
+              "title": "Average Defect Rate",
+              "value": "value",
+              "summary": "The average defect rate is 2.28%, indicating a need for quality control improvements to reduce waste and improve product reliability.",
+              "description": "Average defect rate across all products."
+            },
+            {
+              "sql": "SELECT AVG((data->>'Shipping costs')::numeric) AS value FROM dataset_rows WHERE dataset_id = 'DATASET_ID'",
+              "type": "stat",
+              "_type": "panel",
+              "title": "Average Shipping Cost",
+              "value": "value",
+              "summary": "The average shipping cost is approximately $5.55, which should be monitored to identify potential cost-saving opportunities.",
+              "description": "Average shipping cost across all orders."
+            },
+            {
+              "x": "product_type",
+              "y": "revenue",
+              "sql": "SELECT data->>'Product type' as product_type, SUM((data->>'Revenue generated')::numeric) as revenue FROM dataset_rows WHERE dataset_id = 'DATASET_ID' GROUP BY 1 ORDER BY 2 DESC",
+              "type": "bar",
+              "_type": "panel",
+              "title": "Revenue by Product Type",
+              "summary": "Skincare products generate the highest revenue at approximately $241,628, suggesting a strong market demand for this product type.",
+              "description": "Total revenue generated by each product type."
+            },
+            {
+              "x": "location",
+              "y": "products_sold",
+              "sql": "SELECT data->>'Location' as location, SUM((data->>'Number of products sold')::numeric) as products_sold FROM dataset_rows WHERE dataset_id = 'DATASET_ID' GROUP BY 1 ORDER BY 2 DESC",
+              "type": "bar",
+              "_type": "panel",
+              "title": "Number of Products Sold by Location",
+              "summary": "Kolkata has the highest number of products sold at 12,770, indicating a strong market presence in that location.",
+              "description": "Number of products sold in each location."
+            }
+          ],
+          "_type": "plan",
+          "tables": [
+            "supply",
+            "chain",
+            "data",
+            2
+          ],
+          "feasible": true,
+          "executiveSummary": "This dashboard provides a high-level overview of key performance indicators. Total revenue is approximately $577,605, but average lead time is 17 days and the average defect rate is 2.28%, which indicates potential inefficiencies in the production and delivery process that could impact customer satisfaction and future sales growth if unaddressed. We should investigate the root causes of the lead time and defect rate to identify areas for improvement and maintain our competitive edge.",
+          "suggestedInvestigations": [
+            "What are the top-selling products?",
+            "Which suppliers have the shortest lead times?",
+            "How do defect rates vary by supplier?"
+          ]
+        },
+        "panels": [
+          {
+            "sql": "SELECT SUM((data->>'Revenue generated')::numeric) AS value FROM dataset_rows WHERE dataset_id = 'DATASET_ID'",
+            "type": "stat",
+            "_type": "panel",
+            "title": "Total Revenue",
+            "value": "value",
+            "summary": "Total revenue is approximately $577,605, representing the overall financial performance.",
+            "description": "Total revenue generated from all products."
+          },
+          {
+            "sql": "SELECT AVG((data->>'Lead time')::numeric) AS value FROM dataset_rows WHERE dataset_id = 'DATASET_ID'",
+            "type": "stat",
+            "_type": "panel",
+            "title": "Average Lead Time",
+            "value": "value",
+            "summary": "The average lead time is 17 days, which could be impacting customer satisfaction and requires further investigation.",
+            "description": "Average lead time across all orders."
+          },
+          {
+            "sql": "SELECT AVG((data->>'Defect rates')::numeric) AS value FROM dataset_rows WHERE dataset_id = 'DATASET_ID'",
+            "type": "stat",
+            "_type": "panel",
+            "title": "Average Defect Rate",
+            "value": "value",
+            "summary": "The average defect rate is 2.28%, indicating a need for quality control improvements to reduce waste and improve product reliability.",
+            "description": "Average defect rate across all products."
+          },
+          {
+            "sql": "SELECT AVG((data->>'Shipping costs')::numeric) AS value FROM dataset_rows WHERE dataset_id = 'DATASET_ID'",
+            "type": "stat",
+            "_type": "panel",
+            "title": "Average Shipping Cost",
+            "value": "value",
+            "summary": "The average shipping cost is approximately $5.55, which should be monitored to identify potential cost-saving opportunities.",
+            "description": "Average shipping cost across all orders."
+          },
+          {
+            "x": "product_type",
+            "y": "revenue",
+            "sql": "SELECT data->>'Product type' as product_type, SUM((data->>'Revenue generated')::numeric) as revenue FROM dataset_rows WHERE dataset_id = 'DATASET_ID' GROUP BY 1 ORDER BY 2 DESC",
+            "type": "bar",
+            "_type": "panel",
+            "title": "Revenue by Product Type",
+            "summary": "Skincare products generate the highest revenue at approximately $241,628, suggesting a strong market demand for this product type.",
+            "description": "Total revenue generated by each product type."
+          },
+          {
+            "x": "location",
+            "y": "products_sold",
+            "sql": "SELECT data->>'Location' as location, SUM((data->>'Number of products sold')::numeric) as products_sold FROM dataset_rows WHERE dataset_id = 'DATASET_ID' GROUP BY 1 ORDER BY 2 DESC",
+            "type": "bar",
+            "_type": "panel",
+            "title": "Number of Products Sold by Location",
+            "summary": "Kolkata has the highest number of products sold at 12,770, indicating a strong market presence in that location.",
+            "description": "Number of products sold in each location."
+          }
+        ],
+        "results": {
+          "0": {
+            "data": [
+              {
+                "value": "577604.8187380086803"
+              }
+            ],
+            "columns": [
+              "value"
+            ],
+            "success": true,
+            "rowCount": 1,
+            "executionMs": 3
+          },
+          "1": {
+            "data": [
+              {
+                "value": "17.0800000000000000"
+              }
+            ],
+            "columns": [
+              "value"
+            ],
+            "success": true,
+            "rowCount": 1,
+            "executionMs": 1
+          },
+          "2": {
+            "data": [
+              {
+                "value": "2.27715799273960995"
+              }
+            ],
+            "columns": [
+              "value"
+            ],
+            "success": true,
+            "rowCount": 1,
+            "executionMs": 2
+          },
+          "3": {
+            "data": [
+              {
+                "value": "5.5481490720195868"
+              }
+            ],
+            "columns": [
+              "value"
+            ],
+            "success": true,
+            "rowCount": 1,
+            "executionMs": 0
+          },
+          "4": {
+            "data": [
+              {
+                "revenue": "241628.1621330632273",
+                "product_type": "skincare"
+              },
+              {
+                "revenue": "174455.3906054623110",
+                "product_type": "haircare"
+              },
+              {
+                "revenue": "161521.2659994831420",
+                "product_type": "cosmetics"
+              }
+            ],
+            "columns": [
+              "product_type",
+              "revenue"
+            ],
+            "success": true,
+            "rowCount": 3,
+            "executionMs": 3
+          },
+          "5": {
+            "data": [
+              {
+                "location": "Kolkata",
+                "products_sold": "12770"
+              },
+              {
+                "location": "Delhi",
+                "products_sold": "9715"
+              },
+              {
+                "location": "Mumbai",
+                "products_sold": "9426"
+              },
+              {
+                "location": "Chennai",
+                "products_sold": "8768"
+              },
+              {
+                "location": "Bangalore",
+                "products_sold": "5420"
+              }
+            ],
+            "columns": [
+              "location",
+              "products_sold"
+            ],
+            "success": true,
+            "rowCount": 5,
+            "executionMs": 1
+          },
+          "-1": {
+            "data": [],
+            "columns": [],
+            "success": true,
+            "rowCount": 0,
+            "executionMs": 2
+          }
+        },
+        "nodeContext": null,
+        "createdAt": "2026-02-10T20:13:00.215Z"
+      },
+      {
+        "id": "c251fa6b-4bbb-4a10-982d-a58d161b7782",
+        "name": "Give me a dashboard for my organization!",
+        "question": "Give me a dashboard for my organization!",
+        "description": null,
+        "contextId": "5d87465d-1582-4692-a067-7feef11c8d5a",
+        "parentDashboardId": null,
+        "rootDashboardId": null,
+        "plan": {
+          "q": "Give me a dashboard for my organization!",
+          "sql": "-- This query provides a basic overview of key metrics.\\n-- Additional queries will populate the dashboard with more specific information.\\n\\nSELECT 'Overall Metrics' as dashboard_section -- Placeholder for overall metrics\\n",
+          "viz": [
+            {
+              "sql": "SELECT SUM((data->>'Revenue generated')::numeric) as total_revenue FROM dataset_rows WHERE dataset_id = 'DATASET_ID'",
+              "type": "stat",
+              "_type": "panel",
+              "title": "Total Revenue Generated",
+              "value": "total_revenue",
+              "summary": "The organization has generated a total revenue of $577,604.82.",
+              "description": "Total revenue generated across all products."
+            },
+            {
+              "sql": "SELECT AVG((data->>'Production volumes')::numeric) as avg_production_volume FROM dataset_rows WHERE dataset_id = 'DATASET_ID'",
+              "type": "stat",
+              "_type": "panel",
+              "title": "Average Production Volume",
+              "value": "avg_production_volume",
+              "summary": "The average production volume across all product lines is 567.84 units.",
+              "description": "Average production volume across all products."
+            },
+            {
+              "x": "product_type",
+              "y": "total_revenue",
+              "sql": "SELECT data->>'Product type' as product_type, SUM((data->>'Revenue generated')::numeric) as total_revenue FROM dataset_rows WHERE dataset_id = 'DATASET_ID' GROUP BY 1 ORDER BY 2 DESC",
+              "type": "bar",
+              "_type": "panel",
+              "title": "Revenue by Product Type",
+              "summary": "Skincare products contribute the most to overall revenue, totaling $241,628.16, followed by haircare and cosmetics.",
+              "description": "Total revenue generated by each product type."
+            },
+            {
+              "x": "product_type",
+              "y": "avg_defect_rate",
+              "sql": "SELECT data->>'Product type' as product_type, AVG((data->>'Defect rates')::numeric) as avg_defect_rate FROM dataset_rows WHERE dataset_id = 'DATASET_ID' GROUP BY 1 ORDER BY 2 DESC",
+              "type": "bar",
+              "_type": "panel",
+              "title": "Average Defect Rates by Product Type",
+              "summary": "Haircare products have the highest average defect rate at 2.48%, followed closely by skincare at 2.33%, while cosmetics have the lowest at 1.92%.",
+              "description": "Average defect rate for each product type."
+            },
+            {
+              "sql": "SELECT data->>'SKU' as sku, data->>'Product type' as product_type, (data->>'Revenue generated')::numeric as revenue_generated FROM dataset_rows WHERE dataset_id = 'DATASET_ID' ORDER BY 3 DESC LIMIT 10",
+              "type": "table",
+              "_type": "panel",
+              "title": "Top 10 Products by Revenue",
+              "columns": [
+                "sku",
+                "product_type",
+                "revenue_generated"
+              ],
+              "summary": "The top 10 products by revenue include a mix of haircare, cosmetics, and skincare SKUs, with SKU51 (haircare) leading at $9,866.47 in revenue.",
+              "description": "Top 10 products based on revenue generated."
+            }
+          ],
+          "_type": "plan",
+          "tables": [
+            "supply",
+            "chain",
+            "data",
+            2
+          ],
+          "feasible": true,
+          "executiveSummary": "This dashboard provides a snapshot of our organization's performance, showing a total revenue of $577,604.82 and an average production volume of 567.84 units. Skincare products are driving the highest revenue, but also exhibit a relatively high defect rate, which indicates a potential risk to customer satisfaction and future sales if not addressed promptly. We recommend prioritizing a review of the skincare production process to identify and mitigate the causes of defects.",
+          "suggestedInvestigations": [
+            "What are the trends in production volumes over time?",
+            "Which suppliers have the shortest lead times?",
+            "What is the correlation between manufacturing costs and defect rates?"
+          ]
+        },
+        "panels": [
+          {
+            "sql": "SELECT SUM((data->>'Revenue generated')::numeric) as total_revenue FROM dataset_rows WHERE dataset_id = 'DATASET_ID'",
+            "type": "stat",
+            "_type": "panel",
+            "title": "Total Revenue Generated",
+            "value": "total_revenue",
+            "summary": "The organization has generated a total revenue of $577,604.82.",
+            "description": "Total revenue generated across all products."
+          },
+          {
+            "sql": "SELECT AVG((data->>'Production volumes')::numeric) as avg_production_volume FROM dataset_rows WHERE dataset_id = 'DATASET_ID'",
+            "type": "stat",
+            "_type": "panel",
+            "title": "Average Production Volume",
+            "value": "avg_production_volume",
+            "summary": "The average production volume across all product lines is 567.84 units.",
+            "description": "Average production volume across all products."
+          },
+          {
+            "x": "product_type",
+            "y": "total_revenue",
+            "sql": "SELECT data->>'Product type' as product_type, SUM((data->>'Revenue generated')::numeric) as total_revenue FROM dataset_rows WHERE dataset_id = 'DATASET_ID' GROUP BY 1 ORDER BY 2 DESC",
+            "type": "bar",
+            "_type": "panel",
+            "title": "Revenue by Product Type",
+            "summary": "Skincare products contribute the most to overall revenue, totaling $241,628.16, followed by haircare and cosmetics.",
+            "description": "Total revenue generated by each product type."
+          },
+          {
+            "x": "product_type",
+            "y": "avg_defect_rate",
+            "sql": "SELECT data->>'Product type' as product_type, AVG((data->>'Defect rates')::numeric) as avg_defect_rate FROM dataset_rows WHERE dataset_id = 'DATASET_ID' GROUP BY 1 ORDER BY 2 DESC",
+            "type": "bar",
+            "_type": "panel",
+            "title": "Average Defect Rates by Product Type",
+            "summary": "Haircare products have the highest average defect rate at 2.48%, followed closely by skincare at 2.33%, while cosmetics have the lowest at 1.92%.",
+            "description": "Average defect rate for each product type."
+          },
+          {
+            "sql": "SELECT data->>'SKU' as sku, data->>'Product type' as product_type, (data->>'Revenue generated')::numeric as revenue_generated FROM dataset_rows WHERE dataset_id = 'DATASET_ID' ORDER BY 3 DESC LIMIT 10",
+            "type": "table",
+            "_type": "panel",
+            "title": "Top 10 Products by Revenue",
+            "columns": [
+              "sku",
+              "product_type",
+              "revenue_generated"
+            ],
+            "summary": "The top 10 products by revenue include a mix of haircare, cosmetics, and skincare SKUs, with SKU51 (haircare) leading at $9,866.47 in revenue.",
+            "description": "Top 10 products based on revenue generated."
+          }
+        ],
+        "results": {
+          "0": {
+            "data": [
+              {
+                "total_revenue": "577604.8187380086803"
+              }
+            ],
+            "columns": [
+              "total_revenue"
+            ],
+            "success": true,
+            "rowCount": 1,
+            "executionMs": 3
+          },
+          "1": {
+            "data": [
+              {
+                "avg_production_volume": "567.8400000000000000"
+              }
+            ],
+            "columns": [
+              "avg_production_volume"
+            ],
+            "success": true,
+            "rowCount": 1,
+            "executionMs": 2
+          },
+          "2": {
+            "data": [
+              {
+                "product_type": "skincare",
+                "total_revenue": "241628.1621330632273"
+              },
+              {
+                "product_type": "haircare",
+                "total_revenue": "174455.3906054623110"
+              },
+              {
+                "product_type": "cosmetics",
+                "total_revenue": "161521.2659994831420"
+              }
+            ],
+            "columns": [
+              "product_type",
+              "total_revenue"
+            ],
+            "success": true,
+            "rowCount": 3,
+            "executionMs": 3
+          },
+          "3": {
+            "data": [
+              {
+                "product_type": "haircare",
+                "avg_defect_rate": "2.48315019292462466"
+              },
+              {
+                "product_type": "skincare",
+                "avg_defect_rate": "2.33468078198023708"
+              },
+              {
+                "product_type": "cosmetics",
+                "avg_defect_rate": "1.91928697828131819"
+              }
+            ],
+            "columns": [
+              "product_type",
+              "avg_defect_rate"
+            ],
+            "success": true,
+            "rowCount": 3,
+            "executionMs": 2
+          },
+          "4": {
+            "data": [
+              {
+                "sku": "SKU51",
+                "product_type": "haircare",
+                "revenue_generated": "9866.465457979697"
+              },
+              {
+                "sku": "SKU38",
+                "product_type": "cosmetics",
+                "revenue_generated": "9692.318040218432"
+              },
+              {
+                "sku": "SKU31",
+                "product_type": "skincare",
+                "revenue_generated": "9655.135102719398"
+              },
+              {
+                "sku": "SKU90",
+                "product_type": "skincare",
+                "revenue_generated": "9592.633570280312"
+              },
+              {
+                "sku": "SKU2",
+                "product_type": "haircare",
+                "revenue_generated": "9577.74962586873"
+              },
+              {
+                "sku": "SKU32",
+                "product_type": "skincare",
+                "revenue_generated": "9571.550487327819"
+              },
+              {
+                "sku": "SKU67",
+                "product_type": "skincare",
+                "revenue_generated": "9473.798032508337"
+              },
+              {
+                "sku": "SKU88",
+                "product_type": "cosmetics",
+                "revenue_generated": "9444.74203306298"
+              },
+              {
+                "sku": "SKU52",
+                "product_type": "skincare",
+                "revenue_generated": "9435.76260891213"
+              },
+              {
+                "sku": "SKU18",
+                "product_type": "haircare",
+                "revenue_generated": "9364.673505076173"
+              }
+            ],
+            "columns": [
+              "sku",
+              "product_type",
+              "revenue_generated"
+            ],
+            "success": true,
+            "rowCount": 10,
+            "executionMs": 1
+          },
+          "-1": {
+            "data": [],
+            "columns": [],
+            "success": true,
+            "rowCount": 0,
+            "executionMs": 2
+          }
+        },
+        "nodeContext": null,
+        "createdAt": "2026-02-10T20:11:33.455Z"
+      },
+      {
+        "id": "888853a8-6622-43ae-8347-387b57bcb83e",
+        "name": "What skus are pending the most?",
+        "question": "What skus are pending the most?",
+        "description": null,
+        "contextId": "b427a075-e6f9-43b2-bf18-7aceef5767f8",
+        "parentDashboardId": "7d41dfe4-0a6b-4f6e-a638-154cb07e4479",
+        "rootDashboardId": "f60d2a6f-126b-45fe-abf2-404f04b89533",
+        "plan": {
+          "q": "What skus are pending the most?",
+          "sql": "SELECT data->>'SKU' as sku, COUNT(*) as count FROM dataset_rows WHERE dataset_id = '4e7acb20-b58a-49fc-a87d-8bbb1e14cff9' AND data->>'Inspection results' = 'Pending' GROUP BY 1 ORDER BY 2 DESC",
+          "viz": [
+            {
+              "x": "sku",
+              "y": "count",
+              "type": "bar",
+              "_type": "panel",
+              "title": "SKUs with Pending Inspection Results",
+              "summary": "The bar chart shows that 41 SKUs each have one pending inspection result.",
+              "description": "Number of pending inspection results for each SKU."
+            }
+          ],
+          "_type": "plan",
+          "tables": [
+            "supply",
+            "chain",
+            "data",
+            2
+          ],
+          "feasible": true,
+          "executiveSummary": "Currently, 41 distinct SKUs are pending inspection, with each SKU having only one pending inspection result. This widespread distribution across numerous SKUs suggests a potential bottleneck in the inspection process rather than issues concentrated on specific products, which could lead to delays in product release and fulfillment. We should investigate the inspection workflow to identify and address the underlying causes of these delays to prevent further disruptions.",
+          "suggestedInvestigations": [
+            "What are the defect rates for these SKUs?",
+            "What are the lead times for these SKUs?"
+          ]
+        },
+        "panels": [
+          {
+            "x": "sku",
+            "y": "count",
+            "type": "bar",
+            "_type": "panel",
+            "title": "SKUs with Pending Inspection Results",
+            "summary": "The bar chart shows that 41 SKUs each have one pending inspection result.",
+            "description": "Number of pending inspection results for each SKU."
+          }
+        ],
+        "results": {
+          "0": {
+            "data": [
+              {
+                "sku": "SKU0",
+                "count": "1"
+              },
+              {
+                "sku": "SKU1",
+                "count": "1"
+              },
+              {
+                "sku": "SKU11",
+                "count": "1"
+              },
+              {
+                "sku": "SKU13",
+                "count": "1"
+              },
+              {
+                "sku": "SKU14",
+                "count": "1"
+              },
+              {
+                "sku": "SKU18",
+                "count": "1"
+              },
+              {
+                "sku": "SKU2",
+                "count": "1"
+              },
+              {
+                "sku": "SKU21",
+                "count": "1"
+              },
+              {
+                "sku": "SKU23",
+                "count": "1"
+              },
+              {
+                "sku": "SKU24",
+                "count": "1"
+              },
+              {
+                "sku": "SKU25",
+                "count": "1"
+              },
+              {
+                "sku": "SKU30",
+                "count": "1"
+              },
+              {
+                "sku": "SKU31",
+                "count": "1"
+              },
+              {
+                "sku": "SKU37",
+                "count": "1"
+              },
+              {
+                "sku": "SKU38",
+                "count": "1"
+              },
+              {
+                "sku": "SKU40",
+                "count": "1"
+              },
+              {
+                "sku": "SKU43",
+                "count": "1"
+              },
+              {
+                "sku": "SKU46",
+                "count": "1"
+              },
+              {
+                "sku": "SKU47",
+                "count": "1"
+              },
+              {
+                "sku": "SKU51",
+                "count": "1"
+              },
+              {
+                "sku": "SKU52",
+                "count": "1"
+              },
+              {
+                "sku": "SKU53",
+                "count": "1"
+              },
+              {
+                "sku": "SKU57",
+                "count": "1"
+              },
+              {
+                "sku": "SKU6",
+                "count": "1"
+              },
+              {
+                "sku": "SKU63",
+                "count": "1"
+              },
+              {
+                "sku": "SKU69",
+                "count": "1"
+              },
+              {
+                "sku": "SKU71",
+                "count": "1"
+              },
+              {
+                "sku": "SKU72",
+                "count": "1"
+              },
+              {
+                "sku": "SKU76",
+                "count": "1"
+              },
+              {
+                "sku": "SKU78",
+                "count": "1"
+              },
+              {
+                "sku": "SKU79",
+                "count": "1"
+              },
+              {
+                "sku": "SKU8",
+                "count": "1"
+              },
+              {
+                "sku": "SKU81",
+                "count": "1"
+              },
+              {
+                "sku": "SKU82",
+                "count": "1"
+              },
+              {
+                "sku": "SKU88",
+                "count": "1"
+              },
+              {
+                "sku": "SKU89",
+                "count": "1"
+              },
+              {
+                "sku": "SKU9",
+                "count": "1"
+              },
+              {
+                "sku": "SKU91",
+                "count": "1"
+              },
+              {
+                "sku": "SKU95",
+                "count": "1"
+              },
+              {
+                "sku": "SKU96",
+                "count": "1"
+              },
+              {
+                "sku": "SKU98",
+                "count": "1"
+              }
+            ],
+            "columns": [
+              "sku",
+              "count"
+            ],
+            "success": true,
+            "rowCount": 41,
+            "executionMs": 3
+          },
+          "-1": {
+            "data": [
+              {
+                "sku": "SKU0",
+                "count": "1"
+              },
+              {
+                "sku": "SKU1",
+                "count": "1"
+              },
+              {
+                "sku": "SKU11",
+                "count": "1"
+              },
+              {
+                "sku": "SKU13",
+                "count": "1"
+              },
+              {
+                "sku": "SKU14",
+                "count": "1"
+              },
+              {
+                "sku": "SKU18",
+                "count": "1"
+              },
+              {
+                "sku": "SKU2",
+                "count": "1"
+              },
+              {
+                "sku": "SKU21",
+                "count": "1"
+              },
+              {
+                "sku": "SKU23",
+                "count": "1"
+              },
+              {
+                "sku": "SKU24",
+                "count": "1"
+              },
+              {
+                "sku": "SKU25",
+                "count": "1"
+              },
+              {
+                "sku": "SKU30",
+                "count": "1"
+              },
+              {
+                "sku": "SKU31",
+                "count": "1"
+              },
+              {
+                "sku": "SKU37",
+                "count": "1"
+              },
+              {
+                "sku": "SKU38",
+                "count": "1"
+              },
+              {
+                "sku": "SKU40",
+                "count": "1"
+              },
+              {
+                "sku": "SKU43",
+                "count": "1"
+              },
+              {
+                "sku": "SKU46",
+                "count": "1"
+              },
+              {
+                "sku": "SKU47",
+                "count": "1"
+              },
+              {
+                "sku": "SKU51",
+                "count": "1"
+              },
+              {
+                "sku": "SKU52",
+                "count": "1"
+              },
+              {
+                "sku": "SKU53",
+                "count": "1"
+              },
+              {
+                "sku": "SKU57",
+                "count": "1"
+              },
+              {
+                "sku": "SKU6",
+                "count": "1"
+              },
+              {
+                "sku": "SKU63",
+                "count": "1"
+              },
+              {
+                "sku": "SKU69",
+                "count": "1"
+              },
+              {
+                "sku": "SKU71",
+                "count": "1"
+              },
+              {
+                "sku": "SKU72",
+                "count": "1"
+              },
+              {
+                "sku": "SKU76",
+                "count": "1"
+              },
+              {
+                "sku": "SKU78",
+                "count": "1"
+              },
+              {
+                "sku": "SKU79",
+                "count": "1"
+              },
+              {
+                "sku": "SKU8",
+                "count": "1"
+              },
+              {
+                "sku": "SKU81",
+                "count": "1"
+              },
+              {
+                "sku": "SKU82",
+                "count": "1"
+              },
+              {
+                "sku": "SKU88",
+                "count": "1"
+              },
+              {
+                "sku": "SKU89",
+                "count": "1"
+              },
+              {
+                "sku": "SKU9",
+                "count": "1"
+              },
+              {
+                "sku": "SKU91",
+                "count": "1"
+              },
+              {
+                "sku": "SKU95",
+                "count": "1"
+              },
+              {
+                "sku": "SKU96",
+                "count": "1"
+              },
+              {
+                "sku": "SKU98",
+                "count": "1"
+              }
+            ],
+            "columns": [
+              "sku",
+              "count"
+            ],
+            "success": true,
+            "rowCount": 41,
+            "executionMs": 5
+          }
+        },
+        "nodeContext": {
+          "filters": {
+            "inspection_result": "Pending"
+          },
+          "parentSql": "SELECT data->>'Inspection results' as inspection_result, COUNT(*) as count FROM dataset_rows WHERE dataset_id = '4e7acb20-b58a-49fc-a87d-8bbb1e14cff9' GROUP BY 1",
+          "selectedMark": {
+            "datum": {
+              "count": "41",
+              "count_end": 100,
+              "count_start": 59,
+              "inspection_result": "Pending",
+              "_inspection_result_sort_index": 0
+            },
+            "field": "inspection_result",
+            "value": "Pending",
+            "panelIndex": 3,
+            "panelTitle": "Distribution of Inspection Results",
+            "metricField": "count",
+            "metricValue": "41"
+          },
+          "parentQuestion": "Make me a dashboard for my organization please!",
+          "parentDashboardId": "f60d2a6f-126b-45fe-abf2-404f04b89533"
+        },
+        "createdAt": "2026-02-10T20:02:39.434Z"
+      },
+      {
+        "id": "7d41dfe4-0a6b-4f6e-a638-154cb07e4479",
+        "name": "Why might we have so many pending inspections",
+        "question": "Why might we have so many pending inspections",
+        "description": null,
+        "contextId": "b427a075-e6f9-43b2-bf18-7aceef5767f8",
+        "parentDashboardId": "f60d2a6f-126b-45fe-abf2-404f04b89533",
+        "rootDashboardId": "f60d2a6f-126b-45fe-abf2-404f04b89533",
+        "plan": {
+          "q": "Why might we have so many pending inspections",
+          "sql": "SELECT data->>'Supplier name' as supplier_name, COUNT(*) as count FROM dataset_rows WHERE dataset_id = '4e7acb20-b58a-49fc-a87d-8bbb1e14cff9' AND data->>'Inspection results' = 'Pending' GROUP BY 1 ORDER BY 2 DESC LIMIT 10",
+          "viz": [
+            {
+              "x": "supplier_name",
+              "y": "count",
+              "type": "bar",
+              "_type": "panel",
+              "title": "Pending Inspections by Supplier",
+              "description": "Number of pending inspection results for each supplier."
+            }
+          ],
+          "_type": "plan",
+          "tables": [
+            "supply",
+            "chain",
+            "data",
+            2
+          ],
+          "feasible": true,
+          "executiveSummary": "",
+          "suggestedInvestigations": [
+            "What is the average lead time for suppliers with pending inspections?",
+            "What are the defect rates for suppliers with pending inspections?"
+          ]
+        },
+        "panels": [
+          {
+            "x": "supplier_name",
+            "y": "count",
+            "type": "bar",
+            "_type": "panel",
+            "title": "Pending Inspections by Supplier",
+            "description": "Number of pending inspection results for each supplier."
+          }
+        ],
+        "results": {
+          "0": {
+            "data": [
+              {
+                "count": "10",
+                "supplier_name": "Supplier 3"
+              },
+              {
+                "count": "9",
+                "supplier_name": "Supplier 2"
+              },
+              {
+                "count": "8",
+                "supplier_name": "Supplier 1"
+              },
+              {
+                "count": "8",
+                "supplier_name": "Supplier 5"
+              },
+              {
+                "count": "6",
+                "supplier_name": "Supplier 4"
+              }
+            ],
+            "columns": [
+              "supplier_name",
+              "count"
+            ],
+            "success": true,
+            "rowCount": 5,
+            "executionMs": 2
+          },
+          "-1": {
+            "data": [
+              {
+                "count": "10",
+                "supplier_name": "Supplier 3"
+              },
+              {
+                "count": "9",
+                "supplier_name": "Supplier 2"
+              },
+              {
+                "count": "8",
+                "supplier_name": "Supplier 1"
+              },
+              {
+                "count": "8",
+                "supplier_name": "Supplier 5"
+              },
+              {
+                "count": "6",
+                "supplier_name": "Supplier 4"
+              }
+            ],
+            "columns": [
+              "supplier_name",
+              "count"
+            ],
+            "success": true,
+            "rowCount": 5,
+            "executionMs": 5
+          }
+        },
+        "nodeContext": {
+          "filters": {
+            "inspection_result": "Pending"
+          },
+          "parentSql": "SELECT data->>'Inspection results' as inspection_result, COUNT(*) as count FROM dataset_rows WHERE dataset_id = '4e7acb20-b58a-49fc-a87d-8bbb1e14cff9' GROUP BY 1",
+          "selectedMark": {
+            "datum": {
+              "count": "41",
+              "count_end": 100,
+              "count_start": 59,
+              "inspection_result": "Pending",
+              "_inspection_result_sort_index": 0
+            },
+            "field": "inspection_result",
+            "value": "Pending",
+            "panelIndex": 3,
+            "panelTitle": "Distribution of Inspection Results",
+            "metricField": "count",
+            "metricValue": "41"
+          },
+          "parentQuestion": "Make me a dashboard for my organization please!",
+          "parentDashboardId": "f60d2a6f-126b-45fe-abf2-404f04b89533"
+        },
+        "createdAt": "2026-02-10T19:56:50.807Z"
+      },
+      {
+        "id": "f60d2a6f-126b-45fe-abf2-404f04b89533",
+        "name": "Make me a dashboard for my organization please!",
+        "question": "Make me a dashboard for my organization please!",
+        "description": null,
+        "contextId": "b427a075-e6f9-43b2-bf18-7aceef5767f8",
+        "parentDashboardId": null,
+        "rootDashboardId": null,
+        "plan": {
+          "q": "Make me a dashboard for my organization please!",
+          "sql": "-- This is a dashboard, so no single SQL query is provided here. See the individual panels below.",
+          "viz": [
+            {
+              "sql": "SELECT ROUND(SUM((data->>'Revenue generated')::numeric), 2) as total_revenue FROM dataset_rows WHERE dataset_id = '4e7acb20-b58a-49fc-a87d-8bbb1e14cff9'",
+              "type": "stat",
+              "_type": "panel",
+              "title": "Total Revenue Generated",
+              "value": "total_revenue",
+              "summary": "Total revenue generated is $577,604.82, representing the overall financial performance.",
+              "description": "Total revenue generated across all products."
+            },
+            {
+              "x": "product_type",
+              "y": "total_revenue",
+              "sql": "SELECT data->>'Product type' as product_type, ROUND(SUM((data->>'Revenue generated')::numeric), 2) as total_revenue FROM dataset_rows WHERE dataset_id = '4e7acb20-b58a-49fc-a87d-8bbb1e14cff9' GROUP BY 1 ORDER BY 2 DESC",
+              "type": "bar",
+              "_type": "panel",
+              "title": "Revenue by Product Type",
+              "summary": "Skincare products contribute the highest revenue at $241,628.16, followed by haircare and cosmetics, indicating skincare is a key area of strength.",
+              "description": "Revenue generated by each product type."
+            },
+            {
+              "x": "shipping_carrier",
+              "y": "avg_shipping_cost",
+              "sql": "SELECT data->>'Shipping carriers' as shipping_carrier, ROUND(AVG((data->>'Shipping costs')::numeric), 2) as avg_shipping_cost FROM dataset_rows WHERE dataset_id = '4e7acb20-b58a-49fc-a87d-8bbb1e14cff9' GROUP BY 1 ORDER BY 2 DESC",
+              "type": "bar",
+              "_type": "panel",
+              "title": "Average Shipping Cost by Carrier",
+              "summary": "Average shipping costs are relatively consistent across carriers, ranging from $5.51 to $5.60, suggesting limited opportunity for cost optimization in carrier selection.",
+              "description": "Average shipping cost for each carrier."
+            },
+            {
+              "x": "inspection_result",
+              "y": "count",
+              "sql": "SELECT data->>'Inspection results' as inspection_result, COUNT(*) as count FROM dataset_rows WHERE dataset_id = '4e7acb20-b58a-49fc-a87d-8bbb1e14cff9' GROUP BY 1",
+              "type": "pie",
+              "_type": "panel",
+              "title": "Distribution of Inspection Results",
+              "summary": "A significant portion of inspections are pending (41%), which is higher than the number of passed (23%) or failed (36%) inspections, highlighting a potential bottleneck in the inspection process.",
+              "description": "Distribution of inspection results (Pass, Fail, Pending)."
+            },
+            {
+              "sql": "SELECT data->>'SKU' as sku, data->>'Product type' as product_type, (data->>'Revenue generated')::numeric as revenue FROM dataset_rows WHERE dataset_id = '4e7acb20-b58a-49fc-a87d-8bbb1e14cff9' ORDER BY (data->>'Revenue generated')::numeric DESC LIMIT 10",
+              "type": "table",
+              "_type": "panel",
+              "title": "Top 10 Products by Revenue",
+              "columns": [
+                "sku",
+                "product_type",
+                "revenue"
+              ],
+              "summary": "The top 10 products by revenue include a mix of haircare, cosmetics, and skincare, with SKU51 (haircare) leading at $9,866.47, suggesting a diverse range of high-performing products.",
+              "description": "Top 10 products with the highest revenue generated."
+            }
+          ],
+          "_type": "plan",
+          "tables": [
+            "supply",
+            "chain",
+            "data",
+            2
+          ],
+          "feasible": true,
+          "executiveSummary": "This dashboard provides a snapshot of key performance indicators, revealing total revenue of $577,604.82, with skincare products driving the highest revenue at $241,628.16; however, a significant portion of inspections are pending (41 out of 100), which indicates a potential bottleneck in quality control and could impact future sales if not addressed promptly. We should prioritize resolving pending inspections to ensure product quality and avoid potential delays or customer dissatisfaction.",
+          "suggestedInvestigations": [
+            "What is the correlation between lead time and production volume?",
+            "How do defect rates vary by supplier?",
+            "What is the impact of transportation mode on shipping costs?"
+          ]
+        },
+        "panels": [
+          {
+            "sql": "SELECT ROUND(SUM((data->>'Revenue generated')::numeric), 2) as total_revenue FROM dataset_rows WHERE dataset_id = '4e7acb20-b58a-49fc-a87d-8bbb1e14cff9'",
+            "type": "stat",
+            "_type": "panel",
+            "title": "Total Revenue Generated",
+            "value": "total_revenue",
+            "summary": "Total revenue generated is $577,604.82, representing the overall financial performance.",
+            "description": "Total revenue generated across all products."
+          },
+          {
+            "x": "product_type",
+            "y": "total_revenue",
+            "sql": "SELECT data->>'Product type' as product_type, ROUND(SUM((data->>'Revenue generated')::numeric), 2) as total_revenue FROM dataset_rows WHERE dataset_id = '4e7acb20-b58a-49fc-a87d-8bbb1e14cff9' GROUP BY 1 ORDER BY 2 DESC",
+            "type": "bar",
+            "_type": "panel",
+            "title": "Revenue by Product Type",
+            "summary": "Skincare products contribute the highest revenue at $241,628.16, followed by haircare and cosmetics, indicating skincare is a key area of strength.",
+            "description": "Revenue generated by each product type."
+          },
+          {
+            "x": "shipping_carrier",
+            "y": "avg_shipping_cost",
+            "sql": "SELECT data->>'Shipping carriers' as shipping_carrier, ROUND(AVG((data->>'Shipping costs')::numeric), 2) as avg_shipping_cost FROM dataset_rows WHERE dataset_id = '4e7acb20-b58a-49fc-a87d-8bbb1e14cff9' GROUP BY 1 ORDER BY 2 DESC",
+            "type": "bar",
+            "_type": "panel",
+            "title": "Average Shipping Cost by Carrier",
+            "summary": "Average shipping costs are relatively consistent across carriers, ranging from $5.51 to $5.60, suggesting limited opportunity for cost optimization in carrier selection.",
+            "description": "Average shipping cost for each carrier."
+          },
+          {
+            "x": "inspection_result",
+            "y": "count",
+            "sql": "SELECT data->>'Inspection results' as inspection_result, COUNT(*) as count FROM dataset_rows WHERE dataset_id = '4e7acb20-b58a-49fc-a87d-8bbb1e14cff9' GROUP BY 1",
+            "type": "pie",
+            "_type": "panel",
+            "title": "Distribution of Inspection Results",
+            "summary": "A significant portion of inspections are pending (41%), which is higher than the number of passed (23%) or failed (36%) inspections, highlighting a potential bottleneck in the inspection process.",
+            "description": "Distribution of inspection results (Pass, Fail, Pending)."
+          },
+          {
+            "sql": "SELECT data->>'SKU' as sku, data->>'Product type' as product_type, (data->>'Revenue generated')::numeric as revenue FROM dataset_rows WHERE dataset_id = '4e7acb20-b58a-49fc-a87d-8bbb1e14cff9' ORDER BY (data->>'Revenue generated')::numeric DESC LIMIT 10",
+            "type": "table",
+            "_type": "panel",
+            "title": "Top 10 Products by Revenue",
+            "columns": [
+              "sku",
+              "product_type",
+              "revenue"
+            ],
+            "summary": "The top 10 products by revenue include a mix of haircare, cosmetics, and skincare, with SKU51 (haircare) leading at $9,866.47, suggesting a diverse range of high-performing products.",
+            "description": "Top 10 products with the highest revenue generated."
+          }
+        ],
+        "results": {
+          "0": {
+            "data": [
+              {
+                "total_revenue": "577604.82"
+              }
+            ],
+            "columns": [
+              "total_revenue"
+            ],
+            "success": true,
+            "rowCount": 1,
+            "executionMs": 3
+          },
+          "1": {
+            "data": [
+              {
+                "product_type": "skincare",
+                "total_revenue": "241628.16"
+              },
+              {
+                "product_type": "haircare",
+                "total_revenue": "174455.39"
+              },
+              {
+                "product_type": "cosmetics",
+                "total_revenue": "161521.27"
+              }
+            ],
+            "columns": [
+              "product_type",
+              "total_revenue"
+            ],
+            "success": true,
+            "rowCount": 3,
+            "executionMs": 1
+          },
+          "2": {
+            "data": [
+              {
+                "shipping_carrier": "Carrier C",
+                "avg_shipping_cost": "5.60"
+              },
+              {
+                "shipping_carrier": "Carrier A",
+                "avg_shipping_cost": "5.55"
+              },
+              {
+                "shipping_carrier": "Carrier B",
+                "avg_shipping_cost": "5.51"
+              }
+            ],
+            "columns": [
+              "shipping_carrier",
+              "avg_shipping_cost"
+            ],
+            "success": true,
+            "rowCount": 3,
+            "executionMs": 1
+          },
+          "3": {
+            "data": [
+              {
+                "count": "41",
+                "inspection_result": "Pending"
+              },
+              {
+                "count": "23",
+                "inspection_result": "Pass"
+              },
+              {
+                "count": "36",
+                "inspection_result": "Fail"
+              }
+            ],
+            "columns": [
+              "inspection_result",
+              "count"
+            ],
+            "success": true,
+            "rowCount": 3,
+            "executionMs": 1
+          },
+          "4": {
+            "data": [
+              {
+                "sku": "SKU51",
+                "revenue": "9866.465457979697",
+                "product_type": "haircare"
+              },
+              {
+                "sku": "SKU38",
+                "revenue": "9692.318040218432",
+                "product_type": "cosmetics"
+              },
+              {
+                "sku": "SKU31",
+                "revenue": "9655.135102719398",
+                "product_type": "skincare"
+              },
+              {
+                "sku": "SKU90",
+                "revenue": "9592.633570280312",
+                "product_type": "skincare"
+              },
+              {
+                "sku": "SKU2",
+                "revenue": "9577.74962586873",
+                "product_type": "haircare"
+              },
+              {
+                "sku": "SKU32",
+                "revenue": "9571.550487327819",
+                "product_type": "skincare"
+              },
+              {
+                "sku": "SKU67",
+                "revenue": "9473.798032508337",
+                "product_type": "skincare"
+              },
+              {
+                "sku": "SKU88",
+                "revenue": "9444.74203306298",
+                "product_type": "cosmetics"
+              },
+              {
+                "sku": "SKU52",
+                "revenue": "9435.76260891213",
+                "product_type": "skincare"
+              },
+              {
+                "sku": "SKU18",
+                "revenue": "9364.673505076173",
+                "product_type": "haircare"
+              }
+            ],
+            "columns": [
+              "sku",
+              "product_type",
+              "revenue"
+            ],
+            "success": true,
+            "rowCount": 10,
+            "executionMs": 0
+          },
+          "-1": {
+            "data": [],
+            "columns": [],
+            "success": true,
+            "rowCount": 0,
+            "executionMs": 2
+          }
+        },
+        "nodeContext": null,
+        "createdAt": "2026-02-10T19:14:27.865Z"
+      }
+    ],
+    "updatedAt": "2026-02-10T21:17:36.264Z"
+  }
+}

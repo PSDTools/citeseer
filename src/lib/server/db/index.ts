@@ -26,6 +26,12 @@ function getDb(): PostgresJsDatabase<typeof schema> {
 		max: 10,
 		idle_timeout: 20,
 		connect_timeout: 10,
+		connection: {
+			// Enforce server-side cancellation for slow/stuck statements.
+			statement_timeout: 20_000,
+			// Avoid waiting too long on locks.
+			lock_timeout: 5_000,
+		},
 	});
 
 	// Create drizzle instance with schema for relations

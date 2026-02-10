@@ -1,9 +1,12 @@
 import type { PageServerLoad } from './$types';
 import { db, datasets, settings, contexts, contextDatasets, dashboards } from '$lib/server/db';
-import { eq, desc, count } from 'drizzle-orm';
+import { eq, desc, count, and } from 'drizzle-orm';
+import { isDemoActive, getDataMode } from '$lib/server/demo/runtime';
+import { hasLlmConfig } from '$lib/server/llm/config';
 
 export const load: PageServerLoad = async ({ parent }) => {
 	const { org } = await parent();
+	const dataMode = getDataMode();
 
 	// Get datasets count
 	const [datasetStats] = await db
@@ -20,7 +23,7 @@ export const load: PageServerLoad = async ({ parent }) => {
 			createdAt: contexts.createdAt,
 		})
 		.from(contexts)
-		.where(eq(contexts.orgId, org.id))
+		.where(and(eq(contexts.orgId, org.id), eq(contexts.mode, dataMode)))
 		.orderBy(desc(contexts.createdAt))
 		.limit(6);
 
@@ -34,7 +37,7 @@ export const load: PageServerLoad = async ({ parent }) => {
 			const [questionCount] = await db
 				.select({ count: count() })
 				.from(dashboards)
-				.where(eq(dashboards.contextId, ctx.id));
+				.where(and(eq(dashboards.contextId, ctx.id), eq(dashboards.mode, dataMode)));
 
 			return {
 				...ctx,
@@ -44,11 +47,7 @@ export const load: PageServerLoad = async ({ parent }) => {
 		}),
 	);
 
-	// Check if org has API key configured
-	const [orgSettings] = await db
-		.select({ geminiApiKey: settings.geminiApiKey })
-		.from(settings)
-		.where(eq(settings.orgId, org.id));
+	const [orgSettings] = await db.select().from(settings).where(eq(settings.orgId, org.id));
 
 	// Get all datasets for the create context dialog
 	const allDatasets = await db
@@ -65,6 +64,6 @@ export const load: PageServerLoad = async ({ parent }) => {
 		totalContexts: orgContexts.length,
 		contexts: contextsWithStats,
 		allDatasets,
-		hasApiKey: !!orgSettings?.geminiApiKey,
+		hasApiKey: isDemoActive() || hasLlmConfig(orgSettings),
 	};
 };

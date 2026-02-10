@@ -1,10 +1,13 @@
 import { json, error } from '@sveltejs/kit';
 import type { RequestHandler } from './$types';
-import { db, datasets, settings, queries, contextDatasets } from '$lib/server/db';
+import { db, datasets, settings, queries, contextDatasets, contexts } from '$lib/server/db';
 import type { AnalyticalPlan as SchemaAnalyticalPlan } from '$lib/server/db/schema';
-import { eq, sql, inArray } from 'drizzle-orm';
+import { eq, sql, inArray, and } from 'drizzle-orm';
 import { getUserOrganizations } from '$lib/server/auth';
-import { GeminiCompiler } from '$lib/server/compiler/gemini';
+import { createQueryCompiler } from '$lib/server/llm/compiler';
+import { resolveLlmConfig } from '$lib/server/llm/config';
+import { matchDemoResponse, recordLiveDemoPattern } from '$lib/server/demo/config';
+import { isDemoActive, isDemoBuild, getDataMode } from '$lib/server/demo/runtime';
 import type {
 	DatasetProfile,
 	ColumnProfile,
@@ -12,6 +15,10 @@ import type {
 	QueryResult,
 	BranchContext,
 } from '$lib/types/toon';
+
+const SQL_EXECUTION_TIMEOUT_MS = 20_000;
+const DEMO_SIMULATED_MIN_MS = 5_200;
+const DEMO_SIMULATED_JITTER_MS = 2_600;
 
 export const POST: RequestHandler = async ({ request, locals }) => {
 	if (!locals.user) {
@@ -36,17 +43,27 @@ export const POST: RequestHandler = async ({ request, locals }) => {
 		error(400, 'Question is required');
 	}
 
-	// Get API key
-	const [orgSettings] = await db.select().from(settings).where(eq(settings.orgId, org.id));
+	const demoActive = isDemoActive();
+	const shouldCaptureLiveToDemoFile = isDemoBuild && !demoActive;
+	const dataMode = getDataMode();
 
-	if (!orgSettings?.geminiApiKey) {
-		error(400, 'Gemini API key not configured. Please add it in Settings.');
-	}
+	// Get settings (used for live mode)
+	const [orgSettings] = await db.select().from(settings).where(eq(settings.orgId, org.id));
 
 	// Get datasets for profiling
 	let targetDatasets;
 
 	if (contextId) {
+		const [context] = await db
+			.select({ id: contexts.id })
+			.from(contexts)
+			.where(
+				and(eq(contexts.id, contextId), eq(contexts.orgId, org.id), eq(contexts.mode, dataMode)),
+			);
+		if (!context) {
+			error(404, 'Context not found');
+		}
+
 		// Get datasets from the context
 		const ctxDatasetLinks = await db
 			.select({ datasetId: contextDatasets.datasetId })
@@ -79,11 +96,54 @@ export const POST: RequestHandler = async ({ request, locals }) => {
 		columns: d.schema as ColumnProfile[],
 	}));
 
+	if (demoActive) {
+		// Keep demo UX feeling realistic so the staged loading steps are visible.
+		const simulatedDelay =
+			DEMO_SIMULATED_MIN_MS + Math.floor(Math.random() * DEMO_SIMULATED_JITTER_MS);
+		await new Promise((resolve) => setTimeout(resolve, simulatedDelay));
+
+		let demo;
+		try {
+			demo = await matchDemoResponse(question);
+		} catch (err) {
+			console.error('Demo response lookup failed, using emergency fallback:', err);
+			demo = buildEmergencyDemoResponse(question);
+		}
+
+		const plan = structuredClone(demo.query.plan);
+		const results = structuredClone(demo.query.results);
+		const resultsArray = Object.values(results);
+		const hasError = resultsArray.some((result) => !result.success);
+
+		await db.insert(queries).values({
+			orgId: org.id,
+			userId: locals.user.id,
+			question,
+			plan: plan as SchemaAnalyticalPlan,
+			sql: plan.sql,
+			status: !plan.feasible ? 'refused' : hasError ? 'failed' : 'success',
+			error: !plan.feasible
+				? plan.reason
+				: hasError
+					? resultsArray.find((r) => !r.success)?.error
+					: undefined,
+			executionMs: 1,
+		});
+
+		return json({
+			plan,
+			results,
+			errorExplanation: demo.query.errorExplanation ?? null,
+		});
+	}
+
+	const llmConfig = resolveLlmConfig(orgSettings);
+	if (!llmConfig) {
+		error(400, 'LLM API settings not configured. Please update Settings.');
+	}
+
 	// Compile question
-	const compiler = new GeminiCompiler({
-		apiKey: orgSettings.geminiApiKey,
-		model: orgSettings.geminiModel,
-	});
+	const compiler = createQueryCompiler(llmConfig);
 
 	const startTime = Date.now();
 	const plan = await compiler.compileQuestion(question, profiles, branchContext);
@@ -104,6 +164,15 @@ export const POST: RequestHandler = async ({ request, locals }) => {
 			error: plan.reason,
 			executionMs: compilationMs,
 		});
+
+		if (shouldCaptureLiveToDemoFile) {
+			await recordLiveDemoPattern(question, {
+				query: {
+					plan,
+					results: {},
+				},
+			});
+		}
 
 		return json({
 			plan,
@@ -142,6 +211,16 @@ export const POST: RequestHandler = async ({ request, locals }) => {
 			}
 
 			errors.push(result.error || 'Unknown error');
+			const isTimeoutError =
+				/timed out|statement timeout|canceling statement due to statement timeout/i.test(
+					result.error || '',
+				);
+
+			// Timeout errors should fail fast instead of entering LLM fix loops.
+			if (isTimeoutError) {
+				retryLog.push({ context, attempts: attempt + 1, errors, fixed: false });
+				return { result, finalSql: currentSql, wasFixed, attempts: attempt + 1 };
+			}
 
 			// Query failed - try to fix it if we have retries left
 			if (attempt < MAX_SQL_RETRIES - 1) {
@@ -284,9 +363,21 @@ export const POST: RequestHandler = async ({ request, locals }) => {
 			}
 		}
 
+		const serializedResults = Object.fromEntries(results);
+
+		if (shouldCaptureLiveToDemoFile) {
+			await recordLiveDemoPattern(question, {
+				query: {
+					plan,
+					results: serializedResults,
+					errorExplanation,
+				},
+			});
+		}
+
 		return json({
 			plan,
-			results: Object.fromEntries(results),
+			results: serializedResults,
 			errorExplanation,
 		});
 	} catch (e) {
@@ -311,6 +402,19 @@ export const POST: RequestHandler = async ({ request, locals }) => {
 			error: errorMessage,
 			executionMs: Date.now() - startTime,
 		});
+
+		if (shouldCaptureLiveToDemoFile) {
+			await recordLiveDemoPattern(question, {
+				query: {
+					plan: {
+						...plan,
+						validationError: errorMessage,
+					},
+					results: {},
+					errorExplanation,
+				},
+			});
+		}
 
 		return json({
 			plan: {
@@ -349,8 +453,12 @@ async function executeQuery(sqlQuery: string, datasetId: string): Promise<QueryR
 		// Then replace unquoted version
 		finalSql = finalSql.replace(/DATASET_ID/g, `'${datasetId}'`);
 
-		// Execute using raw SQL - postgres-js returns rows directly
-		const result = await db.execute(sql.raw(finalSql));
+		// Execute using raw SQL with a hard timeout so a stuck query does not freeze the UI.
+		const result = await withTimeout(
+			db.execute(sql.raw(finalSql)),
+			SQL_EXECUTION_TIMEOUT_MS,
+			`Query timed out after ${Math.round(SQL_EXECUTION_TIMEOUT_MS / 1000)}s`,
+		);
 
 		// The result from postgres-js is the rows array directly
 		const rows = Array.isArray(result) ? result : [];
@@ -372,5 +480,75 @@ async function executeQuery(sqlQuery: string, datasetId: string): Promise<QueryR
 			error: e instanceof Error ? e.message : 'Query failed',
 			executionMs: Date.now() - startTime,
 		};
+	}
+}
+
+function buildEmergencyDemoResponse(question: string): {
+	query: {
+		plan: AnalyticalPlan;
+		results: Record<number, QueryResult>;
+		errorExplanation: null;
+	};
+} {
+	const plan: AnalyticalPlan = {
+		_type: 'plan',
+		q: question,
+		feasible: true,
+		tables: ['demo_data'],
+		sql: "SELECT 'demo' as status, 1 as value",
+		viz: [
+			{
+				_type: 'panel',
+				type: 'stat',
+				title: 'Demo Insight',
+				value: 'value',
+				description: 'A safe fallback response used to keep the live demo running smoothly.',
+			},
+		],
+		suggestedInvestigations: [
+			'Show me top-level trends in this dataset',
+			'Break this down by supplier',
+		],
+		executiveSummary:
+			'The requested view is available in this demo environment. Here is a summary fallback so the flow can continue seamlessly.',
+	};
+
+	const results: Record<number, QueryResult> = {};
+	results[-1] = {
+		success: true,
+		data: [{ status: 'demo', value: 1 }],
+		columns: ['status', 'value'],
+		rowCount: 1,
+		executionMs: 1,
+	};
+	results[0] = {
+		success: true,
+		data: [{ status: 'demo', value: 1 }],
+		columns: ['status', 'value'],
+		rowCount: 1,
+		executionMs: 1,
+	};
+
+	return {
+		query: {
+			plan,
+			results,
+			errorExplanation: null,
+		},
+	};
+}
+
+async function withTimeout<T>(promise: Promise<T>, ms: number, timeoutMessage: string): Promise<T> {
+	let timeoutId: ReturnType<typeof setTimeout> | undefined;
+	const timeoutPromise = new Promise<never>((_, reject) => {
+		timeoutId = setTimeout(() => reject(new Error(timeoutMessage)), ms);
+	});
+
+	try {
+		return await Promise.race([promise, timeoutPromise]);
+	} finally {
+		if (timeoutId) {
+			clearTimeout(timeoutId);
+		}
 	}
 }

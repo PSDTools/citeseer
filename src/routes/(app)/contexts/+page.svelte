@@ -64,6 +64,7 @@
 
 			const result = await response.json();
 			showCreateDialog = false;
+			await invalidateAll();
 			goto(`/contexts/${result.context.id}`);
 		} catch (e) {
 			createError = e instanceof Error ? e.message : 'Failed to create context';

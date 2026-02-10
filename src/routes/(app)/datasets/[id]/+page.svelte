@@ -2,7 +2,8 @@
 	import type { PageData } from './$types';
 	import type { ColumnSchema } from '$lib/server/db/schema';
 	import Modal from '$lib/components/ui/Modal.svelte';
-	import { ChevronLeft, LoaderCircle, Check, X, TriangleAlert } from '@lucide/svelte';
+	import LogoSpinner from '$lib/components/ui/LogoSpinner.svelte';
+	import { ChevronLeft, Check, X, TriangleAlert } from '@lucide/svelte';
 
 	let { data }: { data: PageData } = $props();
 
@@ -232,7 +233,7 @@
 	{:else if isNormalizing}
 		<div class="py-4 text-center">
 			<div class="mb-4 inline-flex h-12 w-12 items-center justify-center">
-				<LoaderCircle class="h-8 w-8 animate-spin text-[#64ff96]" />
+				<LogoSpinner class="h-8 w-8" />
 			</div>
 			<h3 class="mb-2 text-lg font-semibold text-white">Analyzing with AI...</h3>
 			<p class="text-sm text-white/50">Detecting date columns and normalizing values</p>

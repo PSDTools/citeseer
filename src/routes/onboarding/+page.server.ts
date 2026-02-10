@@ -44,6 +44,9 @@ export const actions: Actions = {
 					orgId: org.id,
 					geminiApiKey,
 					geminiModel: 'gemini-2.0-flash',
+					llmProvider: 'gemini',
+					llmApiKey: geminiApiKey,
+					llmModel: 'gemini-2.0-flash',
 				});
 			}
 

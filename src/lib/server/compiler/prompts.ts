@@ -172,6 +172,17 @@ Respond with a single @plan object in TOON format:
   suggestedInvestigations:[<follow-up questions>]
 }
 
+## Forecasting Capability (IMPORTANT)
+
+- Forecasting and projections ARE supported using historical data in this dataset.
+- If the question asks for forecasting/prediction/projection, prefer \`feasible:true\` when a time-like column and numeric metric exist.
+- Do not refuse forecasting just because external ML tools are unavailable.
+- Provide a practical estimate (trend/extrapolation based) and make uncertainty explicit in descriptions.
+- For forecast visuals, use a \`line\` panel and include \`forecast\` metadata when useful, e.g.:
+\`\`\`
+forecast:{ strategy:auto horizon:3 confidence:medium }
+\`\`\`
+
 ## Visualization Types
 
 - **stat**: Single number. Use \`value\` field. SQL should return one row with one value.
@@ -180,6 +191,30 @@ Respond with a single @plan object in TOON format:
 - **scatter**: Two numeric variables. Use \`x\` and \`y\` fields. Both must be numeric columns.
 - **table**: Data table. Use \`columns\` field.
 - **pie**: Proportions. Use \`x\` (category) and \`y\` (value) fields.
+
+## Color-Semantic Guidance (IMPORTANT)
+
+The renderer applies a semantic palette when category/series labels clearly represent outcomes.
+When your query represents outcomes (quality, pass/fail, positive/negative, good/bad), normalize aliases to clear labels:
+
+- Positive outcomes: \`Pass\`, \`Success\`, \`Positive\`, \`Good\`, \`Increase\`
+- Negative outcomes: \`Fail\`, \`Error\`, \`Negative\`, \`Bad\`, \`Decrease\`
+- Warning/risk: \`Warning\`
+- Neutral/unknown: \`Neutral\`
+
+Use concise, human-friendly outcome labels in SQL aliases so charts get meaningful colors automatically.
+Example:
+\`\`\`sql
+SELECT
+  CASE
+    WHEN (data->>'score')::numeric >= 80 THEN 'Pass'
+    ELSE 'Fail'
+  END as outcome,
+  COUNT(*) as count
+FROM dataset_rows
+WHERE dataset_id = 'DATASET_ID'
+GROUP BY 1
+\`\`\`
 
 ## Available Data
 
@@ -326,6 +361,7 @@ ${schemaContext}
 4. Add a table showing sample recent records
 5. Each panel needs working SQL with proper JSONB access
 6. Column names with spaces MUST be quoted: data->>'Column Name'
+7. For outcome charts (e.g. pass/fail, good/bad, positive/negative), normalize labels to canonical words like Pass/Fail or Positive/Negative so semantic chart colors are applied automatically
 
 Generate the dashboard now.
 `;

@@ -2,7 +2,9 @@ import { json, error } from '@sveltejs/kit';
 import type { RequestHandler } from './$types';
 import { db, contexts, contextDatasets, datasets } from '$lib/server/db';
 import { getUserOrganizations } from '$lib/server/auth';
-import { eq, desc } from 'drizzle-orm';
+import { eq, desc, and } from 'drizzle-orm';
+import { recordLiveWorkspaceContext } from '$lib/server/demo/config';
+import { isDemoActive, isDemoBuild, getDataMode } from '$lib/server/demo/runtime';
 
 // GET - List all contexts for the org
 export const GET: RequestHandler = async ({ locals }) => {
@@ -16,6 +18,7 @@ export const GET: RequestHandler = async ({ locals }) => {
 	}
 
 	const orgId = orgs[0].id;
+	const dataMode = getDataMode();
 
 	const orgContexts = await db
 		.select({
@@ -25,7 +28,7 @@ export const GET: RequestHandler = async ({ locals }) => {
 			createdAt: contexts.createdAt,
 		})
 		.from(contexts)
-		.where(eq(contexts.orgId, orgId))
+		.where(and(eq(contexts.orgId, orgId), eq(contexts.mode, dataMode)))
 		.orderBy(desc(contexts.createdAt));
 
 	// Get dataset counts for each context
@@ -57,6 +60,7 @@ export const POST: RequestHandler = async ({ locals, request }) => {
 	}
 
 	const orgId = orgs[0].id;
+	const dataMode = getDataMode();
 
 	const body = await request.json();
 	const { name, description, datasetIds } = body as {
@@ -64,6 +68,7 @@ export const POST: RequestHandler = async ({ locals, request }) => {
 		description?: string;
 		datasetIds?: string[];
 	};
+	const shouldCaptureLiveToDemoFile = isDemoBuild && !isDemoActive();
 
 	if (!name?.trim()) {
 		error(400, 'Name is required');
@@ -74,6 +79,7 @@ export const POST: RequestHandler = async ({ locals, request }) => {
 		.values({
 			orgId,
 			name: name.trim(),
+			mode: dataMode,
 			description: description?.trim(),
 			createdBy: locals.user.id,
 		})
@@ -87,6 +93,16 @@ export const POST: RequestHandler = async ({ locals, request }) => {
 				datasetId,
 			})),
 		);
+	}
+
+	if (shouldCaptureLiveToDemoFile) {
+		await recordLiveWorkspaceContext({
+			id: context.id,
+			name: context.name,
+			description: context.description,
+			datasetIds: datasetIds || [],
+			createdAt: context.createdAt.toISOString(),
+		});
 	}
 
 	return json({ context }, { status: 201 });

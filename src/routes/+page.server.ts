@@ -2,6 +2,9 @@ import type { PageServerLoad } from './$types';
 import { db, datasets, settings } from '$lib/server/db';
 import { eq } from 'drizzle-orm';
 import { getUserOrganizations } from '$lib/server/auth';
+import { isDemoActive } from '$lib/server/demo/runtime';
+import { redactEmailForDemo } from '$lib/server/demo/redaction';
+import { hasLlmConfig } from '$lib/server/llm/config';
 
 export const load: PageServerLoad = async ({ locals }) => {
 	// If not logged in, return null
@@ -35,15 +38,14 @@ export const load: PageServerLoad = async ({ locals }) => {
 		.from(datasets)
 		.where(eq(datasets.orgId, org.id));
 
-	// Check for API key
-	const [orgSettings] = await db
-		.select({ geminiApiKey: settings.geminiApiKey })
-		.from(settings)
-		.where(eq(settings.orgId, org.id));
+	const [orgSettings] = await db.select().from(settings).where(eq(settings.orgId, org.id));
 
 	return {
-		user: locals.user,
+		user: {
+			...locals.user,
+			email: redactEmailForDemo(locals.user.email),
+		},
 		datasets: userDatasets,
-		hasApiKey: !!orgSettings?.geminiApiKey,
+		hasApiKey: isDemoActive() || hasLlmConfig(orgSettings),
 	};
 };

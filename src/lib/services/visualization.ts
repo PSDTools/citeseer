@@ -25,6 +25,141 @@ const COLORS = {
 	gridColor: 'rgba(255, 255, 255, 0.1)',
 };
 
+// High-contrast categorical palette for clearer distinction between charts/series.
+const CHART_PALETTE = [
+	'#00d1ff',
+	'#ff8a00',
+	'#7c5cff',
+	'#22c55e',
+	'#ff4d6d',
+	'#facc15',
+	'#14b8a6',
+	'#f97316',
+	'#a855f7',
+	'#06b6d4',
+];
+
+const SEMANTIC_COLORS = {
+	positive: '#22c55e',
+	negative: '#ef4444',
+	warning: '#f59e0b',
+	neutral: '#94a3b8',
+	info: '#38bdf8',
+} as const;
+
+function hashString(value: string): number {
+	let hash = 0;
+	for (let i = 0; i < value.length; i++) {
+		hash = (hash << 5) - hash + value.charCodeAt(i);
+		hash |= 0;
+	}
+	return Math.abs(hash);
+}
+
+function paletteStartIndex(seed: string): number {
+	return hashString(seed) % CHART_PALETTE.length;
+}
+
+function getPanelColor(seed: string): string {
+	return CHART_PALETTE[paletteStartIndex(seed)];
+}
+
+function getCompanionColor(seed: string): string {
+	return CHART_PALETTE[(paletteStartIndex(seed) + 1) % CHART_PALETTE.length];
+}
+
+function getRotatedPalette(seed: string): string[] {
+	const start = paletteStartIndex(seed);
+	return [...CHART_PALETTE.slice(start), ...CHART_PALETTE.slice(0, start)];
+}
+
+function uniqueStrings(values: unknown[]): string[] {
+	const seen = new Set<string>();
+	const out: string[] = [];
+	for (const value of values) {
+		if (value == null) continue;
+		const label = String(value).trim();
+		if (!label || seen.has(label)) continue;
+		seen.add(label);
+		out.push(label);
+	}
+	return out;
+}
+
+function semanticToken(label: string): keyof typeof SEMANTIC_COLORS | null {
+	const normalized = label.toLowerCase().trim();
+	if (
+		/^(pass|passed|success|succeeded|good|positive|pos|profit|profitable|gain|gained|increase|increased|up|win|won|true|yes)$/.test(
+			normalized,
+		)
+	) {
+		return 'positive';
+	}
+	if (
+		/^(fail|failed|error|bad|negative|neg|loss|lost|decrease|decreased|down|drop|dropped|false|no)$/.test(
+			normalized,
+		)
+	) {
+		return 'negative';
+	}
+	if (/^(warning|warn|at risk|caution|delayed|late)$/.test(normalized)) {
+		return 'warning';
+	}
+	if (/^(pending|in progress|processing|queued|awaiting|review)$/.test(normalized)) {
+		return 'warning';
+	}
+	if (/^(neutral|unknown|other|n\/a|na)$/.test(normalized)) {
+		return 'neutral';
+	}
+	if (/^(info|informational)$/.test(normalized)) {
+		return 'info';
+	}
+	return null;
+}
+
+function buildCategoricalScale(
+	values: string[],
+	seed: string,
+	colorMap?: Record<string, string>,
+): { domain: string[]; range: string[] } | null {
+	const domain = uniqueStrings(values);
+	if (domain.length < 2) {
+		return null;
+	}
+
+	const basePalette = getRotatedPalette(seed);
+	const range: string[] = [];
+	const used = new Set<string>();
+	let paletteIndex = 0;
+
+	for (const label of domain) {
+		const mapped = colorMap?.[label];
+		if (mapped) {
+			range.push(mapped);
+			used.add(mapped);
+			continue;
+		}
+
+		const token = semanticToken(label);
+		if (token) {
+			const color = SEMANTIC_COLORS[token];
+			range.push(color);
+			used.add(color);
+			continue;
+		}
+
+		while (used.has(basePalette[paletteIndex % basePalette.length])) {
+			paletteIndex++;
+		}
+		const color = basePalette[paletteIndex % basePalette.length];
+		range.push(color);
+		used.add(color);
+		paletteIndex++;
+	}
+
+	return { domain, range };
+}
+
 /**
  * Find the actual column name in the result that matches the expected field name.
  * Handles case-insensitivity, underscores vs spaces, etc.
@@ -112,6 +247,21 @@ export function panelToVegaLite(panel: PanelSpec, result: QueryResult): Visualiz
 		return null;
 	}
 
+	const panelColor = getPanelColor(panel.title);
+	const companionColor = getCompanionColor(panel.title);
+	const seriesPalette = getRotatedPalette(panel.title);
+	const customPalette = panel.colorPalette?.filter(Boolean);
+	const primaryColor = panel.color || panelColor;
+	const secondaryColor =
+		customPalette && customPalette.length > 1
+			? customPalette[1]
+			: customPalette && customPalette.length === 1
+				? customPalette[0]
+				: companionColor;
+	const effectivePalette =
+		customPalette && customPalette.length > 0 ? customPalette : seriesPalette;
+	const xValues = uniqueStrings(result.data.map((row) => row[xField]));
+
 	const baseSpec = {
 		$schema: 'https://vega.github.io/schema/vega-lite/v6.json',
 		data: { values: result.data },
@@ -149,12 +299,21 @@ export function panelToVegaLite(panel: PanelSpec, result: QueryResult): Visualiz
 				: [];
 			const hasForecastSeries =
 				hasSeries && seriesValues.includes('Actual') && seriesValues.includes('Forecast');
+			const xScale = buildCategoricalScale(xValues, panel.title);
+			const seriesScale = hasForecastSeries
+				? {
+						domain: ['Actual', 'Forecast'],
+						range: [primaryColor, secondaryColor],
+					}
+				: (buildCategoricalScale(seriesValues, panel.title, panel.colorMap) ?? {
+						range: effectivePalette,
+					});
 
 			return {
 				...baseSpec,
 				mark: {
 					type: 'bar',
-					color: COLORS.primary,
+					color: primaryColor,
 					cornerRadiusEnd: 4,
 				},
 				encoding: {
@@ -172,18 +331,22 @@ export function panelToVegaLite(panel: PanelSpec, result: QueryResult): Visualiz
 								color: {
 									field: seriesField as string,
 									type: 'nominal',
-									...(hasForecastSeries
-										? {
-												scale: {
-													domain: ['Actual', 'Forecast'],
-													range: [COLORS.primary, '#fbbf24'],
-												},
-											}
-										: {}),
+									scale: seriesScale,
 								},
 								xOffset: { field: seriesField as string },
 							}
-						: {}),
+						: {
+								...(buildCategoricalScale(xValues, panel.title, panel.colorMap)
+									? {
+											color: {
+												field: xField,
+												type: 'nominal',
+												scale: buildCategoricalScale(xValues, panel.title, panel.colorMap)!,
+												legend: null,
+											},
+										}
+									: {}),
+							}),
 					tooltip: hasForecastSeries
 						? tooltipColumns(result.columns, seriesField)
 						: result.columns.map((col) => ({ field: col })),
@@ -237,8 +400,8 @@ export function panelToVegaLite(panel: PanelSpec, result: QueryResult): Visualiz
 			};
 
 			if (!hasSeries) {
-				lineMark.color = COLORS.primary;
-				(lineMark.point as Record<string, unknown>).color = COLORS.primary;
+				lineMark.color = primaryColor;
+				(lineMark.point as Record<string, unknown>).color = primaryColor;
 			}
 
 			const seriesEncoding = hasSeries
@@ -249,10 +412,14 @@ export function panelToVegaLite(panel: PanelSpec, result: QueryResult): Visualiz
 							? {
 									scale: {
 										domain: ['Actual', 'Forecast'],
-										range: [COLORS.primary, '#fbbf24'],
+										range: [primaryColor, secondaryColor],
 									},
 								}
-							: {}),
+							: {
+									scale: buildCategoricalScale(seriesValues, panel.title, panel.colorMap) || {
+										range: effectivePalette,
+									},
+								}),
 					}
 				: undefined;
 
@@ -300,9 +467,9 @@ export function panelToVegaLite(panel: PanelSpec, result: QueryResult): Visualiz
 			const actualLine = {
 				mark: {
 					type: 'line',
-					color: COLORS.primary,
+					color: primaryColor,
 					strokeWidth: 2.5,
-					point: { size: 60, color: COLORS.primary },
+					point: { size: 60, color: primaryColor },
 				},
 				transform: [
 					{
@@ -315,10 +482,10 @@ export function panelToVegaLite(panel: PanelSpec, result: QueryResult): Visualiz
 			const forecastLine = {
 				mark: {
 					type: 'line',
-					color: '#fbbf24',
+					color: secondaryColor,
 					strokeWidth: 2,
 					strokeDash: [6, 4],
-					point: { size: 50, filled: false, stroke: '#fbbf24' },
+					point: { size: 50, filled: false, stroke: secondaryColor },
 				},
 				transform: [
 					{
@@ -333,7 +500,7 @@ export function panelToVegaLite(panel: PanelSpec, result: QueryResult): Visualiz
 				layers.push({
 					mark: {
 						type: 'area',
-						color: '#fbbf24',
+						color: secondaryColor,
 						opacity: 0.18,
 					},
 					transform: [
@@ -373,7 +540,9 @@ export function panelToVegaLite(panel: PanelSpec, result: QueryResult): Visualiz
 					color: {
 						field: xField,
 						type: 'nominal',
-						scale: { scheme: 'greens' },
+						scale: buildCategoricalScale(xValues, panel.title, panel.colorMap) || {
+							range: effectivePalette,
+						},
 					},
 					tooltip: result.columns.map((col) => ({ field: col })),
 				},
@@ -384,7 +553,7 @@ export function panelToVegaLite(panel: PanelSpec, result: QueryResult): Visualiz
 				...baseSpec,
 				mark: {
 					type: 'circle',
-					color: COLORS.primary,
+					color: primaryColor,
 					opacity: 0.7,
 					size: 60,
 				},
@@ -417,7 +586,7 @@ export function extractStatData(panel: PanelSpec, result: QueryResult): StatCard
 	const value = row[valueField];
 
 	return {
-		value: typeof value === 'number' ? value.toLocaleString() : String(value ?? 'N/A'),
+		value: typeof value === 'number' || typeof value === 'string' ? value : String(value ?? 'N/A'),
 		label: panel.title,
 		unit: panel.unit,
 	};

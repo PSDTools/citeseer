@@ -1,9 +1,11 @@
 import type { PageServerLoad } from './$types';
 import { db, contexts, contextDatasets, datasets, dashboards } from '$lib/server/db';
-import { eq, desc, count } from 'drizzle-orm';
+import { eq, desc, count, and } from 'drizzle-orm';
+import { getDataMode } from '$lib/server/demo/runtime';
 
 export const load: PageServerLoad = async ({ parent }) => {
 	const { org } = await parent();
+	const dataMode = getDataMode();
 
 	const orgContexts = await db
 		.select({
@@ -13,7 +15,7 @@ export const load: PageServerLoad = async ({ parent }) => {
 			createdAt: contexts.createdAt,
 		})
 		.from(contexts)
-		.where(eq(contexts.orgId, org.id))
+		.where(and(eq(contexts.orgId, org.id), eq(contexts.mode, dataMode)))
 		.orderBy(desc(contexts.createdAt));
 
 	const pageContexts = await Promise.all(
@@ -26,7 +28,7 @@ export const load: PageServerLoad = async ({ parent }) => {
 			const [qs] = await db
 				.select({ count: count() })
 				.from(dashboards)
-				.where(eq(dashboards.contextId, ctx.id));
+				.where(and(eq(dashboards.contextId, ctx.id), eq(dashboards.mode, dataMode)));
 
 			return {
 				...ctx,

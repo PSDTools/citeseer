@@ -3,6 +3,10 @@ import type { RequestHandler } from './$types';
 import { db, datasets, settings } from '$lib/server/db';
 import { eq, inArray } from 'drizzle-orm';
 import { getUserOrganizations } from '$lib/server/auth';
+import { matchDemoResponse, recordLiveDemoPattern } from '$lib/server/demo/config';
+import { isDemoActive, isDemoBuild } from '$lib/server/demo/runtime';
+import { resolveLlmConfig } from '$lib/server/llm/config';
+import { generateTextWithLlm } from '$lib/server/llm/text';
 
 export const POST: RequestHandler = async ({ request, locals }) => {
 	if (!locals.user) {
@@ -17,12 +21,15 @@ export const POST: RequestHandler = async ({ request, locals }) => {
 
 	const body = await request.json();
 	const { datasetIds } = body as { datasetIds: string[] };
+	const demoActive = isDemoActive();
+	const shouldCaptureLiveToDemoFile = isDemoBuild && !demoActive;
 
 	// Get API key
 	const [orgSettings] = await db.select().from(settings).where(eq(settings.orgId, org.id));
 
-	if (!orgSettings?.geminiApiKey) {
-		error(400, 'Gemini API key not configured');
+	const llmConfig = resolveLlmConfig(orgSettings);
+	if (!demoActive && !llmConfig) {
+		error(400, 'LLM API settings not configured');
 	}
 
 	// Get dataset names
@@ -40,13 +47,16 @@ export const POST: RequestHandler = async ({ request, locals }) => {
 		return json({ name: 'New Context' });
 	}
 
-	try {
-		const { GoogleGenerativeAI } = await import('@google/generative-ai');
-		const genAI = new GoogleGenerativeAI(orgSettings.geminiApiKey);
-		const model = genAI.getGenerativeModel({
-			model: orgSettings.geminiModel || 'gemini-2.0-flash',
-		});
+	if (demoActive) {
+		const demo = await matchDemoResponse(datasetNames.join(', '));
+		return json(demo.contextName);
+	}
 
+	if (!llmConfig) {
+		error(400, 'LLM API settings not configured');
+	}
+
+	try {
 		const prompt = `Generate a short, descriptive name (2-4 words max) for a data analysis context that groups these datasets together:
 
 Datasets: ${datasetNames.join(', ')}
@@ -55,8 +65,15 @@ The name should capture the theme or purpose of analyzing these datasets togethe
 
 Respond with ONLY the name, nothing else.`;
 
-		const result = await model.generateContent(prompt);
-		const generatedName = result.response.text().trim();
+		const generatedName = (await generateTextWithLlm(llmConfig, { prompt, temperature: 0.2 }))
+			.trim()
+			.replace(/^["']|["']$/g, '');
+
+		if (shouldCaptureLiveToDemoFile) {
+			await recordLiveDemoPattern(datasetNames.join(', '), {
+				contextName: { name: generatedName },
+			});
+		}
 
 		return json({ name: generatedName });
 	} catch (e) {

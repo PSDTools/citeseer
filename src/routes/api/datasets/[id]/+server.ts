@@ -5,6 +5,8 @@ import type { ColumnSchema } from '$lib/server/db/schema';
 import { eq, and } from 'drizzle-orm';
 import { getUserOrganizations } from '$lib/server/auth';
 import { DateNormalizer } from '$lib/server/compiler/date-normalizer';
+import { isDemoActive } from '$lib/server/demo/runtime';
+import { resolveLlmConfig } from '$lib/server/llm/config';
 
 export const GET: RequestHandler = async ({ params, locals }) => {
 	if (!locals.user) {
@@ -70,6 +72,7 @@ export const POST: RequestHandler = async ({ params, locals, request }) => {
 		error(400, 'No organization found');
 	}
 	const org = orgs[0];
+	const demoActive = isDemoActive();
 
 	// Check for confirmation in request body
 	const body = await request.json().catch(() => ({}));
@@ -181,15 +184,25 @@ export const POST: RequestHandler = async ({ params, locals, request }) => {
 		return json({ success: true, message: 'No column names needed cleaning', cleaned: 0 });
 	}
 
+	if (demoActive) {
+		return json({
+			success: true,
+			message: 'Demo mode: date normalization skipped (using canned demo dataset).',
+			normalized: 0,
+			dateColumns: [],
+		});
+	}
+
 	// Continue with date normalization
-	if (!orgSettings?.geminiApiKey) {
-		error(400, 'Gemini API key not configured. Please add it in Settings.');
+	const llmConfig = resolveLlmConfig(orgSettings);
+	if (!llmConfig) {
+		error(400, 'LLM API settings not configured. Please update Settings.');
 	}
 
 	const columns = Object.keys(rowData[0]);
 
 	// Analyze date columns with LLM
-	const dateNormalizer = new DateNormalizer(orgSettings.geminiApiKey, orgSettings.geminiModel);
+	const dateNormalizer = new DateNormalizer(llmConfig);
 	const analysis = await dateNormalizer.analyzeDateColumns(rowData, columns);
 
 	if (analysis.dateColumns.length === 0) {

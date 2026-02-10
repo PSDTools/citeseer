@@ -9,10 +9,24 @@ import type { AnalyticalPlan, BranchContext, DashboardSpec, DatasetProfile } fro
 import type { ForecastSelectionContext, ForecastStrategyDecision } from '$lib/server/forecast';
 
 const MAX_RETRIES = 3;
+const FORECAST_QUESTION_REGEX =
+	/\b(forecast|predict|projection|project|projected|future|next\s+(month|quarter|year|week)|run[\s-]?rate|trend)\b/i;
+const FORECAST_REFUSAL_REGEX =
+	/\b(cannot|can't|unable|lack|no ability|not able)\b[\s\S]{0,120}\b(forecast|predict|projection|future|time series)\b/i;
 
 interface CompilerConfig {
 	apiKey: string;
 	model?: string;
+}
+
+function isForecastQuestion(question: string): boolean {
+	return FORECAST_QUESTION_REGEX.test(question);
+}
+
+function isForecastRefusal(plan: AnalyticalPlan): boolean {
+	if (plan.feasible) return false;
+	const reason = plan.reason ?? '';
+	return FORECAST_REFUSAL_REGEX.test(reason);
 }
 
 export class GeminiCompiler {
@@ -111,7 +125,14 @@ export class GeminiCompiler {
 					throw new Error(`Expected @plan but got @${parsed._type || 'unknown'}`);
 				}
 
-				return parsed as unknown as AnalyticalPlan;
+				const plan = parsed as unknown as AnalyticalPlan;
+				if (isForecastQuestion(question) && isForecastRefusal(plan) && attempt < MAX_RETRIES - 1) {
+					formatHint =
+						'\n\nIMPORTANT FORECAST OVERRIDE: Forecasting IS supported in this product. Do NOT refuse forecasting requests. Produce a feasible:true plan using available historical data and provide an estimate/projection chart. If uncertainty exists, include caveats in panel description, but still return a working plan.';
+					continue;
+				}
+
+				return plan;
 			} catch (error) {
 				lastError = error instanceof Error ? error : new Error(String(error));
 				console.error(`Attempt ${attempt + 1} failed:`, lastError.message);
@@ -552,17 +573,19 @@ Analyze the actual data and write:
 **Guidelines:**
 - Use specific numbers from the data (e.g., "Revenue increased 23% from $1.2M to $1.48M")
 - Highlight trends, outliers, or notable patterns
-- Be direct and actionable - what should the reader take away?
+- Be direct and evidence-based; avoid imperative action language
 - If data shows concerning trends, mention them
 - After stating what happened, project forward: what is the likely trajectory?
 - Identify risks or opportunities the data suggests
-- End the dashboard summary with one clear action item or recommendation
+- Do NOT write directives such as "we should", "must", "need to", "immediately", or commands
+- Recommendations are optional and must be non-prescriptive (e.g., "A possible next step is to review...")
+- Keep recommendations separate from conclusions; conclusions should state findings, trajectory, and risk only
 - Keep language business-focused, not technical
 - For confidence qualifiers: use "strongly suggests" for 100+ data points with clear trends, "indicates" for 30-100 points, "preliminary data suggests" for fewer points
 
 Respond in this exact JSON format:
 {
-  "dashboardSummary": "Overall executive summary with key numbers, forward projection, and one action item",
+  "dashboardSummary": "Overall executive summary with key numbers, forward projection, and risks/opportunities (no imperative directives)",
   "panelSummaries": ["Summary for panel 1", "Summary for panel 2", ...]${insightFormat}
 }`;
 

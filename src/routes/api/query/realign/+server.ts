@@ -1,9 +1,12 @@
 import { json, error } from '@sveltejs/kit';
 import type { RequestHandler } from './$types';
-import { db, datasets, settings, contextDatasets } from '$lib/server/db';
-import { eq, inArray } from 'drizzle-orm';
+import { db, datasets, settings, contextDatasets, contexts } from '$lib/server/db';
+import { eq, inArray, and } from 'drizzle-orm';
 import { getUserOrganizations } from '$lib/server/auth';
-import { GeminiCompiler } from '$lib/server/compiler/gemini';
+import { createQueryCompiler } from '$lib/server/llm/compiler';
+import { resolveLlmConfig } from '$lib/server/llm/config';
+import { matchDemoResponse, recordLiveDemoPattern } from '$lib/server/demo/config';
+import { isDemoActive, isDemoBuild, getDataMode } from '$lib/server/demo/runtime';
 import type { DatasetProfile, ColumnProfile } from '$lib/types/toon';
 
 export const POST: RequestHandler = async ({ request, locals }) => {
@@ -28,14 +31,29 @@ export const POST: RequestHandler = async ({ request, locals }) => {
 		error(400, 'question, reason, and contextId are required');
 	}
 
+	const demoActive = isDemoActive();
+	const shouldCaptureLiveToDemoFile = isDemoBuild && !demoActive;
+	const dataMode = getDataMode();
+
 	// Get API key
 	const [orgSettings] = await db.select().from(settings).where(eq(settings.orgId, org.id));
 
-	if (!orgSettings?.geminiApiKey) {
-		error(400, 'Gemini API key not configured.');
+	if (!demoActive && !resolveLlmConfig(orgSettings)) {
+		error(400, 'LLM API settings not configured.');
 	}
 
 	// Get datasets from the context
+	const [context] = await db
+		.select({ id: contexts.id })
+		.from(contexts)
+		.where(
+			and(eq(contexts.id, contextId), eq(contexts.orgId, org.id), eq(contexts.mode, dataMode)),
+		);
+
+	if (!context) {
+		error(404, 'Context not found');
+	}
+
 	const ctxDatasetLinks = await db
 		.select({ datasetId: contextDatasets.datasetId })
 		.from(contextDatasets)
@@ -59,12 +77,25 @@ export const POST: RequestHandler = async ({ request, locals }) => {
 		columns: d.schema as ColumnProfile[],
 	}));
 
-	const compiler = new GeminiCompiler({
-		apiKey: orgSettings.geminiApiKey,
-		model: orgSettings.geminiModel,
-	});
+	if (demoActive) {
+		const demo = await matchDemoResponse(question);
+		return json(demo.realign);
+	}
+
+	const llmConfig = resolveLlmConfig(orgSettings);
+	if (!llmConfig) {
+		error(400, 'LLM API settings not configured.');
+	}
+
+	const compiler = createQueryCompiler(llmConfig);
 
 	const result = await compiler.realignQuestion({ question, reason, datasets: profiles });
+
+	if (shouldCaptureLiveToDemoFile) {
+		await recordLiveDemoPattern(question, {
+			realign: result,
+		});
+	}
 
 	return json(result);
 };

@@ -3,14 +3,23 @@ import type { PageServerLoad, Actions } from './$types';
 import { db, dashboards, datasets, contextDatasets } from '$lib/server/db';
 import { eq, and, sql, inArray } from 'drizzle-orm';
 import type { QueryResult } from '$lib/types/toon';
+import { getDataMode } from '$lib/server/demo/runtime';
+import { isDemoBuild, getDemoMode } from '$lib/server/demo/runtime';
 
 export const load: PageServerLoad = async ({ params, parent }) => {
 	const { org } = await parent();
+	const dataMode = getDataMode();
 
 	const [dashboard] = await db
 		.select()
 		.from(dashboards)
-		.where(and(eq(dashboards.id, params.id), eq(dashboards.orgId, org.id)));
+		.where(
+			and(
+				eq(dashboards.id, params.id),
+				eq(dashboards.orgId, org.id),
+				eq(dashboards.mode, dataMode),
+			),
+		);
 
 	if (!dashboard) {
 		error(404, 'Dashboard not found');
@@ -28,7 +37,13 @@ export const load: PageServerLoad = async ({ params, parent }) => {
 		const [parent] = await db
 			.select()
 			.from(dashboards)
-			.where(and(eq(dashboards.id, current.parentDashboardId), eq(dashboards.orgId, org.id)));
+			.where(
+				and(
+					eq(dashboards.id, current.parentDashboardId),
+					eq(dashboards.orgId, org.id),
+					eq(dashboards.mode, dataMode),
+				),
+			);
 
 		if (!parent) break;
 
@@ -99,6 +114,8 @@ export const load: PageServerLoad = async ({ params, parent }) => {
 		dashboard,
 		breadcrumb,
 		results,
+		demoAvailable: isDemoBuild,
+		demoModeEnabled: getDemoMode(),
 	};
 };
 
@@ -111,6 +128,7 @@ export const actions: Actions = {
 		const { org } = await (await import('$lib/server/auth'))
 			.getUserOrganizations(locals.user.id)
 			.then((orgs) => ({ org: orgs[0] }));
+		const dataMode = getDataMode();
 
 		if (!org) {
 			error(403, 'No organization');
@@ -118,7 +136,13 @@ export const actions: Actions = {
 
 		await db
 			.delete(dashboards)
-			.where(and(eq(dashboards.id, params.id), eq(dashboards.orgId, org.id)));
+			.where(
+				and(
+					eq(dashboards.id, params.id),
+					eq(dashboards.orgId, org.id),
+					eq(dashboards.mode, dataMode),
+				),
+			);
 
 		return { success: true };
 	},

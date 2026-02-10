@@ -82,6 +82,7 @@ BETTER_AUTH_URL=http://localhost:5173
 
 # Environment
 NODE_ENV=development
+DEMO=false
 `;
 		writeFileSync(ENV_FILE, envContent);
 		log('.env file created');
