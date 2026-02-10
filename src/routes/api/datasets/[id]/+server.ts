@@ -1,10 +1,11 @@
-import { json, error } from '@sveltejs/kit';
-import type { RequestHandler } from './$types';
-import { db, datasets, datasetRows, settings } from '$lib/server/db';
-import type { ColumnSchema } from '$lib/server/db/schema';
-import { eq, and } from 'drizzle-orm';
-import { getUserOrganizations } from '$lib/server/auth';
 import { DateNormalizer } from '$lib/server/compiler/date-normalizer';
+import { db } from '$lib/server/db';
+import type { ColumnSchema } from '$lib/server/db/schema';
+import { datasetRows, datasets, settings } from '$lib/server/db/schema';
+import { getUserOrganizations } from '$lib/server/orgs';
+import { error, json } from '@sveltejs/kit';
+import { and, eq } from 'drizzle-orm';
+import type { RequestHandler } from './$types';
 
 export const GET: RequestHandler = async ({ params, locals }) => {
 	if (!locals.user) {

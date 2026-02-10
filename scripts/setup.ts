@@ -1,4 +1,4 @@
-#!/usr/bin/env npx tsx
+#!/usr/bin/env node
 /**
  * CiteSeer Auto-Setup Script
  *
@@ -9,9 +9,9 @@
  * 4. Runs database migrations
  */
 
-import { execSync, spawn } from 'child_process';
-import { existsSync, writeFileSync, readFileSync } from 'fs';
-import { join } from 'path';
+import { execSync } from 'node:child_process';
+import { existsSync, readFileSync, writeFileSync } from 'node:fs';
+import { join } from 'node:path';
 
 const ROOT = join(import.meta.dirname, '..');
 const ENV_FILE = join(ROOT, '.env');

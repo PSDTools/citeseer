@@ -1,17 +1,12 @@
-import { json, error } from '@sveltejs/kit';
-import type { RequestHandler } from './$types';
-import { db, datasets, settings, queries, contextDatasets } from '$lib/server/db';
-import type { AnalyticalPlan as SchemaAnalyticalPlan } from '$lib/server/db/schema';
-import { eq, sql, inArray } from 'drizzle-orm';
-import { getUserOrganizations } from '$lib/server/auth';
 import { GeminiCompiler } from '$lib/server/compiler/gemini';
-import type {
-	DatasetProfile,
-	ColumnProfile,
-	AnalyticalPlan,
-	QueryResult,
-	BranchContext,
-} from '$lib/types/toon';
+import { db } from '$lib/server/db';
+import type { AnalyticalPlan as SchemaAnalyticalPlan } from '$lib/server/db/schema';
+import { contextDatasets, datasets, queries, settings } from '$lib/server/db/schema';
+import { getUserOrganizations } from '$lib/server/orgs';
+import type { BranchContext, ColumnProfile, DatasetProfile, QueryResult } from '$lib/types/toon';
+import { error, json } from '@sveltejs/kit';
+import { eq, inArray, sql } from 'drizzle-orm';
+import type { RequestHandler } from './$types';
 
 export const POST: RequestHandler = async ({ request, locals }) => {
 	if (!locals.user) {

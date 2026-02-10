@@ -1,8 +1,10 @@
-import { error } from '@sveltejs/kit';
-import type { PageServerLoad, Actions } from './$types';
-import { db, dashboards, datasets, contextDatasets } from '$lib/server/db';
-import { eq, and, sql, inArray } from 'drizzle-orm';
+import { db } from '$lib/server/db';
+import { contextDatasets, dashboards, datasets } from '$lib/server/db/schema';
+import { getUserOrganizations } from '$lib/server/orgs';
 import type { QueryResult } from '$lib/types/toon';
+import { error } from '@sveltejs/kit';
+import { and, eq, sql } from 'drizzle-orm';
+import type { Actions, PageServerLoad } from './$types';
 
 export const load: PageServerLoad = async ({ params, parent }) => {
 	const { org } = await parent();
@@ -108,9 +110,7 @@ export const actions: Actions = {
 			error(401, 'Unauthorized');
 		}
 
-		const { org } = await (await import('$lib/server/auth'))
-			.getUserOrganizations(locals.user.id)
-			.then((orgs) => ({ org: orgs[0] }));
+		const { org } = await getUserOrganizations(locals.user.id).then((orgs) => ({ org: orgs[0] }));
 
 		if (!org) {
 			error(403, 'No organization');

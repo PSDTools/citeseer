@@ -1,7 +1,8 @@
-import type { PageServerLoad } from './$types';
-import { db, datasets, settings } from '$lib/server/db';
+import { db } from '$lib/server/db';
+import { datasets, settings } from '$lib/server/db/schema';
+import { getUserOrganizations } from '$lib/server/orgs';
 import { eq } from 'drizzle-orm';
-import { getUserOrganizations } from '$lib/server/auth';
+import type { PageServerLoad } from './$types';
 
 export const load: PageServerLoad = async ({ locals }) => {
 	// If not logged in, return null

@@ -1,7 +1,8 @@
+import { db } from '$lib/server/db';
+import { contextDatasets, contexts, dashboards, datasets, settings } from '$lib/server/db/schema';
 import { error } from '@sveltejs/kit';
+import { and, desc, eq } from 'drizzle-orm';
 import type { PageServerLoad } from './$types';
-import { db, contexts, contextDatasets, datasets, dashboards, settings } from '$lib/server/db';
-import { eq, and, desc } from 'drizzle-orm';
 
 export const load: PageServerLoad = async ({ params, parent }) => {
 	const { org } = await parent();

@@ -1,7 +1,7 @@
+import { auth } from '$lib/server/auth';
 import { fail, redirect } from '@sveltejs/kit';
-import type { Actions, PageServerLoad } from './$types';
-import { auth } from '$lib/auth';
 import { APIError } from 'better-auth/api';
+import type { Actions, PageServerLoad } from './$types';
 
 export const load: PageServerLoad = async ({ locals }) => {
 	// Redirect to dashboard if already logged in

@@ -1,8 +1,9 @@
-import { json, error } from '@sveltejs/kit';
+import { db } from '$lib/server/db';
+import { contextDatasets, contexts } from '$lib/server/db/schema';
+import { getUserOrganizations } from '$lib/server/orgs';
+import { error, json } from '@sveltejs/kit';
+import { desc, eq } from 'drizzle-orm';
 import type { RequestHandler } from './$types';
-import { db, contexts, contextDatasets, datasets } from '$lib/server/db';
-import { getUserOrganizations } from '$lib/server/auth';
-import { eq, desc } from 'drizzle-orm';
 
 // GET - List all contexts for the org
 export const GET: RequestHandler = async ({ locals }) => {

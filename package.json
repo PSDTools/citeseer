@@ -4,7 +4,7 @@
 	"version": "0.0.1",
 	"type": "module",
 	"scripts": {
-		"setup": "tsx scripts/setup.ts",
+		"setup": "node scripts/setup.ts",
 		"dev": "vite dev",
 		"start": "pnpm setup && pnpm dev",
 		"build": "vite build",
@@ -18,11 +18,12 @@
 		"db:push": "drizzle-kit push",
 		"db:studio": "drizzle-kit studio",
 		"db:migrate": "drizzle-kit migrate",
+		"db:start": "docker compose up",
 		"db:down": "docker compose down",
 		"db:reset": "docker compose down -v && pnpm setup",
 		"knip": "knip",
 		"merge-checks": "pnpm run lint && pnpm run check && pnpm run knip",
-		"auth:schema": "npx @better-auth/cli generate --config src/lib/server/auth.ts --output src/lib/server/db/auth.schema.ts --yes"
+		"auth:schema": "better-auth generate --config src/lib/server/auth.ts --output src/lib/server/db/auth.schema.ts --yes"
 	},
 	"devDependencies": {
 		"@better-auth/cli": "^1.4.18",
@@ -37,6 +38,7 @@
 		"@types/node": "^25.2.2",
 		"@types/papaparse": "^5.5.2",
 		"drizzle-kit": "^0.31.8",
+		"drizzle-orm": "^0.45.1",
 		"import-in-the-middle": "^3.0.0",
 		"knip": "^5.83.1",
 		"prettier": "^3.8.1",
@@ -62,5 +64,5 @@
 		"vega-embed": "^7.1.0",
 		"vega-lite": "^6.4.2"
 	},
-	"packageManager": "pnpm@10.28.2+sha512.41872f037ad22f7348e3b1debbaf7e867cfd448f2726d9cf74c08f19507c31d2c8e7a11525b983febc2df640b5438dee6023ebb1f84ed43cc2d654d2bc326264"
+	"packageManager": "pnpm@10.29.2+sha512.bef43fa759d91fd2da4b319a5a0d13ef7a45bb985a3d7342058470f9d2051a3ba8674e629672654686ef9443ad13a82da2beb9eeb3e0221c87b8154fff9d74b8"
 }

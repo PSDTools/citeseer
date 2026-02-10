@@ -1,6 +1,7 @@
+import { db } from '$lib/server/db';
+import { contextDatasets, contexts, dashboards, datasets } from '$lib/server/db/schema';
+import { count, desc, eq } from 'drizzle-orm';
 import type { PageServerLoad } from './$types';
-import { db, contexts, contextDatasets, datasets, dashboards } from '$lib/server/db';
-import { eq, desc, count } from 'drizzle-orm';
 
 export const load: PageServerLoad = async ({ parent }) => {
 	const { org } = await parent();

@@ -1,8 +1,9 @@
+import { db } from '$lib/server/db';
+import { settings } from '$lib/server/db/schema';
+import { getUserOrganizations } from '$lib/server/orgs';
 import { fail, redirect } from '@sveltejs/kit';
-import type { Actions, PageServerLoad } from './$types';
-import { db, settings } from '$lib/server/db';
 import { eq } from 'drizzle-orm';
-import { getUserOrganizations } from '$lib/server/auth';
+import type { Actions, PageServerLoad } from './$types';
 
 export const load: PageServerLoad = async ({ parent }) => {
 	const { org } = await parent();

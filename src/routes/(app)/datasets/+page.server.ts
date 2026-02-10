@@ -1,7 +1,8 @@
-import type { PageServerLoad } from './$types';
-import { db, datasets } from '$lib/server/db';
-import { eq } from 'drizzle-orm';
+import { db } from '$lib/server/db';
 import type { ColumnSchema } from '$lib/server/db/schema';
+import { datasets } from '$lib/server/db/schema';
+import { eq } from 'drizzle-orm';
+import type { PageServerLoad } from './$types';
 
 export const load: PageServerLoad = async ({ parent }) => {
 	const { org } = await parent();

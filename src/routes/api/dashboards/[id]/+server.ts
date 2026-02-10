@@ -1,9 +1,10 @@
-import { json, error } from '@sveltejs/kit';
-import type { RequestHandler } from './$types';
-import { db, dashboards } from '$lib/server/db';
-import { getUserOrganizations } from '$lib/server/auth';
-import { eq, and } from 'drizzle-orm';
+import { db } from '$lib/server/db';
 import type { AnalyticalPlan, PanelSpec, QueryResult } from '$lib/server/db/schema';
+import { dashboards } from '$lib/server/db/schema';
+import { getUserOrganizations } from '$lib/server/orgs';
+import { error, json } from '@sveltejs/kit';
+import { and, eq } from 'drizzle-orm';
+import type { RequestHandler } from './$types';
 
 // GET - Get a single dashboard
 export const GET: RequestHandler = async ({ locals, params }) => {

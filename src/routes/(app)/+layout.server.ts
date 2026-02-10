@@ -1,8 +1,9 @@
+import { db } from '$lib/server/db';
+import { contexts, dashboards, datasets } from '$lib/server/db/schema';
+import { getUserOrganizations } from '$lib/server/orgs';
 import { redirect } from '@sveltejs/kit';
+import { desc, eq } from 'drizzle-orm';
 import type { LayoutServerLoad } from './$types';
-import { getUserOrganizations } from '$lib/server/auth';
-import { db, datasets, dashboards, contexts } from '$lib/server/db';
-import { eq, desc } from 'drizzle-orm';
 
 export const load: LayoutServerLoad = async ({ locals }) => {
 	// Redirect to login if not authenticated

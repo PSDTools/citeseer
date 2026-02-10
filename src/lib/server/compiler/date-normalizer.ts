@@ -30,7 +30,7 @@ Only include columns that ARE dates. If a column is not a date, do not include i
 Column samples:
 `;
 
-class DateNormalizer {
+export class DateNormalizer {
 	private client: GoogleGenAI;
 	private model: string;
 

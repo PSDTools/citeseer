@@ -1,7 +1,8 @@
-import { fail, redirect, isRedirect } from '@sveltejs/kit';
+import { db } from '$lib/server/db';
+import { settings } from '$lib/server/db/schema';
+import { createOrganization, getUserOrganizations } from '$lib/server/orgs';
+import { fail, isRedirect, redirect } from '@sveltejs/kit';
 import type { Actions, PageServerLoad } from './$types';
-import { createOrganization, getUserOrganizations } from '$lib/server/auth';
-import { db, settings } from '$lib/server/db';
 
 export const load: PageServerLoad = async ({ locals }) => {
 	// Redirect to login if not authenticated
@@ -37,6 +38,10 @@ export const actions: Actions = {
 		try {
 			// Create organization
 			const org = await createOrganization(locals.user.id, orgName);
+
+			if (!org) {
+				return fail(500, { error: 'Failed to create workspace. Please try again.' });
+			}
 
 			// If API key provided, save it
 			if (geminiApiKey) {

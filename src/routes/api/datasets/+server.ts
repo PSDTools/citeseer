@@ -1,11 +1,12 @@
-import { json, error } from '@sveltejs/kit';
-import type { RequestHandler } from './$types';
-import { db, datasets, datasetRows, settings } from '$lib/server/db';
-import type { ColumnSchema } from '$lib/server/db/schema';
-import Papa from 'papaparse';
-import { getUserOrganizations } from '$lib/server/auth';
 import { DateNormalizer } from '$lib/server/compiler/date-normalizer';
+import { db } from '$lib/server/db';
+import type { ColumnSchema } from '$lib/server/db/schema';
+import { datasetRows, datasets, settings } from '$lib/server/db/schema';
+import { getUserOrganizations } from '$lib/server/orgs';
+import { error, json } from '@sveltejs/kit';
 import { eq } from 'drizzle-orm';
+import Papa from 'papaparse';
+import type { RequestHandler } from './$types';
 
 const MAX_FILE_SIZE = 50 * 1024 * 1024; // 50MB
 const BATCH_SIZE = 1000; // Insert rows in batches
@@ -210,7 +211,6 @@ function isDateString(value: string): boolean {
 /**
  * PUT endpoint - Clean all datasets (remove pipes from column names in JSONB data)
  */
-import { sql } from 'drizzle-orm';
 
 export const PUT: RequestHandler = async ({ request, locals }) => {
 	if (!locals.user) {
