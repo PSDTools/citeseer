@@ -1,6 +1,6 @@
+import type { AnalyticalPlan, QueryResult } from '$lib/types/toon';
 import { readFile, rename, writeFile } from 'node:fs/promises';
 import { join } from 'node:path';
-import type { AnalyticalPlan, QueryResult } from '$lib/types/toon';
 
 const DEMO_CONFIG_PATH = join(process.cwd(), 'data', 'demo.json');
 const DEMO_CONFIG_BACKUP_PATH = join(process.cwd(), 'data', 'demo.json.bak');
@@ -79,7 +79,7 @@ interface CompiledDemoPattern {
 	response: DemoResponse;
 }
 
-export interface DemoConfig {
+interface DemoConfig {
 	dataset: DemoConfigDataset;
 	patterns: CompiledDemoPattern[];
 	defaultResponse: Required<DemoResponse>;
@@ -303,57 +303,6 @@ export async function saveDemoPattern(params: {
 			flags,
 			response: serialized,
 		});
-	});
-}
-
-export async function recordLiveWorkspaceContext(context: {
-	id: string;
-	name: string;
-	description?: string | null;
-	datasetIds?: string[];
-	createdAt: string;
-}): Promise<void> {
-	await mutateDemoConfig(async (config) => {
-		if (!config.workspace) {
-			config.workspace = { contexts: [], dashboards: [] };
-		}
-
-		const idx = config.workspace.contexts.findIndex((item) => item.id === context.id);
-		if (idx >= 0) {
-			config.workspace.contexts[idx] = context;
-		} else {
-			config.workspace.contexts.unshift(context);
-		}
-		config.workspace.updatedAt = new Date().toISOString();
-	});
-}
-
-export async function recordLiveWorkspaceDashboard(dashboard: {
-	id: string;
-	name: string;
-	question: string;
-	description?: string | null;
-	contextId?: string | null;
-	parentDashboardId?: string | null;
-	rootDashboardId?: string | null;
-	plan?: AnalyticalPlan;
-	panels?: unknown;
-	results?: Record<number, QueryResult>;
-	nodeContext?: unknown;
-	createdAt: string;
-}): Promise<void> {
-	await mutateDemoConfig(async (config) => {
-		if (!config.workspace) {
-			config.workspace = { contexts: [], dashboards: [] };
-		}
-
-		const idx = config.workspace.dashboards.findIndex((item) => item.id === dashboard.id);
-		if (idx >= 0) {
-			config.workspace.dashboards[idx] = dashboard;
-		} else {
-			config.workspace.dashboards.unshift(dashboard);
-		}
-		config.workspace.updatedAt = new Date().toISOString();
 	});
 }
 
