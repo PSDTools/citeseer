@@ -1,23 +1,52 @@
-You are able to use the Svelte MCP server, where you have access to comprehensive Svelte 5 and SvelteKit documentation. Here's how to use the available tools effectively:
+# CiteSeer Agent Guide
 
-## Available MCP Tools:
+## Non-Negotiable Validation
 
-### 1. list-sections
+- You must verify `pnpm merge-checks` exits successfully before declaring a change finished.
+- If checks fail, report exact failing command(s) and fix if in scope.
 
-Use this FIRST to discover all available documentation sections. Returns a structured list with titles, use_cases, and paths.
-When asked about Svelte or SvelteKit topics, ALWAYS use this tool at the start of the chat to find relevant sections.
+## Tech Stack and Runtime
 
-### 2. get-documentation
+- Framework: Svelte 5 + SvelteKit 2 + TypeScript.
+- Styling: Tailwind CSS v4.
+- Package manager: `pnpm` (use `pnpm`, not `npm`).
+- Database: PostgreSQL with Drizzle ORM.
+- Auth: Better Auth.
+- Demo mode data: SQLite file at `data/demo.db` (read-only path in demo helpers).
 
-Retrieves full documentation content for specific sections. Accepts single or multiple sections.
-After calling the list-sections tool, you MUST analyze the returned documentation sections (especially the use_cases field) and then use the get-documentation tool to fetch ALL documentation sections that are relevant for the user's task.
+## Project Landmarks
 
-### 3. svelte-autofixer
+- App routes: `src/routes`
+- API routes: `src/routes/api/**/+server.ts`
+- DB access and schema: `src/lib/server/db/index.ts`, `src/lib/server/db/schema.ts`
+- Auth: `src/lib/auth.ts`
+- Query/LLM pipeline: `src/routes/api/query/+server.ts`, `src/lib/server/compiler/**`
+- Demo mode: `src/lib/server/demo/**`
 
-Analyzes Svelte code and returns issues and suggestions.
-You MUST use this tool whenever writing Svelte code before sending it to the user. Keep calling it until no issues or suggestions are returned.
+## Setup and Environment Notes
 
-### 4. playground-link
+- Initial setup: `pnpm setup`
+- Local dev server: `pnpm dev`
+- `scripts/setup.ts` may create `.env`, start Docker Postgres, and run Drizzle push.
+- Required env vars for auth/db flows include:
+  - `DATABASE_URL`
+  - `BETTER_AUTH_SECRET`
+  - `BETTER_AUTH_URL`
 
-Generates a Svelte Playground link with the provided code.
-After completing the code, ask the user if they want a playground link. Only call this tool after user confirmation and NEVER if code was written to files in their project.
+## MCP Tools
+
+### Svelte MCP (Required Workflow)
+
+When asked about Svelte or SvelteKit topics, use these tools in order:
+
+1. `list-sections` first
+   - Discover relevant docs sections (title, use_cases, path).
+2. `get-documentation` second
+   - Fetch every section relevant to the task after reviewing `use_cases`.
+3. `svelte-autofixer` for Svelte code changes
+   - Run it whenever writing Svelte code.
+   - Repeat until it returns no issues/suggestions.
+4. `playground-link` (conditional)
+   - Ask the user if they want a playground link after code is complete.
+   - Only generate after explicit user confirmation.
+   - Never generate if code was written directly to project files.
