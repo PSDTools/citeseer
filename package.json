@@ -4,7 +4,7 @@
 	"version": "0.0.1",
 	"type": "module",
 	"scripts": {
-		"setup": "tsx scripts/setup.ts",
+		"setup": "node scripts/setup.ts",
 		"dev": "vite dev",
 		"start": "pnpm setup && pnpm dev",
 		"build": "vite build",
@@ -44,7 +44,6 @@
 		"svelte": "^5.50.0",
 		"svelte-check": "^4.3.6",
 		"tailwindcss": "^4.1.18",
-		"tsx": "^4.21.0",
 		"typescript": "^5.9.3",
 		"vite": "^7.3.1"
 	},

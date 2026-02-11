@@ -1,0 +1,8 @@
+{
+	"recommendations": [
+		"dbaeumer.vscode-eslint",
+		"webpro.vscode-knip",
+		"esbenp.prettier-vscode",
+		"svelte.svelte-vscode"
+	]
+}

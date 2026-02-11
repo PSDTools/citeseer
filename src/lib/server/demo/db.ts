@@ -1,14 +1,14 @@
-import { access } from 'node:fs/promises';
-import { constants as fsConstants } from 'node:fs';
-import { join } from 'node:path';
+import type { ColumnSchema } from '$lib/server/db/schema';
 import Database from 'better-sqlite3';
 import { drizzle } from 'drizzle-orm/better-sqlite3';
-import type { ColumnSchema } from '$lib/server/db/schema';
+import { constants as fsConstants } from 'node:fs';
+import { access } from 'node:fs/promises';
+import { join } from 'node:path';
 import { getDemoConfig } from './config';
 
 const DEMO_DB_PATH = join(process.cwd(), 'data', 'demo.db');
 
-export interface DemoDatasetMetadata {
+interface DemoDatasetMetadata {
 	name: string;
 	fileName: string;
 	rowCount: number;
