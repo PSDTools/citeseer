@@ -1,3 +1,4 @@
+import { joinUrl } from '$lib/server/compiler/base-compiler';
 import type { LlmConfig } from './config';
 
 export async function generateTextWithLlm(
@@ -5,11 +6,17 @@ export async function generateTextWithLlm(
 	options: { prompt: string; temperature?: number; maxOutputTokens?: number },
 ): Promise<string> {
 	if (config.provider === 'gemini') {
-		const { GoogleGenerativeAI } = await import('@google/generative-ai');
-		const genAI = new GoogleGenerativeAI(config.apiKey);
-		const model = genAI.getGenerativeModel({ model: config.model });
-		const result = await model.generateContent(options.prompt);
-		return result.response.text();
+		const { GoogleGenAI } = await import('@google/genai');
+		const client = new GoogleGenAI({ apiKey: config.apiKey });
+		const response = await client.models.generateContent({
+			model: config.model,
+			contents: [{ role: 'user', parts: [{ text: options.prompt }] }],
+			config: {
+				temperature: options.temperature,
+				maxOutputTokens: options.maxOutputTokens,
+			},
+		});
+		return response.text || '';
 	}
 
 	if (config.provider === 'claude') {
@@ -80,10 +87,4 @@ export async function generateTextWithLlm(
 			.join('\n');
 	}
 	return '';
-}
-
-function joinUrl(base: string, path: string): string {
-	const normalizedBase = base.replace(/\/+$/, '');
-	const normalizedPath = path.replace(/^\/+/, '');
-	return `${normalizedBase}/${normalizedPath}`;
 }

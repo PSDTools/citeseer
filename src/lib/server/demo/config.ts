@@ -86,6 +86,8 @@ interface DemoConfig {
 	workspace?: DemoWorkspaceData;
 }
 
+const MINIMUM_SIMILARITY_THRESHOLD = 0.3;
+
 let demoConfigPromise: Promise<DemoConfig> | null = null;
 let mutationQueue: Promise<void> = Promise.resolve();
 
@@ -144,7 +146,7 @@ function findMostSimilarPattern(
 	patterns: CompiledDemoPattern[],
 ): CompiledDemoPattern | null {
 	let best: CompiledDemoPattern | null = null;
-	let bestScore = 0;
+	let bestScore = MINIMUM_SIMILARITY_THRESHOLD;
 
 	for (const pattern of patterns) {
 		const candidates = getPatternCandidates(pattern);
@@ -401,6 +403,10 @@ function normalizeQueryResponse(response: DemoQueryResponse | undefined): DemoQu
 		throw new Error('query response is missing');
 	}
 
+	if (!response.plan) {
+		throw new Error('query response plan is missing');
+	}
+
 	const normalizedResults: Record<number, QueryResult> = {};
 	for (const [key, value] of Object.entries(response.results || {})) {
 		const numericKey = Number(key);
@@ -433,14 +439,22 @@ function sanitizeExecutiveSummary(summary: string | undefined): string | undefin
 async function mutateDemoConfig(
 	mutator: (config: RawDemoConfig) => void | Promise<void>,
 ): Promise<void> {
-	mutationQueue = mutationQueue.then(async () => {
+	// Chain onto queue but always resolve the queue itself (so it doesn't break)
+	// while still propagating errors to the caller
+	const operation = mutationQueue.then(async () => {
 		const config = await readRawConfig();
 		await mutator(config);
 		await atomicWriteConfig(config);
 		demoConfigPromise = null;
 	});
 
-	return mutationQueue;
+	// Always resolve the queue so future operations can proceed
+	mutationQueue = operation.catch(() => {
+		demoConfigPromise = null;
+	});
+
+	// But let the caller see the error
+	return operation;
 }
 
 export async function replaceWorkspaceSnapshot(workspace: DemoWorkspaceData): Promise<void> {

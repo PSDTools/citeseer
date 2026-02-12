@@ -35,20 +35,22 @@ export const actions: Actions = {
 		}
 
 		try {
-			// Create organization
-			const org = await createOrganization(locals.user.id, orgName);
+			// Create organization and save settings in a single transaction
+			const userId = locals.user.id;
+			await db.transaction(async (tx) => {
+				const org = await createOrganization(userId, orgName, tx);
 
-			// If API key provided, save it
-			if (geminiApiKey) {
-				await db.insert(settings).values({
-					orgId: org.id,
-					geminiApiKey,
-					geminiModel: 'gemini-2.0-flash',
-					llmProvider: 'gemini',
-					llmApiKey: geminiApiKey,
-					llmModel: 'gemini-2.0-flash',
-				});
-			}
+				if (geminiApiKey) {
+					await tx.insert(settings).values({
+						orgId: org.id,
+						geminiApiKey,
+						geminiModel: 'gemini-2.0-flash',
+						llmProvider: 'gemini',
+						llmApiKey: geminiApiKey,
+						llmModel: 'gemini-2.0-flash',
+					});
+				}
+			});
 
 			redirect(302, '/dashboard');
 		} catch (error) {

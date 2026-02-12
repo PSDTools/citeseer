@@ -1,4 +1,5 @@
 import { db, organizations, orgMembers } from '$lib/server/db';
+import type { DbClient } from '$lib/server/db';
 import { eq } from 'drizzle-orm';
 
 // Get user's organizations
@@ -18,7 +19,8 @@ export async function getUserOrganizations(userId: string) {
 }
 
 // Create organization for user
-export async function createOrganization(userId: string, name: string) {
+// Accepts an optional transaction handle; when omitted, wraps its own transaction.
+export async function createOrganization(userId: string, name: string, txn?: DbClient) {
 	// Generate slug from name
 	const slug = name
 		.toLowerCase()
@@ -26,24 +28,28 @@ export async function createOrganization(userId: string, name: string) {
 		.replace(/^-|-$/g, '');
 
 	// Check if slug exists
-	const existing = await db.select().from(organizations).where(eq(organizations.slug, slug));
+	const conn = txn ?? db;
+	const existing = await conn.select().from(organizations).where(eq(organizations.slug, slug));
 	const finalSlug = existing.length > 0 ? `${slug}-${Date.now()}` : slug;
 
-	// Create organization
-	const [org] = await db
-		.insert(organizations)
-		.values({
-			name,
-			slug: finalSlug,
-		})
-		.returning();
+	const perform = async (tx: DbClient) => {
+		const [newOrg] = await tx
+			.insert(organizations)
+			.values({
+				name,
+				slug: finalSlug,
+			})
+			.returning();
 
-	// Add user as owner
-	await db.insert(orgMembers).values({
-		userId,
-		orgId: org.id,
-		role: 'owner',
-	});
+		await tx.insert(orgMembers).values({
+			userId,
+			orgId: newOrg.id,
+			role: 'owner',
+		});
 
-	return org;
+		return newOrg;
+	};
+
+	// If a transaction was provided, use it directly; otherwise create one.
+	return txn ? perform(txn) : db.transaction(perform);
 }

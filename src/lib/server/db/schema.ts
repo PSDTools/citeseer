@@ -9,9 +9,35 @@ import {
 	integer,
 	boolean,
 	pgEnum,
+	index,
+	unique,
 	type AnyPgColumn,
 } from 'drizzle-orm/pg-core';
 import { relations } from 'drizzle-orm';
+import type {
+	PanelSpec,
+	AnalyticalPlan,
+	ForecastSpec,
+	ForecastStrategy,
+	QueryResult,
+	FilterValue,
+	SelectedMark,
+	ColumnProfile,
+} from '$lib/types/toon';
+
+// Re-export analytical types so existing importers from schema still work
+export type {
+	PanelSpec,
+	AnalyticalPlan,
+	ForecastSpec,
+	ForecastStrategy,
+	QueryResult,
+	FilterValue,
+	SelectedMark,
+} from '$lib/types/toon';
+
+// ColumnSchema is structurally identical to ColumnProfile; alias for DB usage
+export type ColumnSchema = ColumnProfile;
 
 // Enums
 export const orgRoleEnum = pgEnum('org_role', ['owner', 'admin', 'member']);
@@ -110,81 +136,104 @@ export const datasets = pgTable('datasets', {
 });
 
 // Dataset rows table - stores actual CSV data
-export const datasetRows = pgTable('dataset_rows', {
-	id: bigint('id', { mode: 'number' }).primaryKey().generatedAlwaysAsIdentity(),
-	datasetId: uuid('dataset_id')
-		.notNull()
-		.references(() => datasets.id, { onDelete: 'cascade' }),
-	data: jsonb('data').$type<Record<string, unknown>>().notNull(),
-	rowIndex: integer('row_index').notNull(),
-});
+export const datasetRows = pgTable(
+	'dataset_rows',
+	{
+		id: bigint('id', { mode: 'number' }).primaryKey().generatedAlwaysAsIdentity(),
+		datasetId: uuid('dataset_id')
+			.notNull()
+			.references(() => datasets.id, { onDelete: 'cascade' }),
+		data: jsonb('data').$type<Record<string, unknown>>().notNull(),
+		rowIndex: integer('row_index').notNull(),
+	},
+	(table) => [index('idx_dataset_rows_dataset_id').on(table.datasetId)],
+);
 
 // Queries table - stores query history
-export const queries = pgTable('queries', {
-	id: uuid('id').primaryKey().defaultRandom(),
-	orgId: uuid('org_id')
-		.notNull()
-		.references(() => organizations.id, { onDelete: 'cascade' }),
-	userId: uuid('user_id').references(() => users.id, { onDelete: 'set null' }),
-	question: text('question').notNull(),
-	plan: jsonb('plan').$type<AnalyticalPlan>(),
-	sql: text('sql'),
-	status: queryStatusEnum('status').notNull().default('pending'),
-	error: text('error'),
-	createdAt: timestamp('created_at', { withTimezone: true }).notNull().defaultNow(),
-	executionMs: integer('execution_ms'),
-});
+export const queries = pgTable(
+	'queries',
+	{
+		id: uuid('id').primaryKey().defaultRandom(),
+		orgId: uuid('org_id')
+			.notNull()
+			.references(() => organizations.id, { onDelete: 'cascade' }),
+		userId: uuid('user_id').references(() => users.id, { onDelete: 'set null' }),
+		question: text('question').notNull(),
+		plan: jsonb('plan').$type<AnalyticalPlan>(),
+		sql: text('sql'),
+		status: queryStatusEnum('status').notNull().default('pending'),
+		error: text('error'),
+		createdAt: timestamp('created_at', { withTimezone: true }).notNull().defaultNow(),
+		executionMs: integer('execution_ms'),
+	},
+	(table) => [index('idx_queries_org_id').on(table.orgId)],
+);
 
 // Dashboards table - saved query results / lines of reasoning (per-context)
-export const dashboards = pgTable('dashboards', {
-	id: uuid('id').primaryKey().defaultRandom(),
-	orgId: uuid('org_id')
-		.notNull()
-		.references(() => organizations.id, { onDelete: 'cascade' }),
-	contextId: uuid('context_id').references(() => contexts.id, { onDelete: 'cascade' }),
-	parentDashboardId: uuid('parent_dashboard_id').references((): AnyPgColumn => dashboards.id, {
-		onDelete: 'set null',
-	}),
-	rootDashboardId: uuid('root_dashboard_id').references((): AnyPgColumn => dashboards.id, {
-		onDelete: 'set null',
-	}),
-	name: varchar('name', { length: 255 }).notNull(),
-	mode: dataModeEnum('mode').notNull().default('live'),
-	question: text('question').notNull(),
-	description: text('description'),
-	plan: jsonb('plan').$type<AnalyticalPlan>(),
-	panels: jsonb('panels').$type<PanelSpec[]>().notNull(),
-	results: jsonb('results').$type<Record<number, QueryResult>>(),
-	nodeContext: jsonb('node_context').$type<DashboardNodeContext>(),
-	createdAt: timestamp('created_at', { withTimezone: true }).notNull().defaultNow(),
-	updatedAt: timestamp('updated_at', { withTimezone: true }).notNull().defaultNow(),
-	createdBy: uuid('created_by').references(() => users.id, { onDelete: 'set null' }),
-});
+export const dashboards = pgTable(
+	'dashboards',
+	{
+		id: uuid('id').primaryKey().defaultRandom(),
+		orgId: uuid('org_id')
+			.notNull()
+			.references(() => organizations.id, { onDelete: 'cascade' }),
+		contextId: uuid('context_id').references(() => contexts.id, { onDelete: 'cascade' }),
+		parentDashboardId: uuid('parent_dashboard_id').references((): AnyPgColumn => dashboards.id, {
+			onDelete: 'set null',
+		}),
+		rootDashboardId: uuid('root_dashboard_id').references((): AnyPgColumn => dashboards.id, {
+			onDelete: 'set null',
+		}),
+		name: varchar('name', { length: 255 }).notNull(),
+		mode: dataModeEnum('mode').notNull().default('live'),
+		question: text('question').notNull(),
+		description: text('description'),
+		plan: jsonb('plan').$type<AnalyticalPlan>(),
+		panels: jsonb('panels').$type<PanelSpec[]>().notNull(),
+		results: jsonb('results').$type<Record<number, QueryResult>>(),
+		nodeContext: jsonb('node_context').$type<DashboardNodeContext>(),
+		createdAt: timestamp('created_at', { withTimezone: true }).notNull().defaultNow(),
+		updatedAt: timestamp('updated_at', { withTimezone: true }).notNull().defaultNow(),
+		createdBy: uuid('created_by').references(() => users.id, { onDelete: 'set null' }),
+	},
+	(table) => [
+		index('idx_dashboards_org_id').on(table.orgId),
+		index('idx_dashboards_context_id').on(table.contextId),
+	],
+);
 
 // Contexts table - groups of datasets for AI analysis
-export const contexts = pgTable('contexts', {
-	id: uuid('id').primaryKey().defaultRandom(),
-	orgId: uuid('org_id')
-		.notNull()
-		.references(() => organizations.id, { onDelete: 'cascade' }),
-	name: varchar('name', { length: 255 }).notNull(),
-	mode: dataModeEnum('mode').notNull().default('live'),
-	description: text('description'),
-	createdAt: timestamp('created_at', { withTimezone: true }).notNull().defaultNow(),
-	createdBy: uuid('created_by').references(() => users.id, { onDelete: 'set null' }),
-});
+export const contexts = pgTable(
+	'contexts',
+	{
+		id: uuid('id').primaryKey().defaultRandom(),
+		orgId: uuid('org_id')
+			.notNull()
+			.references(() => organizations.id, { onDelete: 'cascade' }),
+		name: varchar('name', { length: 255 }).notNull(),
+		mode: dataModeEnum('mode').notNull().default('live'),
+		description: text('description'),
+		createdAt: timestamp('created_at', { withTimezone: true }).notNull().defaultNow(),
+		createdBy: uuid('created_by').references(() => users.id, { onDelete: 'set null' }),
+	},
+	(table) => [index('idx_contexts_org_id').on(table.orgId)],
+);
 
 // Junction table for contexts <-> datasets (many-to-many)
-export const contextDatasets = pgTable('context_datasets', {
-	id: uuid('id').primaryKey().defaultRandom(),
-	contextId: uuid('context_id')
-		.notNull()
-		.references(() => contexts.id, { onDelete: 'cascade' }),
-	datasetId: uuid('dataset_id')
-		.notNull()
-		.references(() => datasets.id, { onDelete: 'cascade' }),
-	addedAt: timestamp('added_at', { withTimezone: true }).notNull().defaultNow(),
-});
+export const contextDatasets = pgTable(
+	'context_datasets',
+	{
+		id: uuid('id').primaryKey().defaultRandom(),
+		contextId: uuid('context_id')
+			.notNull()
+			.references(() => contexts.id, { onDelete: 'cascade' }),
+		datasetId: uuid('dataset_id')
+			.notNull()
+			.references(() => datasets.id, { onDelete: 'cascade' }),
+		addedAt: timestamp('added_at', { withTimezone: true }).notNull().defaultNow(),
+	},
+	(table) => [unique('uq_context_datasets').on(table.contextId, table.datasetId)],
+);
 
 // Settings table - per-org settings including API keys
 export const settings = pgTable('settings', {
@@ -328,94 +377,8 @@ export const contextDatasetsRelations = relations(contextDatasets, ({ one }) => 
 	}),
 }));
 
-// Type definitions for JSONB columns
-export interface ColumnSchema {
-	name: string;
-	dtype: string;
-	nullable: boolean;
-	isTimestamp: boolean;
-	isMetric: boolean;
-	isEntityId: boolean;
-	isCategorical: boolean;
-	distinctCount?: number;
-	sampleValues?: unknown[];
-	minValue?: unknown;
-	maxValue?: unknown;
-}
-
-export type ForecastStrategy =
-	| 'auto'
-	| 'linear'
-	| 'drift'
-	| 'moving_average'
-	| 'exp_smoothing'
-	| 'seasonal_naive';
-
-export interface ForecastSpec {
-	strategy?: ForecastStrategy;
-	horizon?: number;
-	window?: number;
-	alpha?: number;
-	seasonLength?: number;
-	confidence?: 'high' | 'medium' | 'low';
-	intervalPct?: number;
-}
-
-export interface PanelSpec {
-	type: 'bar' | 'line' | 'stat' | 'table' | 'pie' | 'gauge' | 'heatmap' | 'histogram' | 'insight';
-	title: string;
-	description?: string;
-	sql?: string;
-	x?: string;
-	y?: string;
-	groupBy?: string;
-	columns?: string[];
-	value?: string;
-	unit?: string;
-	summary?: string;
-	narrative?: string;
-	confidence?: 'high' | 'medium' | 'low';
-	recommendations?: string[];
-	forecast?: ForecastSpec;
-	color?: string;
-	colorPalette?: string[];
-	colorMap?: Record<string, string>;
-}
-
-export interface AnalyticalPlan {
-	_type: 'plan';
-	q: string;
-	feasible: boolean;
-	reason?: string;
-	tables: string[];
-	sql?: string;
-	viz?: PanelSpec[];
-	suggestedInvestigations?: string[];
-	validationError?: string;
-	executiveSummary?: string;
-}
-
-export type FilterValue = string | number | boolean;
-
-export interface QueryResult {
-	success: boolean;
-	data: Record<string, unknown>[];
-	columns: string[];
-	rowCount: number;
-	executionMs?: number;
-	error?: string;
-}
-
-export interface SelectedMark {
-	panelIndex?: number;
-	panelTitle?: string;
-	field: string;
-	value: FilterValue;
-	metricField?: string;
-	metricValue?: FilterValue;
-	datum?: Record<string, unknown>;
-}
-
+// DashboardNodeContext: DB-specific shape for dashboard tree context.
+// Structurally similar to BranchContext but serves a DB-storage purpose.
 export interface DashboardNodeContext {
 	parentDashboardId?: string;
 	parentQuestion?: string;

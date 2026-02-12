@@ -1,4 +1,4 @@
-import type { ForecastSpec, ForecastStrategy, PanelSpec, QueryResult } from '$lib/types/toon';
+import type { ForecastStrategy } from '$lib/types/toon';
 
 export interface ForecastSelectionContext {
 	question: string;
@@ -29,11 +29,6 @@ export interface ForecastStrategyDecision {
 	seasonLength?: number;
 	confidence?: 'high' | 'medium' | 'low';
 	intervalPct?: number;
-}
-
-interface ForecastOutcome {
-	result: QueryResult;
-	decision?: ForecastStrategyDecision;
 }
 
 type XFormat = 'yearmonth' | 'date' | 'number' | 'string';
@@ -379,61 +374,4 @@ function seasonalNaiveForecast(
 		forecasts.push(points[idx]?.y ?? points[n - 1].y);
 	}
 	return forecasts;
-}
-
-function defaultHorizon(cadence: CadenceInfo): number {
-	switch (cadence.unit) {
-		case 'day':
-			return 14;
-		case 'week':
-			return 8;
-		case 'month':
-			return 3;
-		case 'quarter':
-			return 2;
-		case 'year':
-			return 2;
-		case 'number':
-			return 3;
-		default:
-			return 3;
-	}
-}
-
-function confidenceToIntervalPct(confidence: 'high' | 'medium' | 'low'): number {
-	switch (confidence) {
-		case 'high':
-			return 0.8;
-		case 'medium':
-			return 0.9;
-		case 'low':
-		default:
-			return 0.95;
-	}
-}
-
-function intervalPctToZ(intervalPct: number): number {
-	if (intervalPct >= 0.975) return 2.24;
-	if (intervalPct >= 0.95) return 1.96;
-	if (intervalPct >= 0.9) return 1.645;
-	if (intervalPct >= 0.8) return 1.28;
-	return 1.0;
-}
-
-function resolveForecastSpec(panel: PanelSpec): ForecastSpec | undefined {
-	if (!panel.forecast) return undefined;
-	return panel.forecast;
-}
-
-function sortRowsByX(
-	rows: Record<string, unknown>[],
-	xField: string,
-	format: XFormat,
-): Record<string, unknown>[] {
-	if (format === 'string') return rows;
-	return [...rows].sort((a, b) => {
-		const aParsed = parseXValue(a[xField], 0);
-		const bParsed = parseXValue(b[xField], 0);
-		return aParsed.sortKey - bParsed.sortKey;
-	});
 }

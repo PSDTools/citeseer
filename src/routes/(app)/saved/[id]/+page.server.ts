@@ -1,10 +1,9 @@
-import { error } from '@sveltejs/kit';
-import type { PageServerLoad, Actions } from './$types';
-import { db, dashboards, datasets, contextDatasets } from '$lib/server/db';
-import { eq, and, sql, inArray } from 'drizzle-orm';
+import { contextDatasets, dashboards, datasets, db, executeReadOnlySQL } from '$lib/server/db';
+import { getDataMode, getDemoMode, isDemoBuild } from '$lib/server/demo/runtime';
 import type { QueryResult } from '$lib/types/toon';
-import { getDataMode } from '$lib/server/demo/runtime';
-import { isDemoBuild, getDemoMode } from '$lib/server/demo/runtime';
+import { error } from '@sveltejs/kit';
+import { and, eq } from 'drizzle-orm';
+import type { Actions, PageServerLoad } from './$types';
 
 export const load: PageServerLoad = async ({ params, parent }) => {
 	const { org } = await parent();
@@ -87,13 +86,12 @@ export const load: PageServerLoad = async ({ params, parent }) => {
 						finalSql = finalSql.replace(/'DATASET_ID'/g, `'${datasetIds[0]}'`);
 						finalSql = finalSql.replace(/DATASET_ID/g, `'${datasetIds[0]}'`);
 
-						const queryResult = await db.execute(sql.raw(finalSql));
-						const rows = Array.isArray(queryResult) ? queryResult : [];
+						const { rows, columns } = await executeReadOnlySQL(finalSql);
 
 						results[i] = {
 							success: true,
-							data: rows as Record<string, unknown>[],
-							columns: rows.length > 0 ? Object.keys(rows[0]) : [],
+							data: rows,
+							columns,
 							rowCount: rows.length,
 						};
 					} catch (e) {

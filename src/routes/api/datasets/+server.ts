@@ -19,9 +19,10 @@ export const POST: RequestHandler = async ({ request, locals }) => {
 	if (!locals.user) {
 		error(401, 'Unauthorized');
 	}
+	const userId = locals.user.id;
 
 	// Get user's org
-	const orgs = await getUserOrganizations(locals.user.id);
+	const orgs = await getUserOrganizations(userId);
 	if (orgs.length === 0) {
 		error(400, 'No organization found');
 	}
@@ -60,29 +61,33 @@ export const POST: RequestHandler = async ({ request, locals }) => {
 				});
 			}
 
-			const [dataset] = await db
-				.insert(datasets)
-				.values({
-					orgId: org.id,
-					name: metadata.name,
-					fileName: metadata.fileName,
-					rowCount: metadata.rowCount,
-					schema: metadata.schema,
-					uploadedBy: locals.user.id,
-				})
-				.returning();
-
 			const demoRows = await getDemoRows();
-			for (let i = 0; i < demoRows.length; i += BATCH_SIZE) {
-				const batch = demoRows.slice(i, i + BATCH_SIZE);
-				await db.insert(datasetRows).values(
-					batch.map((row, idx) => ({
-						datasetId: dataset.id,
-						data: row,
-						rowIndex: i + idx,
-					})),
-				);
-			}
+			const dataset = await db.transaction(async (tx) => {
+				const [ds] = await tx
+					.insert(datasets)
+					.values({
+						orgId: org.id,
+						name: metadata.name,
+						fileName: metadata.fileName,
+						rowCount: metadata.rowCount,
+						schema: metadata.schema,
+						uploadedBy: userId,
+					})
+					.returning();
+
+				for (let i = 0; i < demoRows.length; i += BATCH_SIZE) {
+					const batch = demoRows.slice(i, i + BATCH_SIZE);
+					await tx.insert(datasetRows).values(
+						batch.map((row, idx) => ({
+							datasetId: ds.id,
+							data: row,
+							rowIndex: i + idx,
+						})),
+					);
+				}
+
+				return ds;
+			});
 
 			return json({
 				id: dataset.id,
@@ -108,7 +113,7 @@ export const POST: RequestHandler = async ({ request, locals }) => {
 					fileName: file.name,
 					rowCount: 0,
 					schema: [],
-					uploadedBy: locals.user.id,
+					uploadedBy: userId,
 				})
 				.returning();
 
@@ -158,30 +163,33 @@ export const POST: RequestHandler = async ({ request, locals }) => {
 		// Infer schema from data
 		const schema = inferSchema(normalizedRows);
 
-		// Insert dataset
-		const [dataset] = await db
-			.insert(datasets)
-			.values({
-				orgId: org.id,
-				name,
-				fileName: file.name,
-				rowCount: normalizedRows.length,
-				schema,
-				uploadedBy: locals.user.id,
-			})
-			.returning();
+		// Insert dataset and rows in a single transaction
+		const dataset = await db.transaction(async (tx) => {
+			const [ds] = await tx
+				.insert(datasets)
+				.values({
+					orgId: org.id,
+					name,
+					fileName: file.name,
+					rowCount: normalizedRows.length,
+					schema,
+					uploadedBy: userId,
+				})
+				.returning();
 
-		// Insert rows in batches
-		for (let i = 0; i < normalizedRows.length; i += BATCH_SIZE) {
-			const batch = normalizedRows.slice(i, i + BATCH_SIZE);
-			await db.insert(datasetRows).values(
-				batch.map((row, idx) => ({
-					datasetId: dataset.id,
-					data: row,
-					rowIndex: i + idx,
-				})),
-			);
-		}
+			for (let i = 0; i < normalizedRows.length; i += BATCH_SIZE) {
+				const batch = normalizedRows.slice(i, i + BATCH_SIZE);
+				await tx.insert(datasetRows).values(
+					batch.map((row, idx) => ({
+						datasetId: ds.id,
+						data: row,
+						rowIndex: i + idx,
+					})),
+				);
+			}
+
+			return ds;
+		});
 
 		return json({
 			id: dataset.id,

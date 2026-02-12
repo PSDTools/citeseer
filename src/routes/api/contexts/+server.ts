@@ -53,8 +53,9 @@ export const POST: RequestHandler = async ({ locals, request }) => {
 	if (!locals.user) {
 		error(401, 'Unauthorized');
 	}
+	const userId = locals.user.id;
 
-	const orgs = await getUserOrganizations(locals.user.id);
+	const orgs = await getUserOrganizations(userId);
 	if (orgs.length === 0) {
 		error(403, 'No organization');
 	}
@@ -74,26 +75,30 @@ export const POST: RequestHandler = async ({ locals, request }) => {
 		error(400, 'Name is required');
 	}
 
-	const [context] = await db
-		.insert(contexts)
-		.values({
-			orgId,
-			name: name.trim(),
-			mode: dataMode,
-			description: description?.trim(),
-			createdBy: locals.user.id,
-		})
-		.returning();
+	// Create context and link datasets in a single transaction
+	const context = await db.transaction(async (tx) => {
+		const [ctx] = await tx
+			.insert(contexts)
+			.values({
+				orgId,
+				name: name.trim(),
+				mode: dataMode,
+				description: description?.trim(),
+				createdBy: userId,
+			})
+			.returning();
 
-	// Add datasets if provided
-	if (datasetIds && datasetIds.length > 0) {
-		await db.insert(contextDatasets).values(
-			datasetIds.map((datasetId) => ({
-				contextId: context.id,
-				datasetId,
-			})),
-		);
-	}
+		if (datasetIds && datasetIds.length > 0) {
+			await tx.insert(contextDatasets).values(
+				datasetIds.map((datasetId) => ({
+					contextId: ctx.id,
+					datasetId,
+				})),
+			);
+		}
+
+		return ctx;
+	});
 
 	if (shouldMirrorLiveToDemoFile) {
 		await mirrorLiveWorkspaceToDemo(orgId);

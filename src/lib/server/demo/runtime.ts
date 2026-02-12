@@ -2,6 +2,15 @@ import { env } from '$env/dynamic/private';
 
 export const isDemoBuild = env.DEMO === 'true';
 
+/**
+ * Module-level demo mode state.
+ *
+ * In single-instance Node.js servers, this is shared across all requests (intentional).
+ * In serverless environments (Vercel, Cloudflare), each isolate gets its own copy,
+ * so setDemoMode() only affects the current instance.
+ *
+ * The DEMO env var controls the initial state; runtime toggling is for live demos.
+ */
 let demoModeEnabled = isDemoBuild;
 
 export function getDemoMode(): boolean {

@@ -52,10 +52,7 @@ export const DELETE: RequestHandler = async ({ params, locals }) => {
 		error(404, 'Dataset not found');
 	}
 
-	// Delete rows first (cascade should handle this, but explicit is safer)
-	await db.delete(datasetRows).where(eq(datasetRows.datasetId, params.id));
-
-	// Delete dataset
+	// Delete dataset (cascade handles row deletion via onDelete: 'cascade')
 	await db.delete(datasets).where(eq(datasets.id, params.id));
 
 	return json({ success: true });

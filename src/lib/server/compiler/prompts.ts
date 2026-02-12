@@ -2,11 +2,7 @@
  * System prompts for the Question Compiler.
  */
 
-import type { BranchContext, FilterValue } from '$lib/types/toon';
-
-function escapeSqlString(value: string): string {
-	return value.replace(/'/g, "''");
-}
+import type { BranchContext } from '$lib/types/toon';
 
 function buildBranchContextPrompt(branchContext?: BranchContext): string {
 	if (!branchContext) return '';

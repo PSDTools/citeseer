@@ -1,8 +1,16 @@
 import { json, error } from '@sveltejs/kit';
 import type { RequestHandler } from './$types';
-import { db, datasets, settings, queries, contextDatasets, contexts } from '$lib/server/db';
+import {
+	db,
+	datasets,
+	settings,
+	queries,
+	contextDatasets,
+	contexts,
+	executeReadOnlySQL,
+} from '$lib/server/db';
 import type { AnalyticalPlan as SchemaAnalyticalPlan } from '$lib/server/db/schema';
-import { eq, sql, inArray, and } from 'drizzle-orm';
+import { eq, inArray, and } from 'drizzle-orm';
 import { getUserOrganizations } from '$lib/server/auth';
 import { createQueryCompiler } from '$lib/server/llm/compiler';
 import { resolveLlmConfig } from '$lib/server/llm/config';
@@ -430,8 +438,24 @@ export const POST: RequestHandler = async ({ request, locals }) => {
 async function executeQuery(sqlQuery: string, datasetId: string): Promise<QueryResult> {
 	const startTime = Date.now();
 
-	// Validate read-only
-	const forbidden = ['INSERT', 'UPDATE', 'DELETE', 'DROP', 'CREATE', 'ALTER', 'TRUNCATE'];
+	// Defense-in-depth: reject obviously dangerous keywords before hitting the DB.
+	// The primary safety net is the READ ONLY transaction in executeReadOnlySQL.
+	const forbidden = [
+		'INSERT',
+		'UPDATE',
+		'DELETE',
+		'DROP',
+		'CREATE',
+		'ALTER',
+		'TRUNCATE',
+		'COPY',
+		'GRANT',
+		'REVOKE',
+		'DO',
+		'SET',
+		'LOAD',
+		'EXECUTE',
+	];
 	const upperSql = sqlQuery.toUpperCase();
 	for (const keyword of forbidden) {
 		if (new RegExp(`\\b${keyword}\\b`).test(upperSql)) {
@@ -453,20 +477,12 @@ async function executeQuery(sqlQuery: string, datasetId: string): Promise<QueryR
 		// Then replace unquoted version
 		finalSql = finalSql.replace(/DATASET_ID/g, `'${datasetId}'`);
 
-		// Execute using raw SQL with a hard timeout so a stuck query does not freeze the UI.
-		const result = await withTimeout(
-			db.execute(sql.raw(finalSql)),
-			SQL_EXECUTION_TIMEOUT_MS,
-			`Query timed out after ${Math.round(SQL_EXECUTION_TIMEOUT_MS / 1000)}s`,
-		);
-
-		// The result from postgres-js is the rows array directly
-		const rows = Array.isArray(result) ? result : [];
-		const columns = rows.length > 0 ? Object.keys(rows[0]) : [];
+		// Execute inside a READ ONLY transaction with server-side statement timeout.
+		const { rows, columns } = await executeReadOnlySQL(finalSql, SQL_EXECUTION_TIMEOUT_MS);
 
 		return {
 			success: true,
-			data: rows as Record<string, unknown>[],
+			data: rows,
 			columns,
 			rowCount: rows.length,
 			executionMs: Date.now() - startTime,
@@ -536,19 +552,4 @@ function buildEmergencyDemoResponse(question: string): {
 			errorExplanation: null,
 		},
 	};
-}
-
-async function withTimeout<T>(promise: Promise<T>, ms: number, timeoutMessage: string): Promise<T> {
-	let timeoutId: ReturnType<typeof setTimeout> | undefined;
-	const timeoutPromise = new Promise<never>((_, reject) => {
-		timeoutId = setTimeout(() => reject(new Error(timeoutMessage)), ms);
-	});
-
-	try {
-		return await Promise.race([promise, timeoutPromise]);
-	} finally {
-		if (timeoutId) {
-			clearTimeout(timeoutId);
-		}
-	}
 }
