@@ -1,16 +1,16 @@
-import { json, error } from '@sveltejs/kit';
-import type { RequestHandler } from './$types';
-import { db, dashboards, contexts } from '$lib/server/db';
 import { getUserOrganizations } from '$lib/server/auth';
-import { eq, desc, and } from 'drizzle-orm';
+import { contexts, dashboards, db } from '$lib/server/db';
 import type {
 	AnalyticalPlan,
-	PanelSpec,
 	DashboardNodeContext,
+	PanelSpec,
 	QueryResult,
 } from '$lib/server/db/schema';
-import { isDemoActive, isDemoBuild, getDataMode } from '$lib/server/demo/runtime';
 import { mirrorLiveWorkspaceToDemo } from '$lib/server/demo/mirror';
+import { getDataMode, isDemoActive, isDemoBuild } from '$lib/server/demo/runtime';
+import { error, json } from '@sveltejs/kit';
+import { and, desc, eq } from 'drizzle-orm';
+import type { RequestHandler } from './$types';
 
 const DEMO_SIMULATED_MIN_MS = 1_200;
 const DEMO_SIMULATED_JITTER_MS = 1_200;
@@ -59,7 +59,12 @@ export const POST: RequestHandler = async ({ locals, request }) => {
 	const orgId = orgs[0].id;
 	const dataMode = getDataMode();
 
-	const body = await request.json();
+	let body;
+	try {
+		body = await request.json();
+	} catch {
+		error(400, 'Invalid JSON');
+	}
 	const {
 		name,
 		question,

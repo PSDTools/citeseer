@@ -1,35 +1,36 @@
 <script lang="ts">
-	import { invalidateAll, goto } from '$app/navigation';
+	import { goto, invalidateAll } from '$app/navigation';
 	import { page } from '$app/state';
-	import ChartPanel from '$lib/components/viz/ChartPanel.svelte';
-	import BranchMenu from '$lib/components/viz/BranchMenu.svelte';
-	import ExplorationGraph, { type GraphNode } from '$lib/components/viz/ExplorationGraph.svelte';
-	import Modal from '$lib/components/ui/Modal.svelte';
 	import LogoSpinner from '$lib/components/ui/LogoSpinner.svelte';
-	import type { PageData } from './$types';
+	import Modal from '$lib/components/ui/Modal.svelte';
+	import BranchMenu from '$lib/components/viz/BranchMenu.svelte';
+	import ChartPanel from '$lib/components/viz/ChartPanel.svelte';
+	import ExplorationGraph, { type GraphNode } from '$lib/components/viz/ExplorationGraph.svelte';
 	import type {
 		AnalyticalPlan,
-		QueryResult,
 		BranchContext,
 		ChartSelectDetail,
+		QueryResult,
 	} from '$lib/types/toon';
 	import {
-		ChevronLeft,
-		Pencil,
-		Trash2,
-		ArrowUp,
 		ArrowDown,
-		X,
-		Plus,
 		ArrowRight,
-		TriangleAlert,
+		ArrowUp,
+		CheckCircle,
+		ChevronLeft,
+		ChevronRight,
+		CircleHelp,
 		Lightbulb,
+		Pencil,
+		Plus,
 		RefreshCw,
 		ShieldCheck,
-		CircleHelp,
-		ChevronRight,
-		CheckCircle,
+		Trash2,
+		TriangleAlert,
+		X,
 	} from '@lucide/svelte';
+	import { onDestroy } from 'svelte';
+	import type { PageData } from './$types';
 
 	let { data }: { data: PageData } = $props();
 
@@ -175,6 +176,12 @@
 
 	// Advance loading steps on a timer
 	let loadingInterval: ReturnType<typeof setInterval> | null = null;
+
+	onDestroy(() => {
+		if (loadingInterval) {
+			clearInterval(loadingInterval);
+		}
+	});
 
 	function startLoadingSteps() {
 		loadingStep = 0;

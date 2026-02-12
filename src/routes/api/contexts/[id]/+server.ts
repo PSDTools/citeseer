@@ -1,10 +1,10 @@
-import { json, error } from '@sveltejs/kit';
-import type { RequestHandler } from './$types';
-import { db, contexts, contextDatasets, datasets } from '$lib/server/db';
 import { getUserOrganizations } from '$lib/server/auth';
-import { eq, and } from 'drizzle-orm';
-import { getDataMode, isDemoActive, isDemoBuild } from '$lib/server/demo/runtime';
+import { contextDatasets, contexts, datasets, db } from '$lib/server/db';
 import { mirrorLiveWorkspaceToDemo } from '$lib/server/demo/mirror';
+import { getDataMode, isDemoActive, isDemoBuild } from '$lib/server/demo/runtime';
+import { error, json } from '@sveltejs/kit';
+import { and, eq } from 'drizzle-orm';
+import type { RequestHandler } from './$types';
 
 // GET - Get a single context with its datasets
 export const GET: RequestHandler = async ({ locals, params }) => {
@@ -94,7 +94,12 @@ export const PATCH: RequestHandler = async ({ locals, params, request }) => {
 	const dataMode = getDataMode();
 	const shouldMirrorLiveToDemoFile = isDemoBuild && !isDemoActive();
 
-	const body = await request.json();
+	let body;
+	try {
+		body = await request.json();
+	} catch {
+		error(400, 'Invalid JSON');
+	}
 	const { name, description } = body as { name?: string; description?: string };
 
 	const [updated] = await db

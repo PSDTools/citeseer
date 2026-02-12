@@ -1,28 +1,28 @@
-import { json, error } from '@sveltejs/kit';
-import type { RequestHandler } from './$types';
+import { getUserOrganizations } from '$lib/server/auth';
 import {
-	db,
-	datasets,
-	settings,
-	queries,
 	contextDatasets,
 	contexts,
+	datasets,
+	db,
 	executeReadOnlySQL,
+	queries,
+	settings,
 } from '$lib/server/db';
 import type { AnalyticalPlan as SchemaAnalyticalPlan } from '$lib/server/db/schema';
-import { eq, inArray, and } from 'drizzle-orm';
-import { getUserOrganizations } from '$lib/server/auth';
+import { matchDemoResponse, recordLiveDemoPattern } from '$lib/server/demo/config';
+import { getDataMode, isDemoActive, isDemoBuild } from '$lib/server/demo/runtime';
 import { createQueryCompiler } from '$lib/server/llm/compiler';
 import { resolveLlmConfig } from '$lib/server/llm/config';
-import { matchDemoResponse, recordLiveDemoPattern } from '$lib/server/demo/config';
-import { isDemoActive, isDemoBuild, getDataMode } from '$lib/server/demo/runtime';
 import type {
-	DatasetProfile,
-	ColumnProfile,
 	AnalyticalPlan,
-	QueryResult,
 	BranchContext,
+	ColumnProfile,
+	DatasetProfile,
+	QueryResult,
 } from '$lib/types/toon';
+import { error, json } from '@sveltejs/kit';
+import { and, eq, inArray } from 'drizzle-orm';
+import type { RequestHandler } from './$types';
 
 const SQL_EXECUTION_TIMEOUT_MS = 20_000;
 const DEMO_SIMULATED_MIN_MS = 5_200;
@@ -39,7 +39,12 @@ export const POST: RequestHandler = async ({ request, locals }) => {
 	}
 	const org = orgs[0];
 
-	const body = await request.json();
+	let body;
+	try {
+		body = await request.json();
+	} catch {
+		error(400, 'Invalid JSON');
+	}
 	const { question, datasetIds, contextId, branchContext } = body as {
 		question: string;
 		datasetIds?: string[];
@@ -276,23 +281,24 @@ export const POST: RequestHandler = async ({ request, locals }) => {
 			}
 		}
 
-		// Execute panel SQLs
+		// Execute panel SQLs in parallel
 		if (plan.viz) {
-			for (let i = 0; i < plan.viz.length; i++) {
-				const panel = plan.viz[i];
-				const panelSql = panel.sql || plan.sql;
-				if (panelSql) {
-					const { result, finalSql, wasFixed } = await executeWithRetry(
-						panelSql,
-						targetDatasets[0].id,
-						`panel ${i}: ${panel.title}`,
-					);
-					results.set(i, result);
-					if (wasFixed && panel.sql) {
-						panel.sql = finalSql; // Update panel with fixed SQL
+			await Promise.all(
+				plan.viz.map(async (panel, i) => {
+					const panelSql = panel.sql || plan.sql;
+					if (panelSql) {
+						const { result, finalSql, wasFixed } = await executeWithRetry(
+							panelSql,
+							targetDatasets[0].id,
+							`panel ${i}: ${panel.title}`,
+						);
+						results.set(i, result);
+						if (wasFixed && panel.sql) {
+							panel.sql = finalSql; // Update panel with fixed SQL
+						}
 					}
-				}
-			}
+				}),
+			);
 		}
 
 		const executionMs = Date.now() - startTime;

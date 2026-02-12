@@ -1,11 +1,11 @@
-import { json, error } from '@sveltejs/kit';
-import type { RequestHandler } from './$types';
-import { db, dashboards } from '$lib/server/db';
 import { getUserOrganizations } from '$lib/server/auth';
-import { eq, and } from 'drizzle-orm';
+import { dashboards, db } from '$lib/server/db';
 import type { AnalyticalPlan, PanelSpec, QueryResult } from '$lib/server/db/schema';
-import { getDataMode, isDemoActive, isDemoBuild } from '$lib/server/demo/runtime';
 import { mirrorLiveWorkspaceToDemo } from '$lib/server/demo/mirror';
+import { getDataMode, isDemoActive, isDemoBuild } from '$lib/server/demo/runtime';
+import { error, json } from '@sveltejs/kit';
+import { and, eq, inArray } from 'drizzle-orm';
+import type { RequestHandler } from './$types';
 
 // GET - Get a single dashboard
 export const GET: RequestHandler = async ({ locals, params }) => {
@@ -62,7 +62,12 @@ export const PATCH: RequestHandler = async ({ params, locals, request }) => {
 		error(404, 'Dashboard not found');
 	}
 
-	const body = await request.json();
+	let body;
+	try {
+		body = await request.json();
+	} catch {
+		error(400, 'Invalid JSON');
+	}
 	const { name, description, plan, panels, results } = body as {
 		name?: string;
 		description?: string;
@@ -94,7 +99,7 @@ export const PATCH: RequestHandler = async ({ params, locals, request }) => {
 	return json({ dashboard });
 };
 
-// DELETE - Delete a dashboard
+// DELETE - Delete a dashboard and all its children (cascade)
 export const DELETE: RequestHandler = async ({ locals, params }) => {
 	if (!locals.user) {
 		error(401, 'Unauthorized');
@@ -109,20 +114,55 @@ export const DELETE: RequestHandler = async ({ locals, params }) => {
 	const dataMode = getDataMode();
 	const shouldMirrorLiveToDemoFile = isDemoBuild && !isDemoActive();
 
-	const [deleted] = await db
-		.delete(dashboards)
+	// Verify dashboard exists and belongs to org
+	const [dashboard] = await db
+		.select({ id: dashboards.id })
+		.from(dashboards)
 		.where(
 			and(eq(dashboards.id, params.id), eq(dashboards.orgId, orgId), eq(dashboards.mode, dataMode)),
-		)
-		.returning();
+		);
 
-	if (!deleted) {
+	if (!dashboard) {
 		error(404, 'Dashboard not found');
 	}
+
+	// Recursively collect all child dashboard IDs
+	const dashboardsToDelete = new Set<string>([params.id]);
+	let changed = true;
+
+	while (changed) {
+		changed = false;
+		const children = await db
+			.select({ id: dashboards.id, parentDashboardId: dashboards.parentDashboardId })
+			.from(dashboards)
+			.where(and(eq(dashboards.orgId, orgId), eq(dashboards.mode, dataMode)));
+
+		for (const child of children) {
+			if (
+				child.parentDashboardId &&
+				dashboardsToDelete.has(child.parentDashboardId) &&
+				!dashboardsToDelete.has(child.id)
+			) {
+				dashboardsToDelete.add(child.id);
+				changed = true;
+			}
+		}
+	}
+
+	// Delete all collected dashboards
+	await db
+		.delete(dashboards)
+		.where(
+			and(
+				inArray(dashboards.id, Array.from(dashboardsToDelete)),
+				eq(dashboards.orgId, orgId),
+				eq(dashboards.mode, dataMode),
+			),
+		);
 
 	if (shouldMirrorLiveToDemoFile) {
 		await mirrorLiveWorkspaceToDemo(orgId);
 	}
 
-	return json({ success: true });
+	return json({ success: true, deletedCount: dashboardsToDelete.size });
 };

@@ -1,12 +1,12 @@
-import { json, error } from '@sveltejs/kit';
-import type { RequestHandler } from './$types';
-import { db, datasets, settings } from '$lib/server/db';
-import { eq, inArray } from 'drizzle-orm';
 import { getUserOrganizations } from '$lib/server/auth';
+import { datasets, db, settings } from '$lib/server/db';
 import { matchDemoResponse, recordLiveDemoPattern } from '$lib/server/demo/config';
 import { isDemoActive, isDemoBuild } from '$lib/server/demo/runtime';
 import { resolveLlmConfig } from '$lib/server/llm/config';
 import { generateTextWithLlm } from '$lib/server/llm/text';
+import { error, json } from '@sveltejs/kit';
+import { and, eq, inArray } from 'drizzle-orm';
+import type { RequestHandler } from './$types';
 
 export const POST: RequestHandler = async ({ request, locals }) => {
 	if (!locals.user) {
@@ -19,7 +19,12 @@ export const POST: RequestHandler = async ({ request, locals }) => {
 	}
 	const org = orgs[0];
 
-	const body = await request.json();
+	let body;
+	try {
+		body = await request.json();
+	} catch {
+		error(400, 'Invalid JSON');
+	}
 	const { datasetIds } = body as { datasetIds: string[] };
 	const demoActive = isDemoActive();
 	const shouldCaptureLiveToDemoFile = isDemoBuild && !demoActive;
@@ -32,13 +37,13 @@ export const POST: RequestHandler = async ({ request, locals }) => {
 		error(400, 'LLM API settings not configured');
 	}
 
-	// Get dataset names
+	// Get dataset names - with org ownership check
 	let datasetNames: string[] = [];
 	if (datasetIds?.length > 0) {
 		const selectedDatasets = await db
 			.select({ name: datasets.name })
 			.from(datasets)
-			.where(inArray(datasets.id, datasetIds));
+			.where(and(inArray(datasets.id, datasetIds), eq(datasets.orgId, org.id)));
 		datasetNames = selectedDatasets.map((d) => d.name);
 	}
 

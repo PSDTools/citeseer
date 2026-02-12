@@ -1,10 +1,10 @@
-import { json, error } from '@sveltejs/kit';
-import type { RequestHandler } from './$types';
-import { db, contexts, contextDatasets, datasets } from '$lib/server/db';
 import { getUserOrganizations } from '$lib/server/auth';
-import { eq, desc, and } from 'drizzle-orm';
-import { isDemoActive, isDemoBuild, getDataMode } from '$lib/server/demo/runtime';
+import { contextDatasets, contexts, db } from '$lib/server/db';
 import { mirrorLiveWorkspaceToDemo } from '$lib/server/demo/mirror';
+import { getDataMode, isDemoActive, isDemoBuild } from '$lib/server/demo/runtime';
+import { error, json } from '@sveltejs/kit';
+import { and, desc, eq } from 'drizzle-orm';
+import type { RequestHandler } from './$types';
 
 // GET - List all contexts for the org
 export const GET: RequestHandler = async ({ locals }) => {
@@ -63,7 +63,12 @@ export const POST: RequestHandler = async ({ locals, request }) => {
 	const orgId = orgs[0].id;
 	const dataMode = getDataMode();
 
-	const body = await request.json();
+	let body;
+	try {
+		body = await request.json();
+	} catch {
+		error(400, 'Invalid JSON');
+	}
 	const { name, description, datasetIds } = body as {
 		name: string;
 		description?: string;

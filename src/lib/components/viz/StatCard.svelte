@@ -36,7 +36,7 @@
 		return { value: parsed, suffix };
 	}
 
-	const formattedValue = $derived(() => {
+	const formattedValue = $derived.by(() => {
 		if (typeof value === 'number') {
 			return formatNumber(value);
 		}
@@ -55,7 +55,7 @@
 		class="max-w-full overflow-hidden text-3xl leading-tight font-bold break-words text-white sm:text-4xl"
 		title={String(value)}
 	>
-		{formattedValue()}
+		{formattedValue}
 		{#if unit}
 			<span class="text-lg text-white/40">{unit}</span>
 		{/if}

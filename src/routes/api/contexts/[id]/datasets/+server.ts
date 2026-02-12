@@ -1,10 +1,10 @@
-import { json, error } from '@sveltejs/kit';
-import type { RequestHandler } from './$types';
-import { db, contexts, contextDatasets, datasets } from '$lib/server/db';
 import { getUserOrganizations } from '$lib/server/auth';
-import { eq, and } from 'drizzle-orm';
-import { getDataMode, isDemoActive, isDemoBuild } from '$lib/server/demo/runtime';
+import { contextDatasets, contexts, datasets, db } from '$lib/server/db';
 import { mirrorLiveWorkspaceToDemo } from '$lib/server/demo/mirror';
+import { getDataMode, isDemoActive, isDemoBuild } from '$lib/server/demo/runtime';
+import { error, json } from '@sveltejs/kit';
+import { and, eq } from 'drizzle-orm';
+import type { RequestHandler } from './$types';
 
 // POST - Add datasets to a context
 export const POST: RequestHandler = async ({ locals, params, request }) => {
@@ -31,7 +31,12 @@ export const POST: RequestHandler = async ({ locals, params, request }) => {
 		error(404, 'Context not found');
 	}
 
-	const body = await request.json();
+	let body;
+	try {
+		body = await request.json();
+	} catch {
+		error(400, 'Invalid JSON');
+	}
 	const { datasetIds } = body as { datasetIds: string[] };
 
 	if (!datasetIds || datasetIds.length === 0) {
@@ -97,7 +102,12 @@ export const DELETE: RequestHandler = async ({ locals, params, request }) => {
 		error(404, 'Context not found');
 	}
 
-	const body = await request.json();
+	let body;
+	try {
+		body = await request.json();
+	} catch {
+		error(400, 'Invalid JSON');
+	}
 	const { datasetId } = body as { datasetId: string };
 
 	if (!datasetId) {

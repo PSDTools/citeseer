@@ -1,10 +1,10 @@
-import { redirect } from '@sveltejs/kit';
-import type { LayoutServerLoad } from './$types';
 import { getUserOrganizations } from '$lib/server/auth';
-import { db, datasets, dashboards, contexts } from '$lib/server/db';
-import { eq, desc, and } from 'drizzle-orm';
-import { getDataMode } from '$lib/server/demo/runtime';
+import { contexts, dashboards, datasets, db } from '$lib/server/db';
 import { redactEmailForDemo } from '$lib/server/demo/redaction';
+import { getDataMode } from '$lib/server/demo/runtime';
+import { redirect } from '@sveltejs/kit';
+import { and, desc, eq } from 'drizzle-orm';
+import type { LayoutServerLoad } from './$types';
 
 export const load: LayoutServerLoad = async ({ locals }) => {
 	// Redirect to login if not authenticated
@@ -34,33 +34,43 @@ export const load: LayoutServerLoad = async ({ locals }) => {
 		.from(datasets)
 		.where(eq(datasets.orgId, currentOrg.id));
 
-	// Load contexts with their dashboards for sidebar
+	// Load contexts with their dashboards for sidebar (single query with join)
 	const orgContexts = await db
 		.select({
 			id: contexts.id,
 			name: contexts.name,
+			dashboardId: dashboards.id,
+			dashboardName: dashboards.name,
 		})
 		.from(contexts)
+		.leftJoin(dashboards, and(eq(dashboards.contextId, contexts.id), eq(dashboards.mode, dataMode)))
 		.where(and(eq(contexts.orgId, currentOrg.id), eq(contexts.mode, dataMode)))
-		.orderBy(desc(contexts.createdAt));
+		.orderBy(desc(contexts.createdAt), desc(dashboards.createdAt));
 
-	// Get dashboards per context
-	const contextsWithDashboards = await Promise.all(
-		orgContexts.map(async (ctx) => {
-			const ctxDashboards = await db
-				.select({
-					id: dashboards.id,
-					name: dashboards.name,
-				})
-				.from(dashboards)
-				.where(and(eq(dashboards.contextId, ctx.id), eq(dashboards.mode, dataMode)))
-				.orderBy(desc(dashboards.createdAt));
-			return {
-				...ctx,
-				dashboards: ctxDashboards,
-			};
-		}),
-	);
+	// Group dashboards by context
+	const contextMap = new Map<
+		string,
+		{ id: string; name: string; dashboards: { id: string; name: string }[] }
+	>();
+
+	for (const row of orgContexts) {
+		if (!contextMap.has(row.id)) {
+			contextMap.set(row.id, {
+				id: row.id,
+				name: row.name,
+				dashboards: [],
+			});
+		}
+
+		if (row.dashboardId && row.dashboardName) {
+			contextMap.get(row.id)!.dashboards.push({
+				id: row.dashboardId,
+				name: row.dashboardName,
+			});
+		}
+	}
+
+	const contextsWithDashboards = Array.from(contextMap.values());
 
 	return {
 		user: {
