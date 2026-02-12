@@ -9,7 +9,9 @@ register('import-in-the-middle/hook.mjs', import.meta.url, registerOptions);
 
 const sdk = new NodeSDK({
 	serviceName: 'test-sveltekit-tracing',
-	traceExporter: new OTLPTraceExporter(),
+	traceExporter: new OTLPTraceExporter({
+		url: process.env.OTEL_EXPORTER_OTLP_TRACES_ENDPOINT,
+	}),
 	instrumentations: [getNodeAutoInstrumentations()],
 });
 
