@@ -3,7 +3,7 @@ import { contextDatasets, contexts, db } from '$lib/server/db';
 import { mirrorLiveWorkspaceToDemo } from '$lib/server/demo/mirror';
 import { getDataMode, isDemoActive, isDemoBuild } from '$lib/server/demo/runtime';
 import { error, json } from '@sveltejs/kit';
-import { and, desc, eq } from 'drizzle-orm';
+import { and, desc, eq, inArray, sql } from 'drizzle-orm';
 import type { RequestHandler } from './$types';
 
 // GET - List all contexts for the org
@@ -31,19 +31,25 @@ export const GET: RequestHandler = async ({ locals }) => {
 		.where(and(eq(contexts.orgId, orgId), eq(contexts.mode, dataMode)))
 		.orderBy(desc(contexts.createdAt));
 
-	// Get dataset counts for each context
-	const contextsWithCounts = await Promise.all(
-		orgContexts.map(async (ctx) => {
-			const datasetLinks = await db
-				.select({ datasetId: contextDatasets.datasetId })
-				.from(contextDatasets)
-				.where(eq(contextDatasets.contextId, ctx.id));
-			return {
-				...ctx,
-				datasetCount: datasetLinks.length,
-			};
-		}),
-	);
+	// Get dataset counts per context in a single query
+	const ctxIds = orgContexts.map((c) => c.id);
+	const countRows =
+		ctxIds.length > 0
+			? await db
+					.select({
+						contextId: contextDatasets.contextId,
+						count: sql<number>`count(*)::int`,
+					})
+					.from(contextDatasets)
+					.where(inArray(contextDatasets.contextId, ctxIds))
+					.groupBy(contextDatasets.contextId)
+			: [];
+
+	const countMap = new Map(countRows.map((r) => [r.contextId, r.count]));
+	const contextsWithCounts = orgContexts.map((ctx) => ({
+		...ctx,
+		datasetCount: countMap.get(ctx.id) ?? 0,
+	}));
 
 	return json({ contexts: contextsWithCounts });
 };

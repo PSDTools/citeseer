@@ -91,7 +91,10 @@ export const POST: RequestHandler = async ({ request, locals }) => {
 		targetDatasets = await db.select().from(datasets).where(inArray(datasets.id, ctxDatasetIds));
 	} else if (datasetIds?.length) {
 		// Use specific dataset IDs
-		targetDatasets = await db.select().from(datasets).where(inArray(datasets.id, datasetIds));
+		targetDatasets = await db
+			.select()
+			.from(datasets)
+			.where(and(inArray(datasets.id, datasetIds), eq(datasets.orgId, org.id)));
 	} else {
 		// Use all org datasets (fallback for dashboard)
 		targetDatasets = await db.select().from(datasets).where(eq(datasets.orgId, org.id));
